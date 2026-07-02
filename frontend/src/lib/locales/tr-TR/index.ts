@@ -36,7 +36,7 @@ export const trTR = {
     podcast: "Podcast",
     quickActions: "Hızlı eylemler",
     quickActionsDesc: "Gezinme, arama, sor, tema",
-    appName: "Open Notebook",
+    appName: "Vault",
     add: "Ekle",
     remove: "Kaldır",
     confirm: "Onayla",
@@ -195,7 +195,7 @@ export const trTR = {
     localDevLabel: "Yerel geliştirme için",
   },
   auth: {
-    loginTitle: "Open Notebook",
+    loginTitle: "Vault",
     loginDesc: "Uygulamaya erişmek için şifrenizi girin",
     passwordPlaceholder: "Şifre",
     signingIn: "Giriş yapılıyor...",

@@ -13,8 +13,8 @@ import { I18nProvider } from "@/components/providers/I18nProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Open Notebook",
-  description: "Privacy-focused research and knowledge management",
+  title: "Vault",
+  description: "Vault Knowledge Engine",
 };
 
 export default function RootLayout({

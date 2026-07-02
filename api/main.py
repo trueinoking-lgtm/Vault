@@ -155,8 +155,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Open Notebook API",
-    description="API for Open Notebook - Research Assistant",
+    title="Vault API",
+    description="API for Vault - Knowledge Engine",
     lifespan=lifespan,
 )
 

@@ -36,7 +36,7 @@ export const frFR = {
     podcast: "Podcast",
     quickActions: "Actions rapides",
     quickActionsDesc: "Navigation, recherche, poser une question, thème",
-    appName: "Open Notebook",
+    appName: "Vault",
     add: "Ajouter",
     remove: "Retirer",
     confirm: "Confirmer",
@@ -195,7 +195,7 @@ export const frFR = {
     localDevLabel: "Pour le développement local",
   },
   auth: {
-    loginTitle: "Open Notebook",
+    loginTitle: "Vault",
     loginDesc: "Entrez votre mot de passe pour accéder à l'application",
     passwordPlaceholder: "Mot de passe",
     signingIn: "Connexion...",

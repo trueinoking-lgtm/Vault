@@ -39,7 +39,7 @@ export const deDE = {
     podcast: "Podcast",
     quickActions: "Schnellaktionen",
     quickActionsDesc: "Navigation, Suche, Fragen, Design",
-    appName: "Open Notebook",
+    appName: "Vault",
     add: "Hinzufügen",
     remove: "Entfernen",
     confirm: "Bestätigen",
@@ -198,7 +198,7 @@ export const deDE = {
     localDevLabel: "Für lokale Entwicklung",
   },
   auth: {
-    loginTitle: "Open Notebook",
+    loginTitle: "Vault",
     loginDesc: "Gib dein Passwort ein, um auf die Anwendung zuzugreifen",
     passwordPlaceholder: "Passwort",
     signingIn: "Anmelden...",

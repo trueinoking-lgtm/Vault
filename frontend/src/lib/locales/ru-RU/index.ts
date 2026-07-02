@@ -36,7 +36,7 @@ export const ruRU = {
     podcast: "Подкаст",
     quickActions: "Быстрые действия",
     quickActionsDesc: "Навигация, поиск, запрос, тема",
-    appName: "Open Notebook",
+    appName: "Vault",
     add: "Добавить",
     remove: "Удалить",
     confirm: "Подтвердить",
@@ -195,7 +195,7 @@ export const ruRU = {
     localDevLabel: "Для локальной разработки",
   },
   auth: {
-    loginTitle: "Open Notebook",
+    loginTitle: "Vault",
     loginDesc: "Введите пароль для доступа к приложению",
     passwordPlaceholder: "Пароль",
     signingIn: "Вход...",

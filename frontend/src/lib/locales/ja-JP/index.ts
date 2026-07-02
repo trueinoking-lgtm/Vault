@@ -36,7 +36,7 @@ export const jaJP = {
     podcast: "ポッドキャスト",
     quickActions: "クイックアクション",
     quickActionsDesc: "ナビゲーション、検索、質問、テーマ",
-    appName: "Open Notebook",
+    appName: "Vault",
     add: "追加",
     remove: "削除",
     confirm: "確認",
@@ -195,7 +195,7 @@ export const jaJP = {
     localDevLabel: "ローカル開発の場合",
   },
   auth: {
-    loginTitle: "Open Notebook",
+    loginTitle: "Vault",
     loginDesc: "パスワードを入力してアプリケーションにアクセス",
     passwordPlaceholder: "パスワード",
     signingIn: "サインイン中...",
