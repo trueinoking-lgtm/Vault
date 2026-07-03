@@ -26,6 +26,39 @@ import { useModalManager } from '@/lib/hooks/use-modal-manager'
 import { toast } from 'sonner'
 import { useTranslation } from '@/lib/hooks/use-translation'
 
+function looksLikeReviewQuestionBlock(content: string): boolean {
+  const normalized = content.toLowerCase()
+  if (
+    normalized.includes('quick recall') ||
+    normalized.includes('short-answer') ||
+    normalized.includes('synthesis/application') ||
+    normalized.includes('reply with your answers')
+  ) {
+    return true
+  }
+
+  return /(^|\n)\s*1\.\s+/m.test(content) && /(^|\n)\s*2\.\s+/m.test(content)
+}
+
+function buildAnswerCheckPrompt(questions: string, answers: string): string {
+  return [
+    'You are checking a user\'s answers to a Vault review session.',
+    'Original questions:',
+    questions,
+    'User answers:',
+    answers,
+    'Grade the answers.',
+    'For each answer:',
+    'mark it as Correct, Partial, or Incorrect',
+    'briefly explain why',
+    'reveal the correct answer',
+    'Then summarize:',
+    'weak areas',
+    'what to review next',
+    'Use a clear numbered structure.'
+  ].join('\n\n')
+}
+
 interface NotebookContextStats {
   sourcesInsights: number
   sourcesFull: number
@@ -108,6 +141,30 @@ export function ChatPanel({
       onSendMessage(input.trim(), modelOverride)
       setInput('')
     }
+  }
+
+  const lastMessage = messages[messages.length - 1]
+  const latestHumanMessage = lastMessage?.type === 'human' ? lastMessage : null
+  const latestHumanPreviousMessage = latestHumanMessage && messages.length >= 2
+    ? messages[messages.length - 2]
+    : null
+  const canCheckLatestAnswers = Boolean(
+    latestHumanMessage &&
+    latestHumanPreviousMessage?.type === 'ai' &&
+    looksLikeReviewQuestionBlock(latestHumanPreviousMessage.content)
+  )
+
+  const handleCheckAnswers = () => {
+    if (!latestHumanMessage || !latestHumanPreviousMessage || latestHumanPreviousMessage.type !== 'ai' || isStreaming) {
+      return
+    }
+
+    const gradingPrompt = buildAnswerCheckPrompt(
+      latestHumanPreviousMessage.content,
+      latestHumanMessage.content
+    )
+
+    onSendMessage(gradingPrompt, modelOverride)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -214,6 +271,22 @@ export function ChatPanel({
                         notebookId={notebookId}
                       />
                     )}
+                    {message.type === 'human' &&
+                      latestHumanMessage &&
+                      message.id === latestHumanMessage.id &&
+                      canCheckLatestAnswers && (
+                        <div className="flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCheckAnswers}
+                            disabled={isStreaming}
+                            className="h-7 px-2"
+                          >
+                            Check my answers
+                          </Button>
+                        </div>
+                      )}
                   </div>
                   {message.type === 'human' && (
                     <div className="flex-shrink-0">
