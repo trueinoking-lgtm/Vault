@@ -41,6 +41,39 @@ import type { ContextMode, ContextSelections, NoteContextMode } from '@/lib/type
 import type { SourceResponse } from '@/lib/types/api'
 export type { ContextMode, ContextSelections, NoteContextMode }
 
+// ── polling helper for Phase 5 second commit ──────────────────────
+
+const POLL_INTERVAL_MS = 1500
+const MAX_POLL_DURATION_MS = 8000
+
+/**
+ * Polls GET /sources/{id} for a non-null full_text up to
+ * MAX_POLL_DURATION_MS.  Returns the full_text when it becomes
+ * available, or undefined on timeout so the caller falls back to
+ * empty-section scaffolds (Phase 4/5 behaviour).
+ */
+async function waitForSourceText(sourceId: string): Promise<string | undefined> {
+  const deadline = Date.now() + MAX_POLL_DURATION_MS
+
+  while (Date.now() < deadline) {
+    try {
+      const detail = await sourcesApi.get(sourceId)
+      if (detail.full_text) {
+        return detail.full_text
+      }
+    } catch {
+      // Transient network error — keep polling
+    }
+
+    const remaining = deadline - Date.now()
+    if (remaining <= 0) break
+
+    await new Promise<void>((resolve) => setTimeout(resolve, Math.min(POLL_INTERVAL_MS, remaining)))
+  }
+
+  return undefined
+}
+
 export default function NotebookPage() {
   const { t } = useTranslation()
   const params = useParams()
@@ -159,20 +192,11 @@ export default function NotebookPage() {
 
     setIsPreparingDraft(true)
 
-    // Best-effort: try to fetch full source text so template builders can
-    // prefill section headings with actual excerpts from the material.
-    // Falls back gracefully when the source hasn't finished processing yet
-    // or the network request fails — the builder receives undefined and
-    // produces the same empty-section scaffold as Phase 4.
-    let sourceText: string | undefined
-    try {
-      const detail = await sourcesApi.get(pendingLeafSource.id)
-      if (detail.full_text) {
-        sourceText = detail.full_text
-      }
-    } catch {
-      // Silently fall back — source may still be processing.
-    }
+    // Poll briefly for source full_text — gives async processing a chance
+    // to finish so template builders can prefill sections with actual
+    // excerpts from the material.  Falls back cleanly when processing
+    // hasn't completed within the timeout window.
+    const sourceText = await waitForSourceText(pendingLeafSource.id)
 
     const template = getLeafTemplateById(templateId)
     setLeafDraft(template.buildDraft(pendingLeafSource, sourceText))
