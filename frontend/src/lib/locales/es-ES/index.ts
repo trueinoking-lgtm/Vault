@@ -974,5 +974,10 @@ export const esES = {
     weakSpotsCount: "{count} weak spot(s)",
     entriesCount: "{count} entries",
     lastUpdated: "Updated {time}",
+    continueStudying: "Continue Studying",
+    continueStudyingDesc: "Pick up where you left off",
+    noLibrariesToStudy: "No libraries yet. Create one to start studying.",
+    continue: "Continue",
+    materialsCount: "{count} material(s)",
   },
 }

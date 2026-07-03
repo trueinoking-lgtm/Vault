@@ -16,6 +16,11 @@ const LearningPanel = dynamic(
   { ssr: false }
 )
 
+const ContinueStudying = dynamic(
+  () => import('@/components/vault/ContinueStudying'),
+  { ssr: false }
+)
+
 const quickActions = [
   { icon: FileText, titleKey: 'vault.addMaterial', descKey: 'vault.addMaterialDesc', href: '/sources' },
   { icon: BookOpen, titleKey: 'vault.createLeaf', descKey: 'vault.createLeafDesc', href: '/sources' },
@@ -68,6 +73,9 @@ export default function VaultPage() {
 
         {/* Learning Panel */}
         <LearningPanel />
+
+        {/* Continue Studying */}
+        <ContinueStudying />
       </div>
     </AppShell>
   )
