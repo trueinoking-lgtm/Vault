@@ -8,9 +8,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Plus, StickyNote, Bot, User, MoreVertical, Trash2, ListChecks, ChevronDown, GraduationCap } from 'lucide-react'
+import { Plus, StickyNote, Bot, User, MoreVertical, Trash2, ListChecks, ChevronDown, GraduationCap, BookOpen, HelpCircle } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Badge } from '@/components/ui/badge'
@@ -33,7 +34,7 @@ interface NotesColumnProps {
   contextSelections?: Record<string, NoteContextMode>
   onContextModeChange?: (noteId: string, mode: NoteContextMode) => void
   onBulkContextModeChange?: (action: NoteContextDefault) => void
-  onTeachLeaf?: (noteId: string) => void
+  onLeafAction?: (noteId: string, action: 'teach' | 'explain' | 'quiz') => void
 }
 
 export function NotesColumn({
@@ -43,7 +44,7 @@ export function NotesColumn({
   contextSelections,
   onContextModeChange,
   onBulkContextModeChange,
-  onTeachLeaf
+  onLeafAction
 }: NotesColumnProps) {
   const { t, language } = useTranslation()
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -174,7 +175,7 @@ export function NotesColumn({
                           </div>
                         )}
 
-                        {/* Ellipsis menu for delete action */}
+                        {/* Ellipsis menu for leaf actions */}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -186,17 +187,38 @@ export function NotesColumn({
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            {onTeachLeaf && (
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  onTeachLeaf(note.id)
-                                }}
-                              >
-                                <GraduationCap className="h-4 w-4 mr-2" />
-                                Teach this Leaf
-                              </DropdownMenuItem>
+                          <DropdownMenuContent align="end" className="w-52">
+                            {onLeafAction && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onLeafAction(note.id, 'teach')
+                                  }}
+                                >
+                                  <GraduationCap className="h-4 w-4 mr-2" />
+                                  Teach this Leaf
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onLeafAction(note.id, 'explain')
+                                  }}
+                                >
+                                  <BookOpen className="h-4 w-4 mr-2" />
+                                  Explain simply
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onLeafAction(note.id, 'quiz')
+                                  }}
+                                >
+                                  <HelpCircle className="h-4 w-4 mr-2" />
+                                  Quiz me
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
                             )}
                             <DropdownMenuItem
                               onClick={(e) => {

@@ -188,25 +188,23 @@ export default function NotebookPage() {
     setMobileActiveTab('notes')
   }
 
-  const handleTeachLeaf = (noteId: string) => {
+  const handleLeafAction = (noteId: string, action: 'teach' | 'explain' | 'quiz') => {
     const note = notes?.find((n) => n.id === noteId)
     if (!note) return
 
-    // Build a self-contained teaching prompt with the Leaf content inline.
-    // This reuses the existing notebook chat infrastructure — the teaching
-    // prompt is sent as a user message with the Leaf title/content embedded.
     const title = note.title?.trim() || 'Untitled Leaf'
     const content = note.content?.trim() || '(No content)'
     const truncated = content.length > 4000 ? content.slice(0, 4000) + '\n\n[...content truncated]' : content
 
-    const prompt = `Teach me this Leaf step by step. Start by explaining the core idea simply, then break it into key points, give an example, and end with a short check-for-understanding question.
+    const promptBody = `\n\nLeaf title:\n${title}\n\nLeaf content:\n${truncated}`
 
-Leaf title:
-${title}
+    const prompts: Record<string, string> = {
+      teach: `Teach me this Leaf step by step. Start by explaining the core idea simply, then break it into key points, give an example, and end with a short check-for-understanding question.${promptBody}`,
+      explain: `Explain this Leaf in simple language for a beginner. Avoid jargon where possible. Use a short example or analogy, then summarize the main point in 3 bullets.${promptBody}`,
+      quiz: `Quiz me on this Leaf. Create 5 questions: 3 quick recall questions and 2 short-answer questions. Do not reveal the answers immediately. End by asking me to reply with my answers.${promptBody}`,
+    }
 
-Leaf content:
-${truncated}`
-
+    const prompt = prompts[action] || prompts.teach
     setTeachingPrompt(prompt)
     setMobileActiveTab('chat')
   }
@@ -325,7 +323,7 @@ ${truncated}`
                     contextSelections={contextSelections.notes}
                     onContextModeChange={handleNoteContextModeChange}
                     onBulkContextModeChange={handleBulkNoteContext}
-                    onTeachLeaf={handleTeachLeaf}
+                    onLeafAction={handleLeafAction}
                   />
                 )}
                 {mobileActiveTab === 'chat' && (
@@ -380,7 +378,7 @@ ${truncated}`
                 contextSelections={contextSelections.notes}
                 onContextModeChange={handleNoteContextModeChange}
                 onBulkContextModeChange={handleBulkNoteContext}
-                onTeachLeaf={handleTeachLeaf}
+                onLeafAction={handleLeafAction}
               />
             </div>
 
