@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { BookOpen, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import type { NotebookResponse } from '@/lib/types/api'
+import { TTSButton } from '@/components/voice/TTSButton'
 
 interface LibraryMemoryCardProps {
   notebook: NotebookResponse
@@ -83,6 +84,12 @@ export default function LibraryMemoryCard({ notebook }: LibraryMemoryCardProps) 
               {t('vault.openLibrary')}
             </Link>
           </Button>
+          {hasMemory && content && (
+            <TTSButton
+              text={content}
+              className="h-7 px-2 text-xs"
+            />
+          )}
         </div>
       </div>
     </div>

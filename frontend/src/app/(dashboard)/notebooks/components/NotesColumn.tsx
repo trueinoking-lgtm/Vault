@@ -27,6 +27,7 @@ import { CollapsibleColumn, createCollapseButton } from '@/components/notebooks/
 import { useNotebookColumnsStore } from '@/lib/stores/notebook-columns-store'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { isLearningMemoryLeaf } from '@/lib/notebooks/learning-memory'
+import { TTSButton } from '@/components/voice/TTSButton'
 
 interface NotesColumnProps {
   notes?: NoteResponse[]
@@ -283,6 +284,14 @@ export function NotesColumn({
                       <p className="text-sm text-muted-foreground line-clamp-3 break-all">
                         {note.content}
                       </p>
+                    )}
+                    {note.content && (
+                      <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                        <TTSButton
+                          text={note.content}
+                          className="h-6 px-1.5 text-xs"
+                        />
+                      </div>
                     )}
                   </div>
                   )
