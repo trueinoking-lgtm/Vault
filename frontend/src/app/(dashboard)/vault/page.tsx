@@ -11,6 +11,11 @@ const RecentLibraries = dynamic(
   { ssr: false }
 )
 
+const LearningPanel = dynamic(
+  () => import('@/components/vault/LearningPanel'),
+  { ssr: false }
+)
+
 const quickActions = [
   { icon: FileText, titleKey: 'vault.addMaterial', descKey: 'vault.addMaterialDesc', href: '/sources' },
   { icon: BookOpen, titleKey: 'vault.createLeaf', descKey: 'vault.createLeafDesc', href: '/sources' },
@@ -60,6 +65,9 @@ export default function VaultPage() {
           </div>
           <RecentLibraries />
         </section>
+
+        {/* Learning Panel */}
+        <LearningPanel />
       </div>
     </AppShell>
   )
