@@ -255,7 +255,7 @@ function SourceCardImpl({
                 {/* Source type indicator */}
                 <div className="flex items-center gap-1 text-gray-500">
                   <SourceTypeIcon className="h-3 w-3" />
-                  <span className="text-xs capitalize">{t('common.source')}</span>
+                  <span className="text-xs capitalize">{t('common.material')}</span>
                 </div>
               </div>
             )}

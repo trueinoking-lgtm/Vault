@@ -124,7 +124,7 @@ function ContentSelectionPanel({
     chars: t('podcasts.chars'),
     loadingNotebooks: t('podcasts.loadingNotebooks'),
     noNotebooksFoundInPodcasts: t('podcasts.noNotebooksFoundInPodcasts'),
-    sources: t('podcasts.sources'),
+    sources: t('podcasts.materials'),
     notes: t('podcasts.notes'),
     noContentSelected: t('podcasts.noContentSelected'),
     noSources: t('podcasts.noSources'),

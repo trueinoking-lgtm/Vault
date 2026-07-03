@@ -359,7 +359,7 @@ export default function NotebookPage() {
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="sources" className="gap-2">
                       <FileText className="h-4 w-4" />
-                      {t('navigation.sources')}
+                      {t('navigation.materials')}
                     </TabsTrigger>
                     <TabsTrigger value="notes" className="gap-2">
                       <StickyNote className="h-4 w-4" />

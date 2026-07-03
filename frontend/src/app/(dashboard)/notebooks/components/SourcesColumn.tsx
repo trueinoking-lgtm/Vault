@@ -73,8 +73,8 @@ export function SourcesColumn({
   // Collapsible column state
   const { sourcesCollapsed, toggleSources } = useNotebookColumnsStore()
   const collapseButton = useMemo(
-    () => createCollapseButton(toggleSources, t('navigation.sources')),
-    [toggleSources, t('navigation.sources')]
+    () => createCollapseButton(toggleSources, t('navigation.materials')),
+    [toggleSources, t('navigation.materials')]
   )
 
   // Scroll container ref for infinite scroll
@@ -158,12 +158,12 @@ export function SourcesColumn({
         isCollapsed={sourcesCollapsed}
         onToggle={toggleSources}
         collapsedIcon={FileText}
-        collapsedLabel={t('navigation.sources')}
+        collapsedLabel={t('navigation.materials')}
       >
         <Card className="h-full flex flex-col flex-1 overflow-hidden">
           <CardHeader className="pb-3 flex-shrink-0">
             <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-lg">{t('navigation.sources')}</CardTitle>
+              <CardTitle className="text-lg">{t('navigation.materials')}</CardTitle>
               <div className="flex items-center gap-2">
                 {onBulkContextModeChange && sources && sources.length > 0 && (
                   <DropdownMenu>

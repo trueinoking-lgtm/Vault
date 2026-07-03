@@ -96,7 +96,7 @@ export function AddSourceDialog({
 
   const WIZARD_STEPS: readonly WizardStep[] = [
     { number: 1, title: t('sources.addSource'), description: t('sources.processDescription') },
-    { number: 2, title: t('navigation.notebooks'), description: t('notebooks.searchPlaceholder') },
+    { number: 2, title: t('navigation.libraries'), description: t('notebooks.searchPlaceholder') },
     { number: 3, title: t('navigation.process'), description: t('sources.processDescription') },
   ]
 

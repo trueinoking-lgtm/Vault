@@ -47,13 +47,13 @@ const getNavigation = (t: TFunction) => [
   {
     title: t('navigation.collect'),
     items: [
-      { name: t('navigation.sources'), href: '/sources', icon: FileText },
+      { name: t('navigation.materials'), href: '/sources', icon: FileText },
     ],
   },
   {
     title: t('navigation.process'),
     items: [
-      { name: t('navigation.notebooks'), href: '/notebooks', icon: Book },
+      { name: t('navigation.libraries'), href: '/notebooks', icon: Book },
       { name: t('navigation.askAndSearch'), href: '/search', icon: Search },
     ],
   },
@@ -214,7 +214,7 @@ export function AppSidebar() {
                   className="gap-2"
                 >
                    <FileText className="h-4 w-4" />
-                  {t('common.source')}
+                  {t('common.material')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={(event) => {
@@ -224,7 +224,7 @@ export function AppSidebar() {
                   className="gap-2"
                 >
                    <Book className="h-4 w-4" />
-                  {t('common.notebook')}
+                  {t('common.library')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={(event) => {

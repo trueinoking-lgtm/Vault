@@ -302,7 +302,7 @@ export function ChatPanel({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
-            {title || (contextType === 'source' ? t('chat.chatWith').replace('{name}', t('navigation.sources')) : t('chat.chatWith').replace('{name}', t('common.notebook')))}
+            {title || (contextType === 'source' ? t('chat.chatWith').replace('{name}', t('navigation.materials')) : t('chat.chatWith').replace('{name}', t('common.library')))}
           </CardTitle>
           {onSelectSession && onCreateSession && onDeleteSession && (
             <Dialog open={sessionManagerOpen} onOpenChange={setSessionManagerOpen}>
@@ -342,7 +342,7 @@ export function ChatPanel({
               <div className="text-center text-muted-foreground py-8">
                 <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-sm">
-                  {t('chat.startConversation').replace('{type}', contextType === 'source' ? t('navigation.sources') : t('common.notebook'))}
+                  {t('chat.startConversation').replace('{type}', contextType === 'source' ? t('navigation.materials') : t('common.library'))}
                 </p>
                 <p className="text-xs mt-2">{t('chat.askQuestions')}</p>
               </div>
@@ -456,7 +456,7 @@ export function ChatPanel({
               {contextIndicators.sources?.length > 0 && (
                 <Badge variant="outline" className="gap-1">
                   <FileText className="h-3 w-3" />
-                  {contextIndicators.sources.length} {t('navigation.sources')}
+                  {contextIndicators.sources.length} {t('navigation.materials')}
                 </Badge>
               )}
               {contextIndicators.insights?.length > 0 && (

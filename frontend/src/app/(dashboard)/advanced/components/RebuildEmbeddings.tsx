@@ -161,7 +161,7 @@ export function RebuildEmbeddings() {
                     onCheckedChange={(checked) => setIncludeSources(checked === true)}
                   />
                   <Label htmlFor="sources" className="font-normal cursor-pointer">
-                    {t('navigation.sources')}
+                    {t('navigation.materials')}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -274,7 +274,7 @@ export function RebuildEmbeddings() {
              {stats && (
               <div className="grid grid-cols-4 gap-4">
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">{t('navigation.sources')}</p>
+                  <p className="text-sm text-muted-foreground">{t('navigation.materials')}</p>
                   <p className="text-2xl font-bold">{sourcesProcessed}</p>
                 </div>
                 <div className="space-y-1">

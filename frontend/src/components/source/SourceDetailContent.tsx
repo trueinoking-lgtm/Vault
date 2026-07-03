@@ -428,7 +428,7 @@ export function SourceDetailContent({
             {showChatButton && onChatClick && (
               <Button variant="outline" size="sm" onClick={onChatClick}>
                 <MessageSquare className="h-4 w-4 mr-2" />
-                {t('chat.chatWith').replace('{name}', t('navigation.sources'))}
+                {t('chat.chatWith').replace('{name}', t('navigation.materials'))}
               </Button>
             )}
 
