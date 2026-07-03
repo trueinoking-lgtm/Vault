@@ -1,12 +1,17 @@
 .env
+.env.*
 prompts/patterns/user/
 /notebooks/
-data/
+/data/
 .uploads/
 sqlite-db/
 surreal-data/
+surreal_data/
 docker.env
 notebook_data/
+node_modules/
+frontend/node_modules/
+frontend/.next/
 # Python-specific
 *.py[cod]
 __pycache__/
