@@ -35,6 +35,7 @@ interface SourcesColumnProps {
   onContextModeChange?: (sourceId: string, mode: ContextMode) => void
   onBulkContextModeChange?: (action: SourceBulkAction) => void
   onSourceCreated?: (source: SourceResponse) => void
+  onSourceAction?: (sourceId: string, action: 'teach' | 'explain' | 'quiz') => void
   // Pagination props
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -49,6 +50,7 @@ export function SourcesColumn({
   contextSelections,
   onContextModeChange,
   onBulkContextModeChange,
+  onSourceAction,
   onSourceCreated,
   hasNextPage,
   isFetchingNextPage,
@@ -231,6 +233,7 @@ export function SourcesColumn({
                     onRefreshContent={handleRetry}
                     onRemoveFromNotebook={handleRemoveFromNotebook}
                     onRefresh={onRefresh}
+                    onTeachAction={onSourceAction}
                     showRemoveFromNotebook={true}
                     contextMode={contextSelections?.[source.id]}
                     onContextModeChange={onContextModeChange

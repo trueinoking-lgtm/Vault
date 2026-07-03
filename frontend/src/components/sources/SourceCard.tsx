@@ -23,7 +23,10 @@ import {
   CheckCircle,
   AlertTriangle,
   Loader2,
-  Unlink
+  Unlink,
+  GraduationCap,
+  BookOpen,
+  HelpCircle
 } from 'lucide-react'
 import { useSourceStatus } from '@/lib/hooks/use-sources'
 import { useTranslation } from '@/lib/hooks/use-translation'
@@ -44,6 +47,7 @@ interface SourceCardProps {
   showRemoveFromNotebook?: boolean
   contextMode?: ContextMode
   onContextModeChange?: (mode: ContextMode) => void
+  onTeachAction?: (sourceId: string, action: 'teach' | 'explain' | 'quiz') => void
 }
 
 const SOURCE_TYPE_ICONS = {
@@ -119,7 +123,8 @@ function SourceCardImpl({
   className,
   showRemoveFromNotebook = false,
   contextMode,
-  onContextModeChange
+  onContextModeChange,
+  onTeachAction
 }: SourceCardProps) {
   const { t } = useTranslation()
   const statusConfigMap = getStatusConfig(t)
@@ -326,6 +331,38 @@ function SourceCardImpl({
                 </Button>
               </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
+              {isCompleted && onTeachAction && (
+                <>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onTeachAction(source.id, 'teach')
+                    }}
+                  >
+                    <GraduationCap className="h-4 w-4 mr-2" />
+                    Teach this Material
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onTeachAction(source.id, 'explain')
+                    }}
+                  >
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Explain simply
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onTeachAction(source.id, 'quiz')
+                    }}
+                  >
+                    <HelpCircle className="h-4 w-4 mr-2" />
+                    Quiz me
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               {showRemoveFromNotebook && (
                 <>
                   <DropdownMenuItem

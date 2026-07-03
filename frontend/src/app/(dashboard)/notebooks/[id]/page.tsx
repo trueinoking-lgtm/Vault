@@ -209,6 +209,29 @@ export default function NotebookPage() {
     setMobileActiveTab('chat')
   }
 
+  const handleSourceAction = async (sourceId: string, action: 'teach' | 'explain' | 'quiz') => {
+    try {
+      const source = await sourcesApi.get(sourceId)
+      const title = source.title?.trim() || 'Untitled Material'
+      const content = source.full_text?.trim() || '(No content available)'
+      const truncated = content.length > 4000 ? content.slice(0, 4000) + '\n\n[...content truncated]' : content
+
+      const promptBody = `\n\nMaterial title:\n${title}\n\nMaterial content:\n${truncated}`
+
+      const prompts: Record<string, string> = {
+        teach: `Teach me about this source material step by step. Start by summarizing the core content, then break it into key points, give an example or context, and end with a short check-for-understanding question.${promptBody}`,
+        explain: `Explain this source material in simple language for a beginner. Avoid jargon where possible. Use a short example or analogy, then summarize the main point in 3 bullets.${promptBody}`,
+        quiz: `Quiz me on this source material. Create 5 questions: 3 quick recall questions and 2 short-answer questions. Do not reveal the answers immediately. End by asking me to reply with my answers.${promptBody}`,
+      }
+
+      const prompt = prompts[action] || prompts.teach
+      setTeachingPrompt(prompt)
+      setMobileActiveTab('chat')
+    } catch (error) {
+      console.error('Failed to teach material:', error)
+    }
+  }
+
   const handleTeachingPromptHandled = () => {
     setTeachingPrompt(null)
   }
@@ -310,6 +333,7 @@ export default function NotebookPage() {
                     onContextModeChange={handleSourceContextModeChange}
                     onBulkContextModeChange={handleBulkSourceContext}
                     onSourceCreated={handleSourceCreated}
+                    onSourceAction={handleSourceAction}
                     hasNextPage={hasNextPage}
                     isFetchingNextPage={isFetchingNextPage}
                     fetchNextPage={fetchNextPage}
@@ -360,6 +384,7 @@ export default function NotebookPage() {
                 onContextModeChange={handleSourceContextModeChange}
                 onBulkContextModeChange={handleBulkSourceContext}
                 onSourceCreated={handleSourceCreated}
+                onSourceAction={handleSourceAction}
                 hasNextPage={hasNextPage}
                 isFetchingNextPage={isFetchingNextPage}
                 fetchNextPage={fetchNextPage}
