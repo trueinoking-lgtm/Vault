@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useId } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -25,6 +26,13 @@ import { convertReferencesToCompactMarkdown, createCompactReferenceLinkComponent
 import { useModalManager } from '@/lib/hooks/use-modal-manager'
 import { toast } from 'sonner'
 import { useTranslation } from '@/lib/hooks/use-translation'
+import { QUERY_KEYS } from '@/lib/api/query-client'
+import { notesApi } from '@/lib/api/notes'
+import {
+  appendGradingMemoryEntry,
+  extractSavedGradingMessageIds,
+  isLearningMemoryLeaf,
+} from '@/lib/notebooks/learning-memory'
 
 function looksLikeReviewQuestionBlock(content: string): boolean {
   const normalized = content.toLowerCase()
@@ -57,6 +65,35 @@ function buildAnswerCheckPrompt(questions: string, answers: string): string {
     'what to review next',
     'Use a clear numbered structure.'
   ].join('\n\n')
+}
+
+function looksLikeGradingResponse(content: string): boolean {
+  const normalized = content.toLowerCase()
+  const hasGradeMarker =
+    normalized.includes('correct') ||
+    normalized.includes('partial') ||
+    normalized.includes('incorrect')
+  const hasSummaryMarker =
+    normalized.includes('weak areas') ||
+    normalized.includes('what to review next') ||
+    normalized.includes('review next') ||
+    normalized.includes('correct answer')
+
+  return hasGradeMarker && hasSummaryMarker
+}
+
+function isEligibleGradingResponseMessage(messages: SourceChatMessage[], index: number): boolean {
+  const current = messages[index]
+  const previous = messages[index - 1]
+  const twoBack = messages[index - 2]
+
+  return Boolean(
+    current?.type === 'ai' &&
+    previous?.type === 'human' &&
+    twoBack?.type === 'ai' &&
+    looksLikeReviewQuestionBlock(twoBack.content) &&
+    looksLikeGradingResponse(current.content)
+  )
 }
 
 interface NotebookContextStats {
@@ -111,9 +148,12 @@ export function ChatPanel({
   notebookId
 }: ChatPanelProps) {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const chatInputId = useId()
   const [input, setInput] = useState('')
   const [sessionManagerOpen, setSessionManagerOpen] = useState(false)
+  const [savedGradingMessageIds, setSavedGradingMessageIds] = useState<string[]>([])
+  const [savingGradingMessageIds, setSavingGradingMessageIds] = useState<string[]>([])
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { openModal } = useModalManager()
@@ -135,6 +175,41 @@ export function ChatPanel({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadSavedGradingMessageIds() {
+      if (!notebookId) {
+        if (!cancelled) {
+          setSavedGradingMessageIds([])
+        }
+        return
+      }
+
+      try {
+        const notes = await notesApi.list({ notebook_id: notebookId })
+        const learningMemory = notes.find((note) => isLearningMemoryLeaf(note))
+        const savedIds = learningMemory?.content
+          ? extractSavedGradingMessageIds(learningMemory.content)
+          : []
+
+        if (!cancelled) {
+          setSavedGradingMessageIds(savedIds)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load saved grading memory markers:', error)
+        }
+      }
+    }
+
+    loadSavedGradingMessageIds()
+
+    return () => {
+      cancelled = true
+    }
+  }, [notebookId, messages.length])
 
   const handleSend = () => {
     if (input.trim() && !isStreaming) {
@@ -165,6 +240,44 @@ export function ChatPanel({
     )
 
     onSendMessage(gradingPrompt, modelOverride)
+  }
+
+  const handleSaveWeakSpotsToMemory = async (messageId: string, gradingContent: string) => {
+    if (!notebookId) {
+      toast.error('Cannot save to Learning Memory without a notebook.')
+      return
+    }
+
+    setSavingGradingMessageIds((previous) => previous.includes(messageId)
+      ? previous
+      : [...previous, messageId])
+
+    try {
+      const result = await appendGradingMemoryEntry(notebookId, {
+        messageId,
+        gradingContent,
+      })
+
+      if (result === 'saved' || result === 'already-saved') {
+        setSavedGradingMessageIds((previous) => previous.includes(messageId)
+          ? previous
+          : [...previous, messageId])
+      }
+
+      if (result === 'saved') {
+        await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.notes(notebookId) })
+        toast.success('Saved weak spots to Learning Memory.')
+      } else if (result === 'already-saved') {
+        toast.success('Weak spots were already saved to Learning Memory.')
+      } else {
+        toast.error('Could not extract a concise weak-spot summary from this grading response.')
+      }
+    } catch (error) {
+      console.error('Failed to save grading weak spots to Learning Memory:', error)
+      toast.error('Failed to save weak spots to Learning Memory.')
+    } finally {
+      setSavingGradingMessageIds((previous) => previous.filter((id) => id !== messageId))
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -234,7 +347,7 @@ export function ChatPanel({
                 <p className="text-xs mt-2">{t('chat.askQuestions')}</p>
               </div>
             ) : (
-              messages.map((message) => (
+              messages.map((message, index) => (
                 <div
                   key={message.id}
                   className={`flex gap-3 ${
@@ -271,6 +384,28 @@ export function ChatPanel({
                         notebookId={notebookId}
                       />
                     )}
+                    {message.type === 'ai' &&
+                      isEligibleGradingResponseMessage(messages, index) && (
+                        <div className="flex justify-start">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSaveWeakSpotsToMemory(message.id, message.content)}
+                            disabled={
+                              isStreaming ||
+                              savingGradingMessageIds.includes(message.id) ||
+                              savedGradingMessageIds.includes(message.id)
+                            }
+                            className="h-7 px-2"
+                          >
+                            {savingGradingMessageIds.includes(message.id)
+                              ? 'Saving...'
+                              : savedGradingMessageIds.includes(message.id)
+                                ? 'Saved to Memory'
+                                : 'Save weak spots to Memory'}
+                          </Button>
+                        </div>
+                      )}
                     {message.type === 'human' &&
                       latestHumanMessage &&
                       message.id === latestHumanMessage.id &&
