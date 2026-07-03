@@ -8,6 +8,7 @@ import { SourcesColumn } from '../components/SourcesColumn'
 import { NotesColumn } from '../components/NotesColumn'
 import { ChatColumn } from '../components/ChatColumn'
 import { NoteEditorDialog } from '../components/NoteEditorDialog'
+import { LeafTemplateDialog } from '../components/LeafTemplateDialog'
 import { useNotebook } from '@/lib/hooks/use-notebooks'
 import { useNotebookSources } from '@/lib/hooks/use-sources'
 import { useNotes } from '@/lib/hooks/use-notes'
@@ -28,8 +29,9 @@ import {
   type NoteContextDefault,
 } from '@/lib/utils/source-context'
 import {
-  buildSummaryLeafDraftFromMaterial,
+  getLeafTemplateById,
   type LeafDraft,
+  type LeafTemplateId,
 } from '@/lib/notebooks/leaf-templates'
 
 // Re-exported from the shared types module for backward compatibility; several
@@ -64,8 +66,10 @@ export default function NotebookPage() {
 
   // Mobile tab state (Sources, Notes, or Chat)
   const [mobileActiveTab, setMobileActiveTab] = useState<'sources' | 'notes' | 'chat'>('chat')
+  const [leafTemplateDialogOpen, setLeafTemplateDialogOpen] = useState(false)
   const [leafComposerOpen, setLeafComposerOpen] = useState(false)
   const [leafDraft, setLeafDraft] = useState<LeafDraft | null>(null)
+  const [pendingLeafSource, setPendingLeafSource] = useState<SourceResponse | null>(null)
 
   // Context selection state
   const [contextSelections, setContextSelections] = useState<ContextSelections>({
@@ -141,15 +145,34 @@ export default function NotebookPage() {
   }
 
   const handleSourceCreated = (source: SourceResponse) => {
-    setLeafDraft(buildSummaryLeafDraftFromMaterial(source))
-    setLeafComposerOpen(true)
+    setPendingLeafSource(source)
+    setLeafTemplateDialogOpen(true)
     setMobileActiveTab('notes')
+  }
+
+  const handleLeafTemplateConfirm = (templateId: LeafTemplateId) => {
+    if (!pendingLeafSource) {
+      return
+    }
+
+    const template = getLeafTemplateById(templateId)
+    setLeafDraft(template.buildDraft(pendingLeafSource))
+    setLeafTemplateDialogOpen(false)
+    setLeafComposerOpen(true)
+  }
+
+  const handleLeafTemplateDialogOpenChange = (open: boolean) => {
+    setLeafTemplateDialogOpen(open)
+    if (!open) {
+      setPendingLeafSource(null)
+    }
   }
 
   const handleLeafComposerOpenChange = (open: boolean) => {
     setLeafComposerOpen(open)
     if (!open) {
       setLeafDraft(null)
+      setPendingLeafSource(null)
     }
   }
 
@@ -294,6 +317,13 @@ export default function NotebookPage() {
             </div>
           </div>
         </div>
+
+        <LeafTemplateDialog
+          open={leafTemplateDialogOpen}
+          source={pendingLeafSource}
+          onOpenChange={handleLeafTemplateDialogOpenChange}
+          onConfirm={handleLeafTemplateConfirm}
+        />
 
         <NoteEditorDialog
           open={leafComposerOpen}
