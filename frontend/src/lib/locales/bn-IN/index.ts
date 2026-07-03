@@ -948,4 +948,22 @@ export const bnIN = {
     goToSettings: "সেটিংসে যান",
     viewDocs: "ডকুমেন্টেশন দেখুন",
   },
+
+  vault: {
+    title: "Command Center",
+    description: "Your central hub for managing libraries, materials, and learning.",
+    quickActions: "Quick Actions",
+    addMaterial: "Add Material",
+    addMaterialDesc: "Upload files, paste URLs, or add text content",
+    createLeaf: "Create Leaf",
+    createLeafDesc: "Capture summaries, lessons, and insights",
+    askVault: "Ask Vault",
+    askVaultDesc: "Search your knowledge base or ask a question",
+    reviewMemory: "Review Memory",
+    reviewMemoryDesc: "Review weak spots and learning progress",
+    recentLibraries: "Recent Libraries",
+    viewAll: "View all",
+    noLibrariesYet: "No libraries yet. Create one to get started.",
+    vaultHome: "Vault Home",
+  },
 }

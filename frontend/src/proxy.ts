@@ -4,9 +4,9 @@ import type { NextRequest } from 'next/server'
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Redirect root to notebooks
+  // Redirect root to vault
   if (pathname === '/') {
-    return NextResponse.redirect(new URL('/notebooks', request.url))
+    return NextResponse.redirect(new URL('/vault', request.url))
   }
 
   return NextResponse.next()

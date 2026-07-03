@@ -45,6 +45,12 @@ import {
 
 const getNavigation = (t: TFunction) => [
   {
+    title: '',
+    items: [
+      { name: t('vault.vaultHome'), href: '/vault', icon: Command },
+    ],
+  },
+  {
     title: t('navigation.collect'),
     items: [
       { name: t('navigation.materials'), href: '/sources', icon: FileText },
