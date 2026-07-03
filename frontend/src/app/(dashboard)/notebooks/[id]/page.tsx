@@ -106,6 +106,9 @@ export default function NotebookPage() {
   const [pendingLeafSource, setPendingLeafSource] = useState<SourceResponse | null>(null)
   const [isPreparingDraft, setIsPreparingDraft] = useState(false)
 
+  // Teaching state for Phase 6 — "Teach this Leaf"
+  const [teachingPrompt, setTeachingPrompt] = useState<string | null>(null)
+
   // Context selection state
   const [contextSelections, setContextSelections] = useState<ContextSelections>({
     sources: {},
@@ -183,6 +186,33 @@ export default function NotebookPage() {
     setPendingLeafSource(source)
     setLeafTemplateDialogOpen(true)
     setMobileActiveTab('notes')
+  }
+
+  const handleTeachLeaf = (noteId: string) => {
+    const note = notes?.find((n) => n.id === noteId)
+    if (!note) return
+
+    // Build a self-contained teaching prompt with the Leaf content inline.
+    // This reuses the existing notebook chat infrastructure — the teaching
+    // prompt is sent as a user message with the Leaf title/content embedded.
+    const title = note.title?.trim() || 'Untitled Leaf'
+    const content = note.content?.trim() || '(No content)'
+    const truncated = content.length > 4000 ? content.slice(0, 4000) + '\n\n[...content truncated]' : content
+
+    const prompt = `Teach me this Leaf step by step. Start by explaining the core idea simply, then break it into key points, give an example, and end with a short check-for-understanding question.
+
+Leaf title:
+${title}
+
+Leaf content:
+${truncated}`
+
+    setTeachingPrompt(prompt)
+    setMobileActiveTab('chat')
+  }
+
+  const handleTeachingPromptHandled = () => {
+    setTeachingPrompt(null)
   }
 
   const handleLeafTemplateConfirm = async (templateId: LeafTemplateId) => {
@@ -295,6 +325,7 @@ export default function NotebookPage() {
                     contextSelections={contextSelections.notes}
                     onContextModeChange={handleNoteContextModeChange}
                     onBulkContextModeChange={handleBulkNoteContext}
+                    onTeachLeaf={handleTeachLeaf}
                   />
                 )}
                 {mobileActiveTab === 'chat' && (
@@ -303,6 +334,8 @@ export default function NotebookPage() {
                     contextSelections={contextSelections}
                     sources={sources}
                     sourcesLoading={sourcesLoading}
+                    teachingPrompt={teachingPrompt}
+                    onTeachingPromptHandled={handleTeachingPromptHandled}
                   />
                 )}
               </div>
@@ -347,6 +380,7 @@ export default function NotebookPage() {
                 contextSelections={contextSelections.notes}
                 onContextModeChange={handleNoteContextModeChange}
                 onBulkContextModeChange={handleBulkNoteContext}
+                onTeachLeaf={handleTeachLeaf}
               />
             </div>
 
@@ -357,6 +391,8 @@ export default function NotebookPage() {
                 contextSelections={contextSelections}
                 sources={sources}
                 sourcesLoading={sourcesLoading}
+                teachingPrompt={teachingPrompt}
+                onTeachingPromptHandled={handleTeachingPromptHandled}
               />
             </div>
           </div>

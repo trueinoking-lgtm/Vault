@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import { useNotebookChat } from '@/lib/hooks/useNotebookChat'
 import { useNotes } from '@/lib/hooks/use-notes'
 import { ChatPanel } from '@/components/source/ChatPanel'
@@ -16,9 +16,11 @@ interface ChatColumnProps {
   contextSelections: ContextSelections
   sources: SourceListResponse[]
   sourcesLoading: boolean
+  teachingPrompt?: string | null
+  onTeachingPromptHandled?: () => void
 }
 
-export function ChatColumn({ notebookId, contextSelections, sources, sourcesLoading }: ChatColumnProps) {
+export function ChatColumn({ notebookId, contextSelections, sources, sourcesLoading, teachingPrompt, onTeachingPromptHandled }: ChatColumnProps) {
   const { t } = useTranslation()
 
   // Fetch notes for this notebook
@@ -64,6 +66,18 @@ export function ChatColumn({ notebookId, contextSelections, sources, sourcesLoad
       charCount: chat.charCount
     }
   }, [sources, notes, contextSelections, chat.tokenCount, chat.charCount])
+
+  // Auto-send a teaching prompt when "Teach this Leaf" is clicked.
+  // The prompt is a self-contained user message with the Leaf content
+  // inline, so it reuses the existing notebook chat infrastructure.
+  const prevTeachingRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (teachingPrompt && teachingPrompt !== prevTeachingRef.current && !chat.isSending) {
+      prevTeachingRef.current = teachingPrompt
+      chat.sendMessage(teachingPrompt)
+      onTeachingPromptHandled?.()
+    }
+  }, [teachingPrompt, chat.isSending, chat.sendMessage, onTeachingPromptHandled])
 
   // Show loading state while sources/notes are being fetched
   if (sourcesLoading || notesLoading) {
