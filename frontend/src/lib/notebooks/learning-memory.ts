@@ -1,4 +1,5 @@
 import { notesApi } from '@/lib/api/notes'
+import type { NoteResponse } from '@/lib/types/api'
 
 // ── constants ──────────────────────────────────────────────────────
 
@@ -14,6 +15,16 @@ export interface MemoryEntryParams {
   sourceTitle: string
   action: 'teach' | 'explain' | 'quiz'
   responseContent: string
+}
+
+export function isLearningMemoryLeaf(
+  note: Pick<NoteResponse, 'title' | 'content'>,
+): boolean {
+  if (note.content?.includes(MEMORY_MARKER)) {
+    return true
+  }
+
+  return note.title === MEMORY_LEAF_TITLE
 }
 
 // ── lookup maps ────────────────────────────────────────────────────
@@ -81,11 +92,7 @@ export async function appendMemoryEntry(
   const allNotes = await notesApi.list({ notebook_id: notebookId })
 
   // Prefer marker match, fall back to title match
-  const existingLeaf = allNotes.find(
-    (n) =>
-      (n.content && n.content.includes(MEMORY_MARKER)) ||
-      n.title === MEMORY_LEAF_TITLE,
-  )
+  const existingLeaf = allNotes.find((n) => isLearningMemoryLeaf(n))
 
   const entry = buildMemoryEntry(params)
 

@@ -26,6 +26,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { CollapsibleColumn, createCollapseButton } from '@/components/notebooks/CollapsibleColumn'
 import { useNotebookColumnsStore } from '@/lib/stores/notebook-columns-store'
 import { useTranslation } from '@/lib/hooks/use-translation'
+import { isLearningMemoryLeaf } from '@/lib/notebooks/learning-memory'
 
 interface NotesColumnProps {
   notes?: NoteResponse[]
@@ -61,6 +62,22 @@ export function NotesColumn({
     () => createCollapseButton(toggleNotes, notesLabel),
     [toggleNotes, notesLabel]
   )
+  const visibleNotes = useMemo(() => {
+    if (!notes) {
+      return []
+    }
+
+    return [...notes].sort((a, b) => {
+      const aIsMemory = isLearningMemoryLeaf(a)
+      const bIsMemory = isLearningMemoryLeaf(b)
+
+      if (aIsMemory === bIsMemory) {
+        return 0
+      }
+
+      return aIsMemory ? -1 : 1
+    })
+  }, [notes])
 
   const handleDeleteClick = (noteId: string) => {
     setNoteToDelete(noteId)
@@ -138,7 +155,10 @@ export function NotesColumn({
               />
             ) : (
               <div className="space-y-3">
-                {notes.map((note) => (
+                {visibleNotes.map((note) => {
+                  const isMemoryLeaf = isLearningMemoryLeaf(note)
+
+                  return (
                   <div
                     key={note.id}
                     className="p-3 border rounded-lg card-hover group relative cursor-pointer"
@@ -152,7 +172,11 @@ export function NotesColumn({
                           <User className="h-4 w-4 text-muted-foreground" />
                         )}
                         <Badge variant="secondary" className="text-xs">
-                          {note.note_type === 'ai' ? t('common.aiGenerated') : t('common.human')}
+                          {isMemoryLeaf
+                            ? 'Memory'
+                            : note.note_type === 'ai'
+                              ? t('common.aiGenerated')
+                              : t('common.human')}
                         </Badge>
                       </div>
 
@@ -245,7 +269,8 @@ export function NotesColumn({
                       </p>
                     )}
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </CardContent>
