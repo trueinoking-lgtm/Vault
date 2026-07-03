@@ -26,14 +26,27 @@ interface NoteEditorDialogProps {
   onOpenChange: (open: boolean) => void
   notebookId: string
   note?: { id: string; title: string | null; content: string | null }
+  mode?: 'note' | 'leaf'
+  initialTitle?: string
+  initialContent?: string
 }
 
-export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteEditorDialogProps) {
+export function NoteEditorDialog({
+  open,
+  onOpenChange,
+  notebookId,
+  note,
+  mode = 'note',
+  initialTitle,
+  initialContent,
+}: NoteEditorDialogProps) {
   const { t } = useTranslation()
   const createNote = useCreateNote()
   const updateNote = useUpdateNote()
   const queryClient = useQueryClient()
   const isEditing = Boolean(note)
+  const isLeafMode = mode === 'leaf'
+  const isLeafComposer = !isEditing && (isLeafMode || !!initialTitle || !!initialContent)
 
   // Ensure note ID has 'note:' prefix for API calls
   const noteIdWithPrefix = note?.id
@@ -65,11 +78,11 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
     }
 
     const source = fetchedNote ?? note
-    const title = source?.title ?? ''
-    const content = source?.content ?? ''
+    const title = isEditing ? (source?.title ?? '') : (initialTitle ?? '')
+    const content = isEditing ? (source?.content ?? '') : (initialContent ?? '')
 
     reset({ title, content })
-  }, [open, note, fetchedNote, reset])
+  }, [open, note, fetchedNote, initialTitle, initialContent, isEditing, reset])
 
   useEffect(() => {
     if (!open) return
@@ -124,7 +137,7 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
           isEditorFullscreen && "!max-w-screen !max-h-screen border-none w-screen h-screen"
       )}>
         <DialogTitle className="sr-only">
-          {isEditing ? t('sources.editNote') : t('sources.createNote')}
+          {isEditing ? t('sources.editNote') : (isLeafComposer ? t('sources.createLeaf') : t('sources.createNote'))}
         </DialogTitle>
         <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col min-w-0">
           {isEditing && noteLoading ? (
@@ -140,7 +153,7 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
                   value={watchTitle ?? ''}
                   onSave={(value) => setValue('title', value || '')}
                   placeholder={t('sources.addTitle')}
-                  emptyText={t('sources.untitledNote')}
+                  emptyText={isLeafMode ? t('sources.untitledLeaf') : t('sources.untitledNote')}
                   className="text-xl font-semibold"
                   inputClassName="text-xl font-semibold"
                 />
@@ -160,7 +173,7 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
                       value={field.value}
                       onChange={field.onChange}
                       height={420}
-                      placeholder={t('sources.writeNotePlaceholder')}
+                      placeholder={isLeafMode ? t('sources.writeLeafPlaceholder') : t('sources.writeNotePlaceholder')}
                       className={cn(
                           "w-full h-full min-h-[420px] overflow-hidden [&_.w-md-editor]:!static [&_.w-md-editor]:!w-full [&_.w-md-editor]:!h-full [&_.w-md-editor-content]:overflow-y-auto",
                           !isEditorFullscreen && "rounded-md border"
@@ -186,8 +199,8 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
               {isSaving
                 ? isEditing ? `${t('common.saving')}...` : `${t('common.creating')}...`
                 : isEditing
-                  ? t('sources.saveNote')
-                  : t('sources.createNoteBtn')}
+                  ? (isLeafMode ? t('sources.saveNote') : t('sources.saveNote'))
+                  : (isLeafComposer ? t('sources.createLeafBtn') : t('sources.createNoteBtn'))}
             </Button>
           </div>
         </form>

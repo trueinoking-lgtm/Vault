@@ -141,4 +141,8 @@ specs/
 **/*.local.md
 .harness/
 
+# Hermes/runtime scratch files
+.run/
+.run_*.out
+
 .mcp.json

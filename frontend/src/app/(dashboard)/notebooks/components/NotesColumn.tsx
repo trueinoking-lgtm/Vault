@@ -53,7 +53,7 @@ export function NotesColumn({
 
   // Collapsible column state
   const { notesCollapsed, toggleNotes } = useNotebookColumnsStore()
-  const notesLabel = t('common.notes')
+  const notesLabel = t('sources.leaves')
   const collapseButton = useMemo(
     () => createCollapseButton(toggleNotes, notesLabel),
     [toggleNotes, notesLabel]
@@ -115,7 +115,7 @@ export function NotesColumn({
                   }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  {t('common.writeNote')}
+                  {t('sources.createLeafShort')}
                 </Button>
                 {collapseButton}
               </div>
@@ -130,8 +130,8 @@ export function NotesColumn({
             ) : !notes || notes.length === 0 ? (
               <EmptyState
                 icon={StickyNote}
-                title={t('notebooks.noNotesYet')}
-                description={t('sources.createFirstNote')}
+                title={t('sources.noLeavesYet')}
+                description={t('sources.createFirstLeaf')}
               />
             ) : (
               <div className="space-y-3">
@@ -193,7 +193,7 @@ export function NotesColumn({
                               className="text-red-600 focus:text-red-600"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              {t('notebooks.deleteNote')}
+                              {t('sources.deleteLeaf')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -229,13 +229,14 @@ export function NotesColumn({
         }}
         notebookId={notebookId}
         note={editingNote ?? undefined}
+        mode="leaf"
       />
 
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={t('notebooks.deleteNote')}
-        description={t('notebooks.deleteNoteConfirm')}
+        title={t('sources.deleteLeaf')}
+        description={t('sources.deleteLeafConfirm')}
         confirmText={t('common.delete')}
         onConfirm={handleDeleteConfirm}
         isLoading={deleteNote.isPending}

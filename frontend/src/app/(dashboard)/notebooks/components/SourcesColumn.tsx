@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
-import { SourceListResponse } from '@/lib/types/api'
+import { SourceListResponse, SourceResponse } from '@/lib/types/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -34,6 +34,7 @@ interface SourcesColumnProps {
   contextSelections?: Record<string, ContextMode>
   onContextModeChange?: (sourceId: string, mode: ContextMode) => void
   onBulkContextModeChange?: (action: SourceBulkAction) => void
+  onSourceCreated?: (source: SourceResponse) => void
   // Pagination props
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -48,6 +49,7 @@ export function SourcesColumn({
   contextSelections,
   onContextModeChange,
   onBulkContextModeChange,
+  onSourceCreated,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
@@ -253,6 +255,7 @@ export function SourcesColumn({
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         defaultNotebookId={notebookId}
+        onSourceCreated={onSourceCreated}
       />
 
       <AddExistingSourceDialog

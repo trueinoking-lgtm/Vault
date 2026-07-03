@@ -22,7 +22,7 @@ import { useNotebooks } from '@/lib/hooks/use-notebooks'
 import { useTransformations } from '@/lib/hooks/use-transformations'
 import { useCreateSource } from '@/lib/hooks/use-sources'
 import { useSettings } from '@/lib/hooks/use-settings'
-import { CreateSourceRequest } from '@/lib/types/api'
+import { CreateSourceRequest, SourceResponse } from '@/lib/types/api'
 import { useTranslation } from '@/lib/hooks/use-translation'
 
 const MAX_BATCH_SIZE = 50
@@ -71,6 +71,7 @@ interface AddSourceDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultNotebookId?: string
+  onSourceCreated?: (source: SourceResponse) => void
 }
 
 interface ProcessingState {
@@ -88,7 +89,8 @@ interface BatchProgress {
 export function AddSourceDialog({ 
   open, 
   onOpenChange, 
-  defaultNotebookId 
+  defaultNotebookId,
+  onSourceCreated,
 }: AddSourceDialogProps) {
   const { t } = useTranslation()
 
@@ -297,7 +299,7 @@ export function AddSourceDialog({
   }
 
   // Single source submission
-  const submitSingleSource = async (data: CreateSourceFormData): Promise<void> => {
+  const submitSingleSource = async (data: CreateSourceFormData): Promise<SourceResponse> => {
     const createRequest: CreateSourceRequest = {
       type: data.type,
       notebooks: selectedNotebooks,
@@ -316,7 +318,7 @@ export function AddSourceDialog({
       requestWithFile.file = file
     }
 
-    await createSource.mutateAsync(createRequest)
+    return createSource.mutateAsync(createRequest)
   }
 
   // Batch submission
@@ -405,7 +407,8 @@ export function AddSourceDialog({
       } else {
         // Single source submission
         setProcessingStatus({ message: t('sources.submittingSource') })
-        await submitSingleSource(data)
+        const createdSource = await submitSingleSource(data)
+        onSourceCreated?.(createdSource)
         handleClose()
       }
     } catch (error) {
