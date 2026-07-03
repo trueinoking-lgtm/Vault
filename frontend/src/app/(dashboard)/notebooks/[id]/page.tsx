@@ -36,7 +36,8 @@ import {
 import { sourcesApi } from '@/lib/api/sources'
 import { useQueryClient } from '@tanstack/react-query'
 import { QUERY_KEYS } from '@/lib/api/query-client'
-import { appendMemoryEntry } from '@/lib/notebooks/learning-memory'
+import { appendMemoryEntry, buildMemoryReviewPrompt } from '@/lib/notebooks/learning-memory'
+import { notesApi } from '@/lib/api/notes'
 
 // Re-exported from the shared types module for backward compatibility; several
 // components historically import these from this route file.
@@ -251,6 +252,21 @@ export default function NotebookPage() {
     setTeachingPrompt(null)
   }
 
+  const handleReviewMemory = async (noteId: string) => {
+    try {
+      const note = await notesApi.get(noteId)
+      const prompt = buildMemoryReviewPrompt(note.content?.trim() || '')
+
+      // Review mode should reuse chat seeding without creating any
+      // Learning Memory append metadata.
+      setTeachingMeta(null)
+      setTeachingPrompt(prompt)
+      setMobileActiveTab('chat')
+    } catch (error) {
+      console.error('Failed to prepare learning memory review:', error)
+    }
+  }
+
   const handleTeachingResponse = async (responseContent: string) => {
     if (!teachingMeta) return
     const meta = teachingMeta
@@ -385,6 +401,7 @@ export default function NotebookPage() {
                     onContextModeChange={handleNoteContextModeChange}
                     onBulkContextModeChange={handleBulkNoteContext}
                     onLeafAction={handleLeafAction}
+                    onReviewMemory={handleReviewMemory}
                   />
                 )}
                 {mobileActiveTab === 'chat' && (
@@ -442,6 +459,7 @@ export default function NotebookPage() {
                 onContextModeChange={handleNoteContextModeChange}
                 onBulkContextModeChange={handleBulkNoteContext}
                 onLeafAction={handleLeafAction}
+                onReviewMemory={handleReviewMemory}
               />
             </div>
 

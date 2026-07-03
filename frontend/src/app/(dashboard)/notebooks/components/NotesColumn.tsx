@@ -36,6 +36,7 @@ interface NotesColumnProps {
   onContextModeChange?: (noteId: string, mode: NoteContextMode) => void
   onBulkContextModeChange?: (action: NoteContextDefault) => void
   onLeafAction?: (noteId: string, action: 'teach' | 'explain' | 'quiz') => void
+  onReviewMemory?: (noteId: string) => void
 }
 
 export function NotesColumn({
@@ -45,7 +46,8 @@ export function NotesColumn({
   contextSelections,
   onContextModeChange,
   onBulkContextModeChange,
-  onLeafAction
+  onLeafAction,
+  onReviewMemory,
 }: NotesColumnProps) {
   const { t, language } = useTranslation()
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -240,6 +242,20 @@ export function NotesColumn({
                                 >
                                   <HelpCircle className="h-4 w-4 mr-2" />
                                   Quiz me
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            {isMemoryLeaf && onReviewMemory && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onReviewMemory(note.id)
+                                  }}
+                                >
+                                  <ListChecks className="h-4 w-4 mr-2" />
+                                  Review this Memory
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                               </>

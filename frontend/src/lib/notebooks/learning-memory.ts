@@ -17,6 +17,22 @@ export interface MemoryEntryParams {
   responseContent: string
 }
 
+export function buildMemoryReviewPrompt(memoryContent: string): string {
+  const trimmed = memoryContent.trim() || '(No Learning Memory content)'
+
+  return [
+    'Use this Learning Memory to create a practice review session.',
+    'Create:',
+    '5 quick recall questions',
+    '3 short-answer questions',
+    '1 synthesis/application prompt',
+    'Do not reveal the answers yet.',
+    'End by asking me to reply with my answers.',
+    'Learning Memory:',
+    trimmed,
+  ].join('\n')
+}
+
 export function isLearningMemoryLeaf(
   note: Pick<NoteResponse, 'title' | 'content'>,
 ): boolean {
