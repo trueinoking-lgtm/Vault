@@ -990,10 +990,13 @@ export const zhCN = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "播放",
+    stop: "停止",
+    preparing: "正在准备音频...",
+    listenHint: "朗读此消息",
+    stopHint: "停止播放",
+    replay: "重新播放",
+    replayHint: "重新播放此音频",
+    truncated: "前",
   },
 }

@@ -995,5 +995,8 @@ export const enUS = {
     preparing: "Preparing audio...",
     listenHint: "Read this message aloud",
     stopHint: "Stop playback",
+    replay: "Replay",
+    replayHint: "Replay this audio",
+    truncated: "First",
   },
 }

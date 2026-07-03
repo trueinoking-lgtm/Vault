@@ -990,10 +990,13 @@ export const ptBR = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "Ouvir",
+    stop: "Parar",
+    preparing: "Preparando áudio...",
+    listenHint: "Ler esta mensagem em voz alta",
+    stopHint: "Parar reprodução",
+    replay: "Reproduzir novamente",
+    replayHint: "Reproduzir este áudio novamente",
+    truncated: "Primeiros",
   },
 }

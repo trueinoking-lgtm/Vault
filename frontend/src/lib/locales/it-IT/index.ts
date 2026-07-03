@@ -990,10 +990,13 @@ export const itIT = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "Ascolta",
+    stop: "Ferma",
+    preparing: "Preparazione audio...",
+    listenHint: "Leggi questo messaggio ad alta voce",
+    stopHint: "Ferma la riproduzione",
+    replay: "Ripeti",
+    replayHint: "Ripeti questo audio",
+    truncated: "Primi",
   },
 }

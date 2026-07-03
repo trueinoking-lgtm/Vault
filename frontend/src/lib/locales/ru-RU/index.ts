@@ -990,10 +990,13 @@ export const ruRU = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "Слушать",
+    stop: "Стоп",
+    preparing: "Подготовка аудио...",
+    listenHint: "Прочитать это сообщение вслух",
+    stopHint: "Остановить воспроизведение",
+    replay: "Воспроизвести снова",
+    replayHint: "Воспроизвести это аудио снова",
+    truncated: "Первые",
   },
 }

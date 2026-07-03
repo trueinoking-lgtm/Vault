@@ -991,10 +991,13 @@ export const bnIN = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "শুনুন",
+    stop: "থামুন",
+    preparing: "অডিও প্রস্তুত হচ্ছে...",
+    listenHint: "এই বার্তাটি জোরে পড়ুন",
+    stopHint: "প্লেব্যাক থামান",
+    replay: "পুনরায় চালান",
+    replayHint: "এই অডিও পুনরায় চালান",
+    truncated: "প্রথম",
   },
 }

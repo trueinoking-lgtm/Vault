@@ -993,10 +993,13 @@ export const deDE = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "Anhören",
+    stop: "Stopp",
+    preparing: "Audio wird vorbereitet...",
+    listenHint: "Diese Nachricht laut vorlesen",
+    stopHint: "Wiedergabe stoppen",
+    replay: "Erneut abspielen",
+    replayHint: "Dieses Audio erneut abspielen",
+    truncated: "Erste",
   },
 }

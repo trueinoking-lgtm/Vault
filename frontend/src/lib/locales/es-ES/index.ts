@@ -991,10 +991,13 @@ export const esES = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "Escuchar",
+    stop: "Detener",
+    preparing: "Preparando audio...",
+    listenHint: "Leer este mensaje en voz alta",
+    stopHint: "Detener reproducción",
+    replay: "Reproducir de nuevo",
+    replayHint: "Reproducir este audio de nuevo",
+    truncated: "Primeros",
   },
 }

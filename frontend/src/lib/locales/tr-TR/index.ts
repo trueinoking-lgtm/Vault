@@ -990,10 +990,13 @@ export const trTR = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "Dinle",
+    stop: "Durdur",
+    preparing: "Ses hazırlanıyor...",
+    listenHint: "Bu mesajı sesli oku",
+    stopHint: "Oynatmayı durdur",
+    replay: "Tekrar dinle",
+    replayHint: "Bu sesi tekrar dinle",
+    truncated: "İlk",
   },
 }

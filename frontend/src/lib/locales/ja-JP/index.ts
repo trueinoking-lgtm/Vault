@@ -990,10 +990,13 @@ export const jaJP = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "聞く",
+    stop: "停止",
+    preparing: "音声を準備中...",
+    listenHint: "このメッセージを読み上げる",
+    stopHint: "再生を停止",
+    replay: "もう一度再生",
+    replayHint: "この音声をもう一度再生",
+    truncated: "最初の",
   },
 }

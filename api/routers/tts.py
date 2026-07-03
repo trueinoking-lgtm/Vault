@@ -4,23 +4,31 @@ TTS Router
 Provides a backend-mediated text-to-speech endpoint.
 Credentials are resolved server-side and never exposed to the browser.
 """
-
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from open_notebook.ai.models import model_manager
 from open_notebook.exceptions import ConfigurationError
 
 router = APIRouter(prefix="/tts", tags=["tts"])
-
 MAX_TTS_TEXT_LENGTH = 5000
 
 
 class TTSRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=MAX_TTS_TEXT_LENGTH, description="Text to synthesize")
+    text: str = Field(..., min_length=1, description="Text to synthesize")
     voice: str | None = Field(None, description="Optional voice name (provider-specific)")
+
+    @field_validator("text")
+    @classmethod
+    def validate_text_length(cls, v: str) -> str:
+        if len(v) > MAX_TTS_TEXT_LENGTH:
+            raise ValueError(
+                f"Text is too long ({len(v)} characters). "
+                f"Maximum is {MAX_TTS_TEXT_LENGTH}. Please shorten the text."
+            )
+        return v
 
 
 @router.post("")

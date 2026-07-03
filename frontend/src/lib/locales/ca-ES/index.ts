@@ -990,10 +990,13 @@ export const caES = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "Escoltar",
+    stop: "Aturar",
+    preparing: "Preparant àudio...",
+    listenHint: "Llegeix aquest missatge en veu alta",
+    stopHint: "Aturar la reproducció",
+    replay: "Reproduir de nou",
+    replayHint: "Reproduir aquest àudio de nou",
+    truncated: "Primers",
   },
 }

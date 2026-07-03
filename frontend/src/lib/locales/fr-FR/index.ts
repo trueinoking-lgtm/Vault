@@ -990,10 +990,13 @@ export const frFR = {
     open: "Open",
   },
   tts: {
-    listen: "Listen",
-    stop: "Stop",
-    preparing: "Preparing audio...",
-    listenHint: "Read this message aloud",
-    stopHint: "Stop playback",
+    listen: "Écouter",
+    stop: "Arrêter",
+    preparing: "Préparation de l'audio...",
+    listenHint: "Lire ce message à voix haute",
+    stopHint: "Arrêter la lecture",
+    replay: "Rejouer",
+    replayHint: "Rejouer cet audio",
+    truncated: "Premiers",
   },
 }
