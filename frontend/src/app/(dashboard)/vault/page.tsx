@@ -6,8 +6,8 @@ import { useTranslation } from '@/lib/hooks/use-translation'
 import { AppShell } from '@/components/layout/AppShell'
 import dynamic from 'next/dynamic'
 
-const RecentLibraries = dynamic(
-  () => import('@/components/vault/RecentLibraries'),
+const ContinueStudying = dynamic(
+  () => import('@/components/vault/ContinueStudying'),
   { ssr: false }
 )
 
@@ -16,16 +16,11 @@ const LearningPanel = dynamic(
   { ssr: false }
 )
 
-const ContinueStudying = dynamic(
-  () => import('@/components/vault/ContinueStudying'),
-  { ssr: false }
-)
-
 const quickActions = [
   { icon: FileText, titleKey: 'vault.addMaterial', descKey: 'vault.addMaterialDesc', href: '/sources' },
   { icon: BookOpen, titleKey: 'vault.createLeaf', descKey: 'vault.createLeafDesc', href: '/sources' },
   { icon: MessageSquare, titleKey: 'vault.askVault', descKey: 'vault.askVaultDesc', href: '/search' },
-  { icon: Brain, titleKey: 'vault.reviewMemory', descKey: 'vault.reviewMemoryDesc', href: '/notebooks' },
+  { icon: Brain, titleKey: 'vault.reviewLearningMemory', descKey: 'vault.reviewMemoryDesc', href: '/notebooks' },
 ]
 
 export default function VaultPage() {
@@ -57,25 +52,11 @@ export default function VaultPage() {
           </div>
         </section>
 
-        {/* Recent Libraries */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">{t('vault.recentLibraries')}</h2>
-            <Link
-              href="/notebooks"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t('vault.viewAll')}
-            </Link>
-          </div>
-          <RecentLibraries />
-        </section>
+        {/* Continue Studying */}
+        <ContinueStudying />
 
         {/* Learning Panel */}
         <LearningPanel />
-
-        {/* Continue Studying */}
-        <ContinueStudying />
       </div>
     </AppShell>
   )

@@ -43,7 +43,8 @@ export default function LearningPanel() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold mb-3">{t('vault.learningPanel')}</h2>
+      <h2 className="text-lg font-semibold mb-1">{t('vault.learningPanel')}</h2>
+      <p className="text-sm text-muted-foreground mb-3">{t('vault.learningPanelDesc')}</p>
       <div className="space-y-3">
         {recent.map((nb) => (
           <LibraryMemoryCard key={nb.id} notebook={nb} />

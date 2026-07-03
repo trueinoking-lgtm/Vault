@@ -7,7 +7,7 @@ import { isLearningMemoryLeaf, extractSavedGradingMessageIds } from '@/lib/noteb
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { BookOpen, ExternalLink, Brain } from 'lucide-react'
+import { BookOpen, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import type { NotebookResponse } from '@/lib/types/api'
 
@@ -81,12 +81,6 @@ export default function LibraryMemoryCard({ notebook }: LibraryMemoryCardProps) 
             <Link href={`/notebooks/${notebook.id}`}>
               <ExternalLink className="h-3 w-3 mr-1" />
               {t('vault.openLibrary')}
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
-            <Link href={`/notebooks/${notebook.id}`}>
-              <Brain className="h-3 w-3 mr-1" />
-              {t('vault.reviewMemory')}
             </Link>
           </Button>
         </div>

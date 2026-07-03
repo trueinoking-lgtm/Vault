@@ -30,10 +30,14 @@ export default function ContinueStudying() {
   if (recent.length === 0) {
     return (
       <section>
-        <h2 className="text-lg font-semibold mb-3">{t('vault.continueStudying')}</h2>
-        <p className="text-sm text-muted-foreground py-4">
-          {t('vault.noLibrariesToStudy')}
-        </p>
+        <h2 className="text-lg font-semibold mb-1">{t('vault.continueStudying')}</h2>
+        <p className="text-sm text-muted-foreground mb-3">{t('vault.continueStudyingDesc')}</p>
+        <div className="text-center py-8 space-y-3">
+          <p className="text-sm text-muted-foreground">{t('vault.noLibrariesToStudy')}</p>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/notebooks">{t('vault.goToLibraries')}</Link>
+          </Button>
+        </div>
       </section>
     )
   }
