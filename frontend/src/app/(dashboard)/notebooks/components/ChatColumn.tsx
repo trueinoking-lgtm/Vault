@@ -18,9 +18,10 @@ interface ChatColumnProps {
   sourcesLoading: boolean
   teachingPrompt?: string | null
   onTeachingPromptHandled?: () => void
+  onTeachingResponse?: (responseContent: string) => void
 }
 
-export function ChatColumn({ notebookId, contextSelections, sources, sourcesLoading, teachingPrompt, onTeachingPromptHandled }: ChatColumnProps) {
+export function ChatColumn({ notebookId, contextSelections, sources, sourcesLoading, teachingPrompt, onTeachingPromptHandled, onTeachingResponse }: ChatColumnProps) {
   const { t } = useTranslation()
 
   // Fetch notes for this notebook
@@ -67,17 +68,41 @@ export function ChatColumn({ notebookId, contextSelections, sources, sourcesLoad
     }
   }, [sources, notes, contextSelections, chat.tokenCount, chat.charCount])
 
-  // Auto-send a teaching prompt when "Teach this Leaf" is clicked.
+  // Auto-send a teaching prompt when "Teach this Leaf" etc. is clicked.
   // The prompt is a self-contained user message with the Leaf content
   // inline, so it reuses the existing notebook chat infrastructure.
+  // After the AI responds, fire onTeachingResponse so the parent can
+  // update the Learning Memory leaf.
   const prevTeachingRef = useRef<string | null>(null)
+  const teachingSentRef = useRef(false)
+  const messagesLenAtTeachTimeRef = useRef(0)
   useEffect(() => {
     if (teachingPrompt && teachingPrompt !== prevTeachingRef.current && !chat.isSending) {
       prevTeachingRef.current = teachingPrompt
+      messagesLenAtTeachTimeRef.current = chat.messages.length
+      teachingSentRef.current = true
       chat.sendMessage(teachingPrompt)
       onTeachingPromptHandled?.()
     }
   }, [teachingPrompt, chat.isSending, chat.sendMessage, onTeachingPromptHandled])
+
+  // Watch for the AI response to arrive after a teaching prompt was sent.
+  // Fires onTeachingResponse with the response content exactly once per
+  // teaching action.  Guards: (a) a teach was actually sent, (b) sending
+  // has finished, (c) messages have grown, and (d) the last message is AI.
+  useEffect(() => {
+    if (
+      teachingSentRef.current &&
+      !chat.isSending &&
+      chat.messages.length > messagesLenAtTeachTimeRef.current
+    ) {
+      const lastMsg = chat.messages[chat.messages.length - 1]
+      if (lastMsg.type === 'ai') {
+        teachingSentRef.current = false
+        onTeachingResponse?.(lastMsg.content)
+      }
+    }
+  }, [chat.messages, chat.isSending, onTeachingResponse])
 
   // Show loading state while sources/notes are being fetched
   if (sourcesLoading || notesLoading) {

@@ -34,6 +34,9 @@ import {
   type LeafTemplateId,
 } from '@/lib/notebooks/leaf-templates'
 import { sourcesApi } from '@/lib/api/sources'
+import { useQueryClient } from '@tanstack/react-query'
+import { QUERY_KEYS } from '@/lib/api/query-client'
+import { appendMemoryEntry } from '@/lib/notebooks/learning-memory'
 
 // Re-exported from the shared types module for backward compatibility; several
 // components historically import these from this route file.
@@ -108,6 +111,16 @@ export default function NotebookPage() {
 
   // Teaching state for Phase 6 — "Teach this Leaf"
   const [teachingPrompt, setTeachingPrompt] = useState<string | null>(null)
+
+  // Metadata about the current teaching action, used by the Learning
+  // Memory callback when the AI response arrives.
+  interface TeachingMeta {
+    sourceTitle: string
+    sourceType: 'leaf' | 'material'
+    action: 'teach' | 'explain' | 'quiz'
+  }
+  const [teachingMeta, setTeachingMeta] = useState<TeachingMeta | null>(null)
+  const queryClient = useQueryClient()
 
   // Context selection state
   const [contextSelections, setContextSelections] = useState<ContextSelections>({
@@ -205,6 +218,7 @@ export default function NotebookPage() {
     }
 
     const prompt = prompts[action] || prompts.teach
+    setTeachingMeta({ sourceTitle: title, sourceType: 'leaf', action })
     setTeachingPrompt(prompt)
     setMobileActiveTab('chat')
   }
@@ -225,6 +239,7 @@ export default function NotebookPage() {
       }
 
       const prompt = prompts[action] || prompts.teach
+      setTeachingMeta({ sourceTitle: title, sourceType: 'material', action })
       setTeachingPrompt(prompt)
       setMobileActiveTab('chat')
     } catch (error) {
@@ -234,6 +249,28 @@ export default function NotebookPage() {
 
   const handleTeachingPromptHandled = () => {
     setTeachingPrompt(null)
+  }
+
+  const handleTeachingResponse = async (responseContent: string) => {
+    if (!teachingMeta) return
+    const meta = teachingMeta
+    setTeachingMeta(null)
+
+    try {
+      await appendMemoryEntry(notebookId, {
+        sourceType: meta.sourceType,
+        sourceTitle: meta.sourceTitle,
+        action: meta.action,
+        responseContent,
+      })
+      // Invalidate notes so the Learning Memory leaf appears/updates
+      // in the Leaves column without a manual refresh.
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.notes(notebookId) })
+    } catch (error) {
+      // Silent failure — never break the chat experience for a
+      // background memory update.
+      console.error('Failed to update learning memory:', error)
+    }
   }
 
   const handleLeafTemplateConfirm = async (templateId: LeafTemplateId) => {
@@ -358,6 +395,7 @@ export default function NotebookPage() {
                     sourcesLoading={sourcesLoading}
                     teachingPrompt={teachingPrompt}
                     onTeachingPromptHandled={handleTeachingPromptHandled}
+                    onTeachingResponse={handleTeachingResponse}
                   />
                 )}
               </div>
@@ -416,6 +454,7 @@ export default function NotebookPage() {
                 sourcesLoading={sourcesLoading}
                 teachingPrompt={teachingPrompt}
                 onTeachingPromptHandled={handleTeachingPromptHandled}
+                onTeachingResponse={handleTeachingResponse}
               />
             </div>
           </div>
