@@ -19,12 +19,14 @@ import {
 import { Button } from '@/components/ui/button'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
+import { Loader2 } from 'lucide-react'
 
 interface LeafTemplateDialogProps {
   open: boolean
   source: SourceResponse | null
   onOpenChange: (open: boolean) => void
   onConfirm: (templateId: LeafTemplateId) => void
+  disabled?: boolean
 }
 
 export function LeafTemplateDialog({
@@ -32,6 +34,7 @@ export function LeafTemplateDialog({
   source,
   onOpenChange,
   onConfirm,
+  disabled = false,
 }: LeafTemplateDialogProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<LeafTemplateId>(DEFAULT_LEAF_TEMPLATE_ID)
 
@@ -58,6 +61,7 @@ export function LeafTemplateDialog({
           value={selectedTemplateId}
           onValueChange={(value) => setSelectedTemplateId(value as LeafTemplateId)}
           className="gap-3"
+          disabled={disabled}
         >
           {LEAF_TEMPLATES.map((template) => (
             <Label
@@ -82,11 +86,18 @@ export function LeafTemplateDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={disabled}>
             Cancel
           </Button>
-          <Button type="button" onClick={() => onConfirm(selectedTemplateId)}>
-            Continue to Leaf
+          <Button type="button" onClick={() => onConfirm(selectedTemplateId)} disabled={disabled}>
+            {disabled ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Preparing Leaf…
+              </>
+            ) : (
+              'Continue to Leaf'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

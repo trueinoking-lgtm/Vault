@@ -33,6 +33,7 @@ import {
   type LeafDraft,
   type LeafTemplateId,
 } from '@/lib/notebooks/leaf-templates'
+import { sourcesApi } from '@/lib/api/sources'
 
 // Re-exported from the shared types module for backward compatibility; several
 // components historically import these from this route file.
@@ -70,6 +71,7 @@ export default function NotebookPage() {
   const [leafComposerOpen, setLeafComposerOpen] = useState(false)
   const [leafDraft, setLeafDraft] = useState<LeafDraft | null>(null)
   const [pendingLeafSource, setPendingLeafSource] = useState<SourceResponse | null>(null)
+  const [isPreparingDraft, setIsPreparingDraft] = useState(false)
 
   // Context selection state
   const [contextSelections, setContextSelections] = useState<ContextSelections>({
@@ -150,15 +152,33 @@ export default function NotebookPage() {
     setMobileActiveTab('notes')
   }
 
-  const handleLeafTemplateConfirm = (templateId: LeafTemplateId) => {
+  const handleLeafTemplateConfirm = async (templateId: LeafTemplateId) => {
     if (!pendingLeafSource) {
       return
     }
 
+    setIsPreparingDraft(true)
+
+    // Best-effort: try to fetch full source text so template builders can
+    // prefill section headings with actual excerpts from the material.
+    // Falls back gracefully when the source hasn't finished processing yet
+    // or the network request fails — the builder receives undefined and
+    // produces the same empty-section scaffold as Phase 4.
+    let sourceText: string | undefined
+    try {
+      const detail = await sourcesApi.get(pendingLeafSource.id)
+      if (detail.full_text) {
+        sourceText = detail.full_text
+      }
+    } catch {
+      // Silently fall back — source may still be processing.
+    }
+
     const template = getLeafTemplateById(templateId)
-    setLeafDraft(template.buildDraft(pendingLeafSource))
+    setLeafDraft(template.buildDraft(pendingLeafSource, sourceText))
     setLeafTemplateDialogOpen(false)
     setLeafComposerOpen(true)
+    setIsPreparingDraft(false)
   }
 
   const handleLeafTemplateDialogOpenChange = (open: boolean) => {
@@ -323,6 +343,7 @@ export default function NotebookPage() {
           source={pendingLeafSource}
           onOpenChange={handleLeafTemplateDialogOpenChange}
           onConfirm={handleLeafTemplateConfirm}
+          disabled={isPreparingDraft}
         />
 
         <NoteEditorDialog
