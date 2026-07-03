@@ -22,6 +22,7 @@ import { ModelSelector } from './ModelSelector'
 import { ContextIndicator } from '@/components/common/ContextIndicator'
 import { SessionManager } from '@/components/source/SessionManager'
 import { MessageActions } from '@/components/source/MessageActions'
+import { TTSButton } from '@/components/voice/TTSButton'
 import { convertReferencesToCompactMarkdown, createCompactReferenceLinkComponent } from '@/lib/utils/source-references'
 import { useModalManager } from '@/lib/hooks/use-modal-manager'
 import { toast } from 'sonner'
@@ -383,6 +384,14 @@ export function ChatPanel({
                         content={message.content}
                         notebookId={notebookId}
                       />
+                    )}
+                    {message.type === 'ai' && (
+                      <div className="flex justify-start">
+                        <TTSButton
+                          text={message.content}
+                          className="h-7 px-2 text-xs"
+                        />
+                      </div>
                     )}
                     {message.type === 'ai' &&
                       isEligibleGradingResponseMessage(messages, index) && (

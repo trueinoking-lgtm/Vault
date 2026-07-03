@@ -992,4 +992,11 @@ export const deDE = {
     humanCreated: "Human",
     open: "Open",
   },
+  tts: {
+    listen: "Listen",
+    stop: "Stop",
+    preparing: "Preparing audio...",
+    listenHint: "Read this message aloud",
+    stopHint: "Stop playback",
+  },
 }
