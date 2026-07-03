@@ -1,363 +1,200 @@
 <a id="readme-top"></a>
 
-<!-- [![Contributors][contributors-shield]][contributors-url] -->
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-<!-- [![LinkedIn][linkedin-shield]][linkedin-url] -->
-
-
-<!-- PROJECT LOGO -->
-<br />
 <div align="center">
-  <a href="https://github.com/lfnovo/open-notebook">
-    <img src="docs/assets/hero.svg" alt="Logo">
+  <a href="https://github.com/trueinoking-lgtm/Vault">
+    <img src="docs/assets/hero.svg" alt="Vault Logo">
   </a>
 
-  <h3 align="center">Open Notebook</h3>
+  <h1>Vault</h1>
 
-  <p align="center">
-    An open source, privacy-focused alternative to Google's Notebook LM!
-    <br /><strong>Join our <a href="https://discord.gg/37XJPXfz2w">Discord server</a> for help, to share workflow ideas, and suggest features!</strong>
-    <br />
-    <a href="https://www.open-notebook.ai"><strong>Checkout our website »</strong></a>
-    <br />
-    <br />
-    <a href="docs/0-START-HERE/index.md">📚 Get Started</a>
-    ·
-    <a href="docs/3-USER-GUIDE/index.md">📖 User Guide</a>
-    ·
-    <a href="docs/2-CORE-CONCEPTS/index.md">✨ Features</a>
-    ·
-    <a href="docs/1-INSTALLATION/index.md">🚀 Deploy</a>
+  <p>
+    An AI-powered learning workspace for turning materials into structured study leaves, guided review, and persistent learning memory.
   </p>
 </div>
 
-<p align="center">
-<a href="https://trendshift.io/repositories/14536" target="_blank"><img src="https://trendshift.io/api/badge/repositories/14536" alt="lfnovo%2Fopen-notebook | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-</p>
+---
 
-<div align="center">
-  <!-- Keep these links. Translations will automatically update with the README. -->
-  <a href="https://zdoc.app/de/lfnovo/open-notebook">Deutsch</a> | 
-  <a href="https://zdoc.app/es/lfnovo/open-notebook">Español</a> | 
-  <a href="https://zdoc.app/fr/lfnovo/open-notebook">français</a> | 
-  <a href="https://zdoc.app/ja/lfnovo/open-notebook">日本語</a> | 
-  <a href="https://zdoc.app/ko/lfnovo/open-notebook">한국어</a> | 
-  <a href="https://zdoc.app/pt/lfnovo/open-notebook">Português</a> | 
-  <a href="https://zdoc.app/ru/lfnovo/open-notebook">Русский</a> | 
-  <a href="https://zdoc.app/zh/lfnovo/open-notebook">中文</a>
-</div>
+## What is Vault?
 
-## A private, multi-model, 100% local, full-featured alternative to Notebook LM
+Vault is a self-hosted, privacy-focused research and learning assistant. Upload multi-modal content — PDFs, audio, video, web pages — organize it into libraries, and use AI to transform raw materials into structured study notes with persistent memory.
 
-![New Notebook](docs/assets/asset_list.png)
-
-In a world dominated by Artificial Intelligence, having the ability to think 🧠 and acquire new knowledge 💡, is a skill that should not be a privilege for a few, nor restricted to a single provider.
-
-**Open Notebook empowers you to:**
-- 🔒 **Control your data** - Keep your research private and secure
-- 🤖 **Choose your AI models** - Support for 18+ providers including OpenAI, Anthropic, Ollama, LM Studio, and more
-- 📚 **Organize multi-modal content** - PDFs, videos, audio, web pages, and more
-- 🎙️ **Generate professional podcasts** - Advanced multi-speaker podcast generation
-- 🔍 **Search intelligently** - Full-text and vector search across all your content
-- 💬 **Chat with context** - AI conversations powered by your research
-- 🌐 **Multi-language UI** - English, Portuguese, Chinese (Simplified & Traditional), Japanese, Russian, and Bengali support
-
-Learn more about our project at [https://www.open-notebook.ai](https://www.open-notebook.ai)
+**Key principles:**
+- 🔒 **Privacy first** — your data stays on your machine
+- 🤖 **Multi-provider AI** — OpenAI, Anthropic, Google, Ollama, and 15+ more
+- 📚 **Library-based organization** — group related materials into libraries
+- 🧠 **Persistent learning memory** — track what you've learned and where you're weak
+- ✅ **Guided review** — check your answers and save weak spots for later
 
 ---
 
-## 🆚 Open Notebook vs Google Notebook LM
+## Core Concepts
 
-| Feature | Open Notebook | Google Notebook LM | Advantage |
-|---------|---------------|--------------------|-----------|
-| **Privacy & Control** | Self-hosted, your data | Google cloud only | Complete data sovereignty |
-| **AI Provider Choice** | 18+ providers (OpenAI, Anthropic, Ollama, LM Studio, etc.) | Google models only | Flexibility and cost optimization |
-| **Podcast Speakers** | 1-4 speakers with custom profiles | 2 speakers only | Extreme flexibility |
-| **Content Transformations** | Custom and built-in | Limited options | Unlimited processing power |
-| **API Access** | Full REST API | No API | Complete automation |
-| **Deployment** | Docker, cloud, or local | Google hosted only | Deploy anywhere |
-| **Citations** | Basic references (will improve) | Comprehensive with sources | Research integrity |
-| **Customization** | Open source, fully customizable | Closed system | Unlimited extensibility |
-| **Cost** | Pay only for AI usage | Free tier + Monthly subscription | Transparent and controllable |
+### Libraries
 
-**Why Choose Open Notebook?**
-- 🔒 **Privacy First**: Your sensitive research stays completely private
-- 💰 **Cost Control**: Choose cheaper AI providers or run locally with Ollama
-- 🎙️ **Better Podcasts**: Full script control and multi-speaker flexibility vs limited 2-speaker deep-dive format
-- 🔧 **Unlimited Customization**: Modify, extend, and integrate as needed
-- 🌐 **No Vendor Lock-in**: Switch providers, deploy anywhere, own your data
+Libraries are the top-level containers for your research. Each library groups related materials and provides its own chat, notes, and learning memory. Think of a library as a course, project, or topic area.
 
-### Built With
+### Materials
 
-[![Python][Python]][Python-url] [![Next.js][Next.js]][Next-url] [![React][React]][React-url] [![SurrealDB][SurrealDB]][SurrealDB-url] [![LangChain][LangChain]][LangChain-url]
+Materials are the raw content you add to a library — PDFs, URLs, audio files, video, or pasted text. Vault processes and indexes each material so it can be searched, discussed, and transformed by AI.
 
-## 🚀 Quick Start (2 Minutes)
+### Leaves
+
+Leaves are structured study notes created from materials. They capture summaries, key insights, and lessons in a persistent format. Each leaf is linked to its source material and lives inside a library.
+
+### Learning Memory
+
+Learning Memory is a special leaf that tracks your learning journey. It records study sessions, quiz results, and saved weak spots over time. Vault uses it to generate targeted review sessions.
+
+### Review and Answer Checking
+
+After a study session, Vault can grade your answers against the source material. It marks responses as Correct, Partial, or Incorrect, explains reasoning, reveals correct answers, and summarizes weak spots. You can optionally save weak spots to Learning Memory for later review.
+
+### Command Center
+
+The Command Center (`/vault`) is your central dashboard. It provides quick actions (add material, create leaf, ask a question, review memory), shows your most recently active libraries, displays learning progress across libraries, and lets you resume studying where you left off.
+
+---
+
+## Features
+
+### Content and Organization
+- **Multi-modal import** — PDFs, URLs, audio, video, Office docs, plain text
+- **Library management** — create, archive, and organize libraries
+- **Material processing** — automatic content extraction and indexing
+- **Leaf editor** — create and edit structured study notes
+- **Bulk operations** — batch import materials and manage context
+
+### AI-Powered
+- **18+ AI providers** — OpenAI, Anthropic, Google, Groq, Ollama, Mistral, DeepSeek, xAI, and more
+- **Context-aware chat** — conversations powered by your library's materials and notes
+- **Knowledge base search** — full-text and vector semantic search
+- **Content transformations** — customizable prompts to summarize, extract insights, or generate structured outputs
+- **Answer grading** — check your responses and get feedback with weak-spot identification
+
+### Learning
+- **Learning Memory** — persistent study tracking across sessions
+- **Weak-spot saving** — optionally save graded weak spots for later review
+- **Review sessions** — generate practice questions from your learning memory
+- **Command Center** — central dashboard for quick actions and progress
+
+### Advanced
+- **Podcast generation** — multi-speaker AI podcast episodes from your research
+- **REST API** — full programmatic access to all features
+- **Multi-language UI** — English, Portuguese, Chinese, Japanese, Russian, Bengali, and more
+- **Optional authentication** — password protection for shared deployments
+
+---
+
+## Provider Support
+
+Thanks to the [Esperanto](https://github.com/lfnovo/esperanto) library, Vault supports these AI providers out of the box:
+
+| Provider | LLM | Embedding | STT | TTS |
+|----------|-----|-----------|-----|-----|
+| OpenAI | ✅ | ✅ | ✅ | ✅ |
+| Anthropic | ✅ | ❌ | ❌ | ❌ |
+| Google (GenAI) | ✅ | ✅ | ✅ | ✅ |
+| Groq | ✅ | ❌ | ✅ | ❌ |
+| Ollama | ✅ | ✅ | ❌ | ❌ |
+| Mistral | ✅ | ✅ | ✅ | ✅ |
+| DeepSeek | ✅ | ❌ | ❌ | ❌ |
+| xAI | ✅ | ❌ | ❌ | ✅ |
+| Azure OpenAI | ✅ | ✅ | ✅ | ✅ |
+| Vertex AI | ✅ | ✅ | ❌ | ✅ |
+| OpenRouter | ✅ | ✅ | ❌ | ❌ |
+| ElevenLabs | ❌ | ❌ | ✅ | ✅ |
+| Deepgram | ❌ | ❌ | ❌ | ✅ |
+| Voyage | ❌ | ✅ | ❌ | ❌ |
+| DashScope (Qwen) | ✅ | ❌ | ❌ | ❌ |
+| MiniMax | ✅ | ❌ | ❌ | ❌ |
+| Perplexity | ✅ | ❌ | ❌ | ❌ |
+| OpenAI Compatible* | ✅ | ✅ | ✅ | ✅ |
+
+*Supports LM Studio and any OpenAI-compatible endpoint.
+
+---
+
+## Tech Stack
+
+- **Frontend** — Next.js 16, React 19, TypeScript, Tailwind CSS, Shadcn/ui
+- **Backend** — Python 3.11+, FastAPI, LangGraph workflows
+- **Database** — SurrealDB (graph database with vector search)
+- **AI** — Esperanto library for multi-provider support
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
-- That's it! (API keys configured later in the UI)
 
-### Step 1: Get docker-compose.yml
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-**Option A:** Download directly
-```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/lfnovo/open-notebook/main/docker-compose.yml
-```
+### Quick Start
 
-**Option B:** Create the file manually
-Copy this into a new file called `docker-compose.yml`:
+1. **Get the compose file**
 
-```yaml
-services:
-  surrealdb:
-    image: surrealdb/surrealdb:v2
-    command: start --log info --user root --pass root rocksdb:/mydata/mydatabase.db
-    user: root
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./surreal_data:/mydata
-    restart: always
+   ```bash
+   curl -o docker-compose.yml https://raw.githubusercontent.com/lfnovo/open-notebook/main/docker-compose.yml
+   ```
 
-  open_notebook:
-    image: lfnovo/open_notebook:v1-latest
-    ports:
-      - "8502:8502"
-      - "5055:5055"
-    environment:
-      - OPEN_NOTEBOOK_ENCRYPTION_KEY=change-me-to-a-secret-string
-      - SURREAL_URL=ws://surrealdb:8000/rpc
-      - SURREAL_USER=root
-      - SURREAL_PASSWORD=root
-      - SURREAL_NAMESPACE=open_notebook
-      - SURREAL_DATABASE=open_notebook
-    volumes:
-      - ./notebook_data:/app/data
-    depends_on:
-      - surrealdb
-    restart: always
-```
+2. **Set your encryption key**
 
-### Step 2: Set Your Encryption Key
-Edit `docker-compose.yml` and change this line:
-```yaml
-- OPEN_NOTEBOOK_ENCRYPTION_KEY=change-me-to-a-secret-string
-```
-to any secret value (e.g., `my-super-secret-key-123`)
+   Open `docker-compose.yml` and replace the `OPEN_NOTEBOOK_ENCRYPTION_KEY` value with any secret string.
 
-### Step 3: Start Services
-```bash
-docker compose up -d
-```
+3. **Start services**
 
-Wait 15-20 seconds, then open: **http://localhost:8502**
+   ```bash
+   docker compose up -d
+   ```
 
-### Step 4: Configure AI Provider
-1. Go to **Models** and choose your provider (OpenAI, Anthropic, Google, etc.)
-2. Click **+ Add Configuration**
-3. Paste your API key and other info as needed and click **Add Configuration**
-4. Click **Test** to test connection
-5. Click **Sync Models** and check models to include
-6. Under **Default Model Assignments**, click **Auto-Assign Defaults** or manually specify which models to use for what 
+4. **Open Vault** at `http://localhost:8502` and configure your AI provider in Settings.
 
-Done! You're ready to create your first notebook.
+> **Note:** Vault uses the same backend infrastructure as Open Notebook. The Docker setup above pulls the upstream backend image, which is fully compatible with Vault's frontend.
 
-> **Need an API key?** Get one from:
-> [OpenAI](https://platform.openai.com/api-keys) · [Anthropic](https://console.anthropic.com/) · [Google](https://aistudio.google.com/) · [Groq](https://console.groq.com/) (free tier)
+### More Options
 
-> **Want free local AI?** See [examples/docker-compose-ollama.yml](examples/) for Ollama setup
+- **Ollama (free local AI)** — see `examples/docker-compose-ollama.yml`
+- **From source** — see `docs/1-INSTALLATION/from-source.md`
+- **Full installation guide** — see `docs/1-INSTALLATION/index.md`
 
 ---
 
-### 📚 More Installation Options
+## Documentation
 
-- **[With Ollama (Free Local AI)](examples/docker-compose-ollama.yml)** - Run models locally without API costs
-- **[From Source (Developers)](docs/1-INSTALLATION/from-source.md)** - For development and contributions
-- **[Complete Installation Guide](docs/1-INSTALLATION/index.md)** - All deployment scenarios
-
----
-
-### 📖 Need Help?
-
-- **🤖 AI Installation Assistant**: [CustomGPT to help you install](https://chatgpt.com/g/g-68776e2765b48191bd1bae3f30212631-open-notebook-installation-assistant)
-- **🆘 Troubleshooting**: [5-minute troubleshooting guide](docs/6-TROUBLESHOOTING/quick-fixes.md)
-- **💬 Community Support**: [Discord Server](https://discord.gg/37XJPXfz2w)
-- **🐛 Report Issues**: [GitHub Issues](https://github.com/lfnovo/open-notebook/issues)
+- **[Getting Started](docs/0-START-HERE/index.md)** — introduction and first steps
+- **[Installation](docs/1-INSTALLATION/index.md)** — deployment guides
+- **[Core Concepts](docs/2-CORE-CONCEPTS/index.md)** — architecture and how things work
+- **[User Guide](docs/3-USER-GUIDE/index.md)** — tutorials for materials, leaves, chat, search
+- **[AI Providers](docs/4-AI-PROVIDERS/index.md)** — model configuration
+- **[Configuration](docs/5-CONFIGURATION/index.md)** — settings and security
+- **[Development](docs/7-DEVELOPMENT/index.md)** — contributing and architecture
 
 ---
 
-## Star History
+## Development
 
-[![Star History Chart](https://api.star-history.com/svg?repos=lfnovo/open-notebook&type=date&legend=top-left)](https://www.star-history.com/#lfnovo/open-notebook&type=date&legend=top-left)
+Vault welcomes contributions. See the [Contributing Guide](docs/7-DEVELOPMENT/contributing.md) for details.
 
+**Current tech stack:** Python, FastAPI, Next.js, React, SurrealDB, LangGraph
 
-## Provider Support Matrix
+---
 
-Thanks to the [Esperanto](https://github.com/lfnovo/esperanto) library, we support this providers out of the box!
+## Attribution
 
-| Provider     | LLM Support | Embedding Support | Speech-to-Text | Text-to-Speech |
-|--------------|-------------|------------------|----------------|----------------|
-| OpenAI       | ✅          | ✅               | ✅             | ✅             |
-| Anthropic    | ✅          | ❌               | ❌             | ❌             |
-| Groq         | ✅          | ❌               | ✅             | ❌             |
-| Google (GenAI) | ✅          | ✅               | ✅             | ✅             |
-| Vertex AI    | ✅          | ✅               | ❌             | ✅             |
-| Ollama       | ✅          | ✅               | ❌             | ❌             |
-| Perplexity   | ✅          | ❌               | ❌             | ❌             |
-| ElevenLabs   | ❌          | ❌               | ✅             | ✅             |
-| Deepgram     | ❌          | ❌               | ❌             | ✅             |
-| Azure OpenAI | ✅          | ✅               | ✅             | ✅             |
-| Mistral      | ✅          | ✅               | ✅             | ✅             |
-| DeepSeek     | ✅          | ❌               | ❌             | ❌             |
-| Voyage       | ❌          | ✅               | ❌             | ❌             |
-| xAI          | ✅          | ❌               | ❌             | ✅             |
-| OpenRouter   | ✅          | ✅               | ❌             | ❌             |
-| DashScope (Qwen) | ✅          | ❌               | ❌             | ❌             |
-| MiniMax      | ✅          | ❌               | ❌             | ❌             |
-| OpenAI Compatible* | ✅          | ✅               | ✅             | ✅             |
+Vault began as a heavily modified fork of [Open Notebook](https://github.com/lfnovo/open-notebook) by Luis Novo, used under the MIT License. Open Notebook is an open-source, privacy-focused AI research assistant that provides the foundation for Vault's backend, database schema, and AI provider integrations.
 
-*Supports LM Studio and any OpenAI-compatible endpoint
+Vault preserves all required license notices and copyright attribution. The MIT license file remains unchanged.
 
-## ✨ Key Features
+**Open Notebook** — [GitHub](https://github.com/lfnovo/open-notebook) · [Website](https://www.open-notebook.ai) · [MIT License](LICENSE)
 
-### Core Capabilities
-- **🔒 Privacy-First**: Your data stays under your control - no cloud dependencies
-- **🎯 Multi-Notebook Organization**: Manage multiple research projects seamlessly
-- **📚 Universal Content Support**: PDFs, videos, audio, web pages, Office docs, and more
-- **🤖 Multi-Model AI Support**: 18+ providers including OpenAI, Anthropic, Ollama, Google, LM Studio, and more
-- **🎙️ Professional Podcast Generation**: Advanced multi-speaker podcasts with Episode Profiles
-- **🔍 Intelligent Search**: Full-text and vector search across all your content
-- **💬 Context-Aware Chat**: AI conversations powered by your research materials
-- **📝 AI-Assisted Notes**: Generate insights or write notes manually
+---
 
-### Advanced Features
-- **⚡ Reasoning Model Support**: Full support for thinking models like DeepSeek-R1 and Qwen3
-- **🔧 Content Transformations**: Powerful customizable actions to summarize and extract insights
-- **🌐 Comprehensive REST API**: Full programmatic access for custom integrations [![API Docs](https://img.shields.io/badge/API-Documentation-blue?style=flat-square)](http://localhost:5055/docs)
-- **🔐 Optional Password Protection**: Secure public deployments with authentication
-- **📊 Fine-Grained Context Control**: Choose exactly what to share with AI models
-- **📎 Citations**: Get answers with proper source citations
+## License
 
+Vault is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Podcast Feature
+Copyright (c) 2024 Luis Novo — retained from Open Notebook.
 
-[![Check out our podcast sample](https://img.youtube.com/vi/D-760MlGwaI/0.jpg)](https://www.youtube.com/watch?v=D-760MlGwaI)
-
-## 📚 Documentation
-
-### Getting Started
-- **[📖 Introduction](docs/0-START-HERE/index.md)** - Learn what Open Notebook offers
-- **[⚡ Quick Start](docs/0-START-HERE/quick-start.md)** - Get up and running in 5 minutes
-- **[🔧 Installation](docs/1-INSTALLATION/index.md)** - Comprehensive setup guide
-- **[🎯 Your First Notebook](docs/0-START-HERE/first-notebook.md)** - Step-by-step tutorial
-
-### User Guide
-- **[📱 Interface Overview](docs/3-USER-GUIDE/interface-overview.md)** - Understanding the layout
-- **[📚 Notebooks](docs/3-USER-GUIDE/notebooks.md)** - Organizing your research
-- **[📄 Sources](docs/3-USER-GUIDE/sources.md)** - Managing content types
-- **[📝 Notes](docs/3-USER-GUIDE/notes.md)** - Creating and managing notes
-- **[💬 Chat](docs/3-USER-GUIDE/chat.md)** - AI conversations
-- **[🔍 Search](docs/3-USER-GUIDE/search.md)** - Finding information
-
-### Advanced Topics
-- **[🎙️ Podcast Generation](docs/2-CORE-CONCEPTS/podcasts.md)** - Create professional podcasts
-- **[🔧 Content Transformations](docs/2-CORE-CONCEPTS/transformations.md)** - Customize content processing
-- **[🤖 AI Models](docs/4-AI-PROVIDERS/index.md)** - AI model configuration
-- **[🔌 MCP Integration](docs/5-CONFIGURATION/mcp-integration.md)** - Connect with Claude Desktop, VS Code and other MCP clients
-- **[🔧 REST API Reference](docs/7-DEVELOPMENT/api-reference.md)** - Complete API documentation
-- **[🔐 Security](docs/5-CONFIGURATION/security.md)** - Password protection and privacy
-- **[🚀 Deployment](docs/1-INSTALLATION/index.md)** - Complete deployment guides for all scenarios
+---
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## 🗺️ Roadmap
-
-### Upcoming Features
-- **Live Front-End Updates**: Real-time UI updates for smoother experience
-- **Async Processing**: Faster UI through asynchronous content processing
-- **Cross-Notebook Sources**: Reuse research materials across projects
-- **Bookmark Integration**: Connect with your favorite bookmarking apps
-
-### Recently Completed ✅
-- **Next.js Frontend**: Modern React-based frontend with improved performance
-- **Comprehensive REST API**: Full programmatic access to all functionality
-- **Multi-Model Support**: 18+ AI providers including OpenAI, Anthropic, Ollama, LM Studio
-- **Advanced Podcast Generator**: Professional multi-speaker podcasts with Episode Profiles
-- **Content Transformations**: Powerful customizable actions for content processing
-- **Enhanced Citations**: Improved layout and finer control for source citations
-- **Multiple Chat Sessions**: Manage different conversations within notebooks
-
-See the [open issues](https://github.com/lfnovo/open-notebook/issues) for a full list of proposed features and known issues.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-## 📖 Need Help?
-- **🤖 AI Installation Assistant**: We have a [CustomGPT built to help you install Open Notebook](https://chatgpt.com/g/g-68776e2765b48191bd1bae3f30212631-open-notebook-installation-assistant) - it will guide you through each step!
-- **New to Open Notebook?** Start with our [Getting Started Guide](docs/0-START-HERE/index.md)
-- **Need installation help?** Check our [Installation Guide](docs/1-INSTALLATION/index.md)
-- **Want to see it in action?** Try our [Quick Start Tutorial](docs/0-START-HERE/quick-start.md)
-
-## 🤝 Community & Contributing
-
-### Join the Community
-- 💬 **[Discord Server](https://discord.gg/37XJPXfz2w)** - Get help, share ideas, and connect with other users
-- 🐛 **[GitHub Issues](https://github.com/lfnovo/open-notebook/issues)** - Report bugs and request features
-- ⭐ **Star this repo** - Show your support and help others discover Open Notebook
-
-### Contributing
-We welcome contributions! We're especially looking for help with:
-- **Frontend Development**: Help improve our modern Next.js/React UI
-- **Testing & Bug Fixes**: Make Open Notebook more robust
-- **Feature Development**: Build the coolest research tool together
-- **Documentation**: Improve guides and tutorials
-
-**Current Tech Stack**: Python, FastAPI, Next.js, React, SurrealDB
-**Future Roadmap**: Real-time updates, enhanced async processing
-
-See our [Contributing Guide](CONTRIBUTING.md) for detailed information on how to get started.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-## 📄 License
-
-Open Notebook is MIT licensed. See the [LICENSE](LICENSE) file for details.
-
-
-**Community Support**:
-- 💬 [Discord Server](https://discord.gg/37XJPXfz2w) - Get help, share ideas, and connect with users
-- 🐛 [GitHub Issues](https://github.com/lfnovo/open-notebook/issues) - Report bugs and request features
-- 🌐 [Website](https://www.open-notebook.ai) - Learn more about the project
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/lfnovo/open-notebook.svg?style=for-the-badge
-[contributors-url]: https://github.com/lfnovo/open-notebook/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/lfnovo/open-notebook.svg?style=for-the-badge
-[forks-url]: https://github.com/lfnovo/open-notebook/network/members
-[stars-shield]: https://img.shields.io/github/stars/lfnovo/open-notebook.svg?style=for-the-badge
-[stars-url]: https://github.com/lfnovo/open-notebook/stargazers
-[issues-shield]: https://img.shields.io/github/issues/lfnovo/open-notebook.svg?style=for-the-badge
-[issues-url]: https://github.com/lfnovo/open-notebook/issues
-[license-shield]: https://img.shields.io/github/license/lfnovo/open-notebook.svg?style=for-the-badge
-[license-url]: https://github.com/lfnovo/open-notebook/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/lfnovo
-[product-screenshot]: images/screenshot.png
-[Next.js]: https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white
-[Next-url]: https://nextjs.org/
-[React]: https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black
-[React-url]: https://reactjs.org/
-[Python]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
-[Python-url]: https://www.python.org/
-[LangChain]: https://img.shields.io/badge/LangChain-3A3A3A?style=for-the-badge&logo=chainlink&logoColor=white
-[LangChain-url]: https://www.langchain.com/
-[SurrealDB]: https://img.shields.io/badge/SurrealDB-FF5E00?style=for-the-badge&logo=databricks&logoColor=white
-[SurrealDB-url]: https://surrealdb.com/
