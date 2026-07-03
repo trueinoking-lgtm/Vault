@@ -18,8 +18,8 @@ describe('AppSidebar', () => {
 
     // With mocked t() returning keys, check for translation key strings
     expect(screen.getByText('common.appName')).toBeDefined()
-    expect(screen.getByText('navigation.sources')).toBeDefined()
-    expect(screen.getByText('navigation.notebooks')).toBeDefined()
+    expect(screen.getByText('navigation.materials')).toBeDefined()
+    expect(screen.getByText('navigation.libraries')).toBeDefined()
   })
 
   it('toggles collapse state when clicking handle', () => {
