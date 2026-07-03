@@ -11,6 +11,16 @@ const ContinueStudying = dynamic(
   { ssr: false }
 )
 
+const RecentMaterials = dynamic(
+  () => import('@/components/vault/RecentMaterials'),
+  { ssr: false }
+)
+
+const RecentLeaves = dynamic(
+  () => import('@/components/vault/RecentLeaves'),
+  { ssr: false }
+)
+
 const LearningPanel = dynamic(
   () => import('@/components/vault/LearningPanel'),
   { ssr: false }
@@ -54,6 +64,12 @@ export default function VaultPage() {
 
         {/* Continue Studying */}
         <ContinueStudying />
+
+        {/* Recent Materials */}
+        <RecentMaterials />
+
+        {/* Recent Leaves */}
+        <RecentLeaves />
 
         {/* Learning Panel */}
         <LearningPanel />
