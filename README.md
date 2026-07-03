@@ -2,7 +2,7 @@
 
 <div align="center">
   <a href="https://github.com/trueinoking-lgtm/Vault">
-    <img src="docs/assets/hero.svg" alt="Vault Logo">
+    <img src="docs/assets/hero.svg" alt="Vault — a book encased in golden chains">
   </a>
 
   <h1>Vault</h1>

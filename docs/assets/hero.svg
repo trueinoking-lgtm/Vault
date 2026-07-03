@@ -1,60 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Gradient Definitions -->
+<svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#bd34fe;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#41d1ff;stop-opacity:1" />
+    <!-- Golden gradient for chain links -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="40%" stop-color="#DAA520"/>
+      <stop offset="100%" stop-color="#B8860B"/>
     </linearGradient>
-    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#bd34fe;stop-opacity:0.3" />
-      <stop offset="100%" style="stop-color:#41d1ff;stop-opacity:0.3" />
+    <!-- Book cover gradient (deep purple) -->
+    <linearGradient id="cover" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7B3FA0"/>
+      <stop offset="100%" stop-color="#3A1860"/>
     </linearGradient>
+    <!-- Soft glow filter for chain ring -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
 
-  <!-- Connection Lines -->
-  <g class="connections">
-    <path d="M120 80L80 120" stroke="url(#lineGradient)" stroke-width="2"/>
-    <path d="M120 80L160 120" stroke="url(#lineGradient)" stroke-width="2"/>
-    <path d="M80 120L120 160" stroke="url(#lineGradient)" stroke-width="2"/>
-    <path d="M160 120L120 160" stroke="url(#lineGradient)" stroke-width="2"/>
-    <path d="M80 120L160 120" stroke="url(#lineGradient)" stroke-width="2"/>
+  <!-- ============================================================
+       ROTATING CHAIN RING
+       16 golden chain links arranged in a circle (radius 75, center 120,120)
+       Alternating radial / tangential orientation for interlocking look
+       ============================================================ -->
+  <g filter="url(#glow)">
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      from="0 120 120"
+      to="360 120 120"
+      dur="20s"
+      repeatCount="indefinite"/>
+
+    <!-- i=0  θ=0°    pos(195,  120) radial  rot=0 -->
+    <g transform="translate(195,120) rotate(0)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=1  θ=22.5° pos(189.3,148.7) tangent rot=112.5 -->
+    <g transform="translate(189.3,148.7) rotate(112.5)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=2  θ=45°   pos(173,  173) radial  rot=45 -->
+    <g transform="translate(173,173) rotate(45)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=3  θ=67.5° pos(148.7,189.3) tangent rot=157.5 -->
+    <g transform="translate(148.7,189.3) rotate(157.5)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=4  θ=90°   pos(120,  195) radial  rot=90 -->
+    <g transform="translate(120,195) rotate(90)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=5  θ=112.5° pos(91.3,189.3) tangent rot=202.5 -->
+    <g transform="translate(91.3,189.3) rotate(202.5)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=6  θ=135°  pos(67,  173) radial  rot=135 -->
+    <g transform="translate(67,173) rotate(135)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=7  θ=157.5° pos(50.7,148.7) tangent rot=247.5 -->
+    <g transform="translate(50.7,148.7) rotate(247.5)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=8  θ=180°  pos(45,  120) radial  rot=180 -->
+    <g transform="translate(45,120) rotate(180)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=9  θ=202.5° pos(50.7,91.3) tangent rot=292.5 -->
+    <g transform="translate(50.7,91.3) rotate(292.5)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=10 θ=225°  pos(67,  67) radial  rot=225 -->
+    <g transform="translate(67,67) rotate(225)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=11 θ=247.5° pos(91.3,50.7) tangent rot=337.5 -->
+    <g transform="translate(91.3,50.7) rotate(337.5)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=12 θ=270°  pos(120,  45) radial  rot=270 -->
+    <g transform="translate(120,45) rotate(270)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=13 θ=292.5° pos(148.7,50.7) tangent rot=22.5 -->
+    <g transform="translate(148.7,50.7) rotate(22.5)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=14 θ=315°  pos(173,  67) radial  rot=315 -->
+    <g transform="translate(173,67) rotate(315)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
+    <!-- i=15 θ=337.5° pos(189.3,91.3) tangent rot=67.5 -->
+    <g transform="translate(189.3,91.3) rotate(67.5)"><ellipse rx="10" ry="5" fill="none" stroke="url(#gold)" stroke-width="2.5"/></g>
   </g>
 
-  <!-- Nodes -->
-  <g class="nodes">
-    <!-- Central Node -->
-    <circle cx="120" cy="80" r="20" fill="url(#nodeGradient)"/>
-    <circle cx="120" cy="80" r="24" stroke="url(#nodeGradient)" stroke-width="1" fill="none"/>
-    
-    <!-- Left Node -->
-    <circle cx="80" cy="120" r="16" fill="url(#nodeGradient)"/>
-    <circle cx="80" cy="120" r="20" stroke="url(#nodeGradient)" stroke-width="1" fill="none"/>
-    
-    <!-- Right Node -->
-    <circle cx="160" cy="120" r="16" fill="url(#nodeGradient)"/>
-    <circle cx="160" cy="120" r="20" stroke="url(#nodeGradient)" stroke-width="1" fill="none"/>
-    
-    <!-- Bottom Node -->
-    <circle cx="120" cy="160" r="18" fill="url(#nodeGradient)"/>
-    <circle cx="120" cy="160" r="22" stroke="url(#nodeGradient)" stroke-width="1" fill="none"/>
-  </g>
-
-  <!-- Pulse Animation -->
-  <style>
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(1); opacity: 0.8; }
-    }
-    .nodes circle {
-      animation: pulse 3s infinite ease-in-out;
-    }
-    .nodes circle:nth-child(2n) {
-      animation-delay: 1s;
-    }
-    .nodes circle:nth-child(3n) {
-      animation-delay: 2s;
-    }
-  </style>
+  <!-- ============================================================
+       BOOK (static, centered)
+       Closed hardcover book with spine, cover, page edges, and
+       a golden keyhole emblem reinforcing the Vault theme.
+       ============================================================ -->
+  <!-- Drop shadow -->
+  <rect x="88" y="78" width="64" height="84" rx="4" fill="rgba(0,0,0,0.15)"/>
+  <!-- Spine -->
+  <rect x="86" y="76" width="10" height="84" rx="3" fill="#2E1654"/>
+  <!-- Front cover -->
+  <rect x="94" y="76" width="56" height="84" rx="3" fill="url(#cover)"/>
+  <!-- Page edges (right side) -->
+  <rect x="148" y="79" width="4" height="78" rx="1" fill="#F5F0E1"/>
+  <rect x="146" y="81" width="2" height="74" rx="0.5" fill="#EDE8D5"/>
+  <!-- Keyhole emblem on cover -->
+  <circle cx="122" cy="112" r="10" fill="none" stroke="#DAA520" stroke-width="1.5"/>
+  <rect x="119" y="118" width="6" height="10" rx="2" fill="#DAA520"/>
+  <circle cx="122" cy="112" r="3" fill="#DAA520"/>
 </svg>
