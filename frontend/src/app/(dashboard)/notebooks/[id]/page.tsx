@@ -27,54 +27,16 @@ import {
   type SourceBulkAction,
   type NoteContextDefault,
 } from '@/lib/utils/source-context'
+import {
+  buildSummaryLeafDraftFromMaterial,
+  type LeafDraft,
+} from '@/lib/notebooks/leaf-templates'
 
 // Re-exported from the shared types module for backward compatibility; several
 // components historically import these from this route file.
 import type { ContextMode, ContextSelections, NoteContextMode } from '@/lib/types/notebook-context'
 import type { SourceResponse } from '@/lib/types/api'
 export type { ContextMode, ContextSelections, NoteContextMode }
-
-interface LeafDraft {
-  initialTitle: string
-  initialContent: string
-}
-
-function buildLeafDraftFromMaterial(source: SourceResponse): LeafDraft {
-  const sourceTitle = source.title?.trim() || 'Untitled Material'
-  const sourceUrl = source.asset?.url?.trim()
-  const sourceFile = source.asset?.file_path?.trim()
-  const sourceType = sourceUrl ? 'Link' : sourceFile ? 'File' : 'Text'
-
-  const metadataLines = [
-    `- Material: ${sourceTitle}`,
-    `- Type: ${sourceType}`,
-    sourceUrl ? `- URL: ${sourceUrl}` : null,
-    sourceFile ? `- File: ${sourceFile}` : null,
-  ].filter((line): line is string => Boolean(line))
-
-  return {
-    initialTitle: `Leaf from ${sourceTitle}`,
-    initialContent: [
-      `# Leaf from ${sourceTitle}`,
-      '',
-      '## Source Material',
-      ...metadataLines,
-      '',
-      '## Summary',
-      '',
-      '## Key Ideas',
-      '',
-      '## Explanation',
-      '',
-      '## Insights',
-      '',
-      '## Questions',
-      '',
-      '## Next Steps',
-      '',
-    ].join('\n'),
-  }
-}
 
 export default function NotebookPage() {
   const { t } = useTranslation()
@@ -179,7 +141,7 @@ export default function NotebookPage() {
   }
 
   const handleSourceCreated = (source: SourceResponse) => {
-    setLeafDraft(buildLeafDraftFromMaterial(source))
+    setLeafDraft(buildSummaryLeafDraftFromMaterial(source))
     setLeafComposerOpen(true)
     setMobileActiveTab('notes')
   }
