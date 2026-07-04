@@ -34,4 +34,8 @@ export const QUERY_KEYS = {
   languages: ['languages'] as const,
   vaultRecentSources: (limit: number) => ['vault', 'recentSources', limit] as const,
   vaultRecentNotes: (limit: number) => ['vault', 'recentNotes', limit] as const,
+
+  // Study / review persistence
+  studySession: (notebookId: string) => ['study', 'session', notebookId] as const,
+  studyReviewQueue: (notebookId?: string) => ['study', 'review-queue', notebookId] as const,
 }

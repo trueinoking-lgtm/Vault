@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import type { NoteResponse } from '@/lib/types/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +36,7 @@ import {
 import { TTSButton } from '@/components/voice/TTSButton'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { isLearningMemoryLeaf } from '@/lib/notebooks/learning-memory'
+import { useStudySession, useLogReviewEvent } from '@/lib/hooks/use-study'
 
 // ── helpers ──────────────────────────────────────────────────────
 
@@ -122,9 +123,32 @@ export function LeafStudyCard({
   const { t } = useTranslation()
   const isMemoryLeaf = isLearningMemoryLeaf(note)
 
+  // ── Study session + review event persistence (Delta G) ───────────
+  // Get-or-create a study session for this notebook. All cards in the
+  // same notebook share one cached session via React Query.
+  const { data: session } = useStudySession(notebookId)
+  const logReviewEvent = useLogReviewEvent()
+
+  // Fire a review event in the background (non-blocking).
+  const fireEvent = useCallback(
+    (eventType: 'check_started' | 'remembered' | 'needs_review') => {
+      if (!session?.id) {
+        // Session not yet loaded — event silently dropped.
+        // Next interaction will likely have the session ready.
+        return
+      }
+      logReviewEvent.mutate({
+        session_id: session.id,
+        note_id: note.id,
+        notebook_id: notebookId,
+        event_type: eventType,
+        event_metadata: { source: 'leaf_study_card' },
+      })
+    },
+    [session?.id, note.id, notebookId, logReviewEvent],
+  )
+
   // ── Check-yourself local state ──
-  // LOCAL SCAFFOLDING ONLY: Component state, no persistence.
-  // Weak-spot tracking and study-session logging belong to a later Delta phase.
   const [checkYourselfOpen, setCheckYourselfOpen] = useState(false)
   const [answerText, setAnswerText] = useState('')
   const [checkYourselfSubmitted, setCheckYourselfSubmitted] = useState<'remembered' | 'review' | null>(null)
@@ -308,14 +332,19 @@ export function LeafStudyCard({
       )}
 
       {/* ── Check yourself — interactive retrieval practice ── */}
-      {/* LOCAL SCAFFOLDING ONLY: Component state, no persistence.
-          Weak-spot tracking and study-session logging belong to a later Delta phase. */}
       {!isMemoryLeaf && (
         <div className="mt-4 border border-amber-200 rounded-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
           {/* Expandable header */}
           <button
             className="w-full flex items-center justify-between px-4 py-3 bg-amber-50 hover:bg-amber-100/80 transition-colors text-left"
-            onClick={() => setCheckYourselfOpen(!checkYourselfOpen)}
+            onClick={() => {
+              const willOpen = !checkYourselfOpen
+              setCheckYourselfOpen(willOpen)
+              if (willOpen) {
+                // Fire 'check_started' when the learner opens the check-yourself section
+                fireEvent('check_started')
+              }
+            }}
           >
             <div className="flex items-center gap-2 text-sm font-medium text-amber-800">
               <HelpCircle className="h-4 w-4" />
@@ -339,7 +368,10 @@ export function LeafStudyCard({
                   size="sm"
                   variant="default"
                   className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => setCheckYourselfSubmitted('remembered')}
+                  onClick={() => {
+                    setCheckYourselfSubmitted('remembered')
+                    fireEvent('remembered')
+                  }}
                 >
                   <Check className="h-3.5 w-3.5 mr-1.5" />
                   {t('sources.checkYourselfRemembered')}
@@ -348,7 +380,10 @@ export function LeafStudyCard({
                   size="sm"
                   variant="outline"
                   className="border-amber-300 text-amber-800 hover:bg-amber-50"
-                  onClick={() => setCheckYourselfSubmitted('review')}
+                  onClick={() => {
+                    setCheckYourselfSubmitted('review')
+                    fireEvent('needs_review')
+                  }}
                 >
                   <Bookmark className="h-3.5 w-3.5 mr-1.5" />
                   {t('sources.checkYourselfReview')}
