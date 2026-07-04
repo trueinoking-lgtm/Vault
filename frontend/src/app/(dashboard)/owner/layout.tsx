@@ -1,8 +1,9 @@
 import { OwnerShell } from '@/components/layout/OwnerShell'
 
-// TODO: The owner command room is now structurally separated from the learner shell.
-// Production-grade RBAC/auth hardening still needs to be implemented before this shell
-// should be treated as a true privileged surface.
+// TODO: Beta B adds owner-route hardening around the extracted owner command room.
+// This is still NOT production-grade RBAC. Follow-up authorization work should
+// introduce explicit roles for at least owner and learner, then later teacher
+// and school_admin, with server-side authorization enforcement.
 export default function OwnerLayout({
   children,
 }: {

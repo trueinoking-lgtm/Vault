@@ -1,25 +1,46 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/hooks/use-auth'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { getConfig } from '@/lib/config'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, ShieldAlert } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useTranslation } from '@/lib/hooks/use-translation'
+import { isOwnerProtectedPath } from '@/lib/auth/owner-access'
+
+interface OwnerAccessStatus {
+  enabled: boolean
+  source: string
+}
 
 export function LoginForm() {
   const { t, language } = useTranslation()
   const [password, setPassword] = useState('')
-  const { login, isLoading, error } = useAuth()
-  const { authRequired, checkAuthRequired, hasHydrated, isAuthenticated } = useAuthStore()
+  const {
+    login,
+    isLoading,
+    error,
+    authRequired,
+    checkAuthRequired,
+    hasHydrated,
+    isAuthenticated,
+  } = useAuthStore()
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [isAuthorizingOwner, setIsAuthorizingOwner] = useState(false)
+  const [ownerAccessError, setOwnerAccessError] = useState<string | null>(null)
+  const [ownerAccessStatus, setOwnerAccessStatus] = useState<OwnerAccessStatus | null>(null)
   const [configInfo, setConfigInfo] = useState<{ apiUrl: string; version: string; buildTime: string } | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const requestedPath = searchParams.get('next')
+  const ownerRequested = useMemo(() => {
+    return searchParams.get('owner') === '1' || isOwnerProtectedPath(requestedPath ?? '')
+  }, [requestedPath, searchParams])
 
   // Load config info for debugging
   useEffect(() => {
@@ -34,6 +55,37 @@ export function LoginForm() {
     })
   }, [])
 
+  useEffect(() => {
+    if (!ownerRequested) {
+      setOwnerAccessStatus(null)
+      return
+    }
+
+    let cancelled = false
+    fetch('/api/owner-access', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Owner access status failed: ${response.status}`)
+        }
+        return response.json() as Promise<OwnerAccessStatus>
+      })
+      .then((status) => {
+        if (!cancelled) {
+          setOwnerAccessStatus(status)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load owner access status:', err)
+        if (!cancelled) {
+          setOwnerAccessStatus({ enabled: false, source: 'unavailable' })
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [ownerRequested])
+
   // Check if authentication is required on mount
   useEffect(() => {
     if (!hasHydrated) {
@@ -44,8 +96,9 @@ export function LoginForm() {
       try {
         const required = await checkAuthRequired()
 
-        // If auth is not required, redirect to notebooks
-        if (!required) {
+        // If auth is not required, redirect to notebooks unless the user is explicitly
+        // trying to unlock the owner surface.
+        if (!required && !ownerRequested) {
           router.push('/notebooks')
         }
       } catch (error) {
@@ -56,9 +109,8 @@ export function LoginForm() {
       }
     }
 
-    // If we already know auth status, use it
     if (authRequired !== null) {
-      if (!authRequired && isAuthenticated) {
+      if (!authRequired && isAuthenticated && !ownerRequested) {
         router.push('/notebooks')
       } else {
         setIsCheckingAuth(false)
@@ -66,9 +118,15 @@ export function LoginForm() {
     } else {
       void checkAuth()
     }
-  }, [hasHydrated, authRequired, checkAuthRequired, router, isAuthenticated])
+  }, [
+    hasHydrated,
+    authRequired,
+    checkAuthRequired,
+    router,
+    isAuthenticated,
+    ownerRequested,
+  ])
 
-  // Show loading while checking if auth is required
   if (!hasHydrated || isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -77,7 +135,6 @@ export function LoginForm() {
     )
   }
 
-  // If we still don't know if auth is required (connection error), show error
   if (authRequired === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -127,50 +184,137 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password.trim()) {
+    if (!password.trim()) {
+      return
+    }
+
+    setOwnerAccessError(null)
+
+    if (ownerRequested) {
+      setIsAuthorizingOwner(true)
       try {
-        await login(password)
-      } catch (error) {
-        console.error('Unhandled error during login:', error)
-        // The auth store should handle most errors, but this catches any unhandled ones
+        if (authRequired) {
+          const authenticated = await login(password)
+          if (!authenticated) {
+            return
+          }
+        }
+
+        const response = await fetch('/api/owner-access', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password }),
+        })
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => null) as { detail?: string } | null
+          setOwnerAccessError(data?.detail || 'Owner access verification failed.')
+          return
+        }
+
+        const storedRedirect = typeof window !== 'undefined'
+          ? sessionStorage.getItem('redirectAfterLogin')
+          : null
+        const nextPath = requestedPath || storedRedirect || '/owner'
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('redirectAfterLogin')
+        }
+        router.push(nextPath)
+        return
+      } catch (err) {
+        console.error('Owner access error:', err)
+        setOwnerAccessError('Owner access verification failed.')
+        return
+      } finally {
+        setIsAuthorizingOwner(false)
       }
     }
+
+    try {
+      const success = await login(password)
+      if (success) {
+        const storedRedirect = typeof window !== 'undefined'
+          ? sessionStorage.getItem('redirectAfterLogin')
+          : null
+        const nextPath = storedRedirect || '/notebooks'
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('redirectAfterLogin')
+        }
+        router.push(nextPath)
+      }
+    } catch (err) {
+      console.error('Unhandled error during login:', err)
+    }
   }
+
+  const formDisabled = isLoading || isAuthorizingOwner || (ownerRequested && ownerAccessStatus?.enabled === false)
+  const formError = ownerAccessError || error
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle>{t('auth.loginTitle')}</CardTitle>
+          <CardTitle>{ownerRequested ? 'Owner access required' : t('auth.loginTitle')}</CardTitle>
           <CardDescription>
-            {t('auth.loginDesc')}
+            {ownerRequested
+              ? 'Re-enter the existing admin password to unlock privileged owner routes. Full RBAC is still pending.'
+              : t('auth.loginDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {ownerRequested && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-left text-sm text-amber-950">
+                <div className="flex items-start gap-2">
+                  <ShieldAlert className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium">Owner route hardening enabled</div>
+                    <div className="mt-1 text-xs leading-5">
+                      This owner gate protects `/owner/*` and the legacy compatibility entry points.
+                      Future authorization work still needs real owner/learner roles, then teacher and school_admin roles.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {ownerRequested && ownerAccessStatus?.enabled === false && (
+              <div className="flex items-start gap-2 text-sm text-red-600">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <div>
+                  Owner access is not configured yet. Set `OPEN_NOTEBOOK_OWNER_PASSWORD` or enable the existing API password before using owner routes.
+                </div>
+              </div>
+            )}
+
             <div>
               <Input
                 type="password"
-                placeholder={t('auth.passwordPlaceholder')}
+                placeholder={ownerRequested ? 'Owner password' : t('auth.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                disabled={formDisabled}
               />
             </div>
 
-            {error && (
+            {formError && (
               <div className="flex items-center gap-2 text-red-600 text-sm">
                 <AlertCircle className="h-4 w-4" />
-                {error}
+                {formError}
               </div>
             )}
 
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || !password.trim()}
+              disabled={formDisabled || !password.trim()}
             >
-              {isLoading ? t('auth.signingIn') : t('auth.signIn')}
+              {isLoading || isAuthorizingOwner
+                ? (ownerRequested ? 'Verifying owner access...' : t('auth.signingIn'))
+                : (ownerRequested ? 'Unlock owner routes' : t('auth.signIn'))}
             </Button>
 
             {configInfo && (

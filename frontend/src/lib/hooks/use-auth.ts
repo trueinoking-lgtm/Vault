@@ -54,6 +54,12 @@ export function useAuth() {
   }
 
   const handleLogout = () => {
+    void fetch('/api/owner-access', {
+      method: 'DELETE',
+    }).catch(() => {
+      // Best-effort owner cookie cleanup during logout.
+    })
+
     logout()
     router.push('/login')
   }

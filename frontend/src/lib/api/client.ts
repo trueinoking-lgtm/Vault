@@ -67,6 +67,7 @@ apiClient.interceptors.response.use(
       // Clear auth and redirect to login
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth-storage')
+        document.cookie = 'vault-owner-access=; Max-Age=0; Path=/; SameSite=Lax'
         window.location.href = '/login'
       }
     }
