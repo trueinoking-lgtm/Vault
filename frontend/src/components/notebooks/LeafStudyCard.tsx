@@ -36,7 +36,7 @@ import {
 import { TTSButton } from '@/components/voice/TTSButton'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { isLearningMemoryLeaf } from '@/lib/notebooks/learning-memory'
-import { useStudySession, useLogReviewEvent } from '@/lib/hooks/use-study'
+import { useLogReviewEvent } from '@/lib/hooks/use-study'
 
 // ── helpers ──────────────────────────────────────────────────────
 
@@ -106,6 +106,7 @@ function extractSourceMaterialInfo(content: string | null): string | null {
 interface LeafStudyCardProps {
   note: NoteResponse
   notebookId: string
+  studySessionId?: string
   onLeafAction?: (noteId: string, action: 'teach' | 'explain' | 'quiz') => void
   onReviewMemory?: (noteId: string) => void
   onEdit?: (note: NoteResponse) => void
@@ -115,6 +116,7 @@ interface LeafStudyCardProps {
 export function LeafStudyCard({
   note,
   notebookId,
+  studySessionId,
   onLeafAction,
   onReviewMemory,
   onEdit,
@@ -123,29 +125,28 @@ export function LeafStudyCard({
   const { t } = useTranslation()
   const isMemoryLeaf = isLearningMemoryLeaf(note)
 
-  // ── Study session + review event persistence (Delta G) ───────────
-  // Get-or-create a study session for this notebook. All cards in the
-  // same notebook share one cached session via React Query.
-  const { data: session } = useStudySession(notebookId)
+  // ── Review event persistence (Delta G) ───────────────────────────
+  // Session is owned by the parent (NotesColumn). We receive the active
+  // session ID as a prop so all cards in one notebook share one session.
   const logReviewEvent = useLogReviewEvent()
 
   // Fire a review event in the background (non-blocking).
   const fireEvent = useCallback(
     (eventType: 'check_started' | 'remembered' | 'needs_review') => {
-      if (!session?.id) {
+      if (!studySessionId) {
         // Session not yet loaded — event silently dropped.
         // Next interaction will likely have the session ready.
         return
       }
       logReviewEvent.mutate({
-        session_id: session.id,
+        session_id: studySessionId,
         note_id: note.id,
         notebook_id: notebookId,
         event_type: eventType,
         event_metadata: { source: 'leaf_study_card' },
       })
     },
-    [session?.id, note.id, notebookId, logReviewEvent],
+    [studySessionId, note.id, notebookId, logReviewEvent],
   )
 
   // ── Check-yourself local state ──

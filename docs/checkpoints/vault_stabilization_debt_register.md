@@ -35,13 +35,14 @@ This register catalogues known technical debt and stabilisation concerns across 
 | Field | Value |
 |-------|-------|
 | **Area** | Frontend component architecture |
-| **Severity** | Medium |
-| **Evidence** | `useStudySession(notebookId)` is called inside `LeafStudyCard.tsx` (line 129), the leaf-level study card component. There are exactly 3 call sites (2 imports + 1 invocation). The session is cached via React Query so all cards in the same notebook share one session object, but the query is scoped to each card instance — every `LeafStudyCard` that mounts fires `POST /api/study/sessions` if the cache is cold. This works because the POST is idempotent (returns existing active session), but it means the session is created on first leaf-card interaction, not when the learner enters the study hub. |
-| **Impact** | 1. Session start time is inaccurate — it fires on first leaf interaction, not on study-hub entry. 2. If the study-hub page is navigated to but no leaf card is expanded, no session is created. 3. Future features like "time spent studying" or "sessions today" will show zeros or undercounts. 4. Component coupling: `LeafStudyCard` should not be responsible for session lifecycle. |
-| **Proposed fix** | Lift `useStudySession` to the parent component that renders the list of leaf cards (likely the Study Hub / Material panel). When the learner navigates to a notebook's study hub, create or resume the session there. Pass the session down via context or as a prop. `LeafStudyCard` receives the session as a prop and only calls `useLogReviewEvent`. |
-| **Blocks Delta J?** | **No** — Delta J is backend-only. But Delta K (frontend weak-spot display) may benefit from knowing the actual session scope. |
-| **Recommended phase** | **Debt C — fix before Epsilon.** Design and refactor after Debt B is resolved. |
-| **Classification** | Fix before Epsilon |
+| **Severity** | ~~Medium~~ → ✅ Fixed |
+| **Evidence** | `useStudySession(notebookId)` was called inside `LeafStudyCard.tsx` (line 129). Session ownership has been lifted to `NotesColumn.tsx`, the common ancestor of all `LeafStudyCard` instances for a given notebook. `LeafStudyCard` now receives `studySessionId?: string` as a prop and no longer imports `useStudySession`. The session is created/resumed when the NotesColumn mounts and shared across all cards via React Query caching. The `LeafStudyCard` still imports `useLogReviewEvent` and uses the passed `studySessionId`. |
+| **Impact** | ~~Session start time is inaccurate — it fires on first leaf interaction, not on study-hub entry.~~ **Resolved:** Session is created when the NotesColumn mounts (i.e., when the learner navigates to the notebook study hub). All cards share one session. Component coupling removed. |
+| **Proposed fix** | ~~Lift `useStudySession` to the parent component~~ **Done.** |
+| **Status** | **Fixed** — Debt C complete. Session ownership moved from `LeafStudyCard` to `NotesColumn`. |
+| **Blocks Delta J?** | **No** — and never did. |
+| **Recommended phase** | **Debt C — complete.** |
+| **Classification** | ✅ Fixed |
 
 ---
 
@@ -65,13 +66,14 @@ This register catalogues known technical debt and stabilisation concerns across 
 | Field | Value |
 |-------|-------|
 | **Area** | Backend + Frontend — session lifecycle |
-| **Severity** | Medium |
-| **Evidence** | `POST /api/study/sessions` creates or resumes an active session. `PATCH /api/study/sessions/{id}` with status `completed` or `abandoned` exists in the API router (lines 96–126). The frontend `useStudySession` hook (line 27) only calls `createSession()` — there is no call to `updateSession()` anywhere in the frontend codebase. Session cleanup on navigation away from the study hub is not implemented. Sessions accumulate in the `active` state indefinitely. |
-| **Impact** | 1. `study_session` table accumulates `active` records that will never be closed. Over time, the query `SELECT * FROM study_session WHERE status = 'active' ORDER BY started_at DESC LIMIT 1` may return stale sessions. 2. `leaf_count` is never updated because `update_leaf_count()` is only called when a session is explicitly completed. 3. Metrics like "total study time" or "sessions completed" are unavailable. 4. If a learner switches notebooks without completing the old session, the `get_active_for_notebook` query finds the stale session when they return to the first notebook — this is actually correct behaviour (resume), but the session end time is never set. |
-| **Proposed fix** | Two-part fix: (a) Add a frontend effect in the study-hub component that calls `PATCH /api/study/sessions/{id}` with `status: "completed"` when the learner navigates away (useEffect cleanup or `beforeunload`). (b) Add a server-side background job (or a simple check in `get_active_for_notebook`) that auto-closes sessions older than N hours. This prevents unbounded accumulation even if the learner never cleanly exits. |
-| **Blocks Delta J?** | **No**. But the accumulation of active sessions may confuse weak-spot analysis if abandoned-session events are ever filtered. |
-| **Recommended phase** | **Debt C** — can be designed alongside the session lifecycle refactor (DEBT-002). Do after Debt B. |
-| **Classification** | Fix before Epsilon |
+| **Severity** | ~~Medium~~ → **Partially fixed** |
+| **Evidence** | `POST /api/study/sessions` creates or resumes an active session. `PATCH /api/study/sessions/{id}` with status `completed` exists in the API. Debt C added a `useEndSession()` mutation hook in `use-study.ts` and wired it in `NotesColumn.tsx` via a `useEffect` cleanup that fires `PATCH /api/study/sessions/{id}` with `{ status: 'completed' }` when the column unmounts. However, unmount is not guaranteed in SPA transitions (e.g. navigating between notebooks via client-side routing may not trigger a full remount). A server-side stale-session cleanup has not been implemented. |
+| **Impact** | Sessions are now best-effort completed on unmount. Most normal usage (navigating away from a notebook) will trigger completion. Edge cases remain: (a) browser tab closed without navigation, (b) client-side navigation that doesn't fully unmount the column, (c) network failure during the PATCH request. Accumulation of `active` sessions is reduced but not eliminated. |
+| **Proposed fix** | ~~Two-part fix: (a) Add a frontend effect in the study-hub component that calls `PATCH /api/study/sessions/{id}` ... (b) Add a server-side background job ...~~ Part (a) implemented. Part (b) deferred — a server-side stale-session check (e.g. auto-close sessions older than N hours) can be added later if accumulation becomes a problem. |
+| **Status** | **Partially fixed** — best-effort completion on unmount added. Server-side stale cleanup deferred. |
+| **Blocks Delta J?** | **No.** |
+| **Recommended phase** | **Debt C — partially complete.** Server-side stale session cleanup deferred. |
+| **Classification** | ⚠️ Partially fixed (server side deferred) |
 
 ---
 
@@ -110,9 +112,9 @@ This register catalogues known technical debt and stabilisation concerns across 
 | ID | Title | Severity | Classification | Recommended phase |
 |----|-------|----------|----------------|-------------------|
 | DEBT-001 | Environment mismatch (`pytest-asyncio` not in system venv) | ~~High~~ → ✅ Fixed | ✅ Fixed | **Debt B — complete** |
-| DEBT-002 | Session lifecycle starts too low in component tree | Medium | Fix before Epsilon | **Debt C** (next) |
+| DEBT-002 | Session lifecycle starts too low in component tree | ~~Medium~~ → ✅ Fixed | ✅ Fixed | **Debt C — complete** |
 | DEBT-003 | Weak-spot fields exist but no frontend display | Low | Safe to defer | Delta K (next feature) |
-| DEBT-004 | Sessions never explicitly completed | Medium | Fix before Epsilon | **Debt C** (alongside 002) |
+| DEBT-004 | Sessions never explicitly completed | ~~Medium~~ → ⚠️ Partial | Partial (frontend done) | **Debt C — partial** (server cleanup deferred) |
 | DEBT-005 | `opened`/`listened` events not wired | Low | Safe to defer | Post-Epsilon cleanup |
 | DEBT-006 | Frontend standalone lacks health endpoint | Low | Safe to defer | Ops phase |
 
@@ -126,19 +128,21 @@ This register catalogues known technical debt and stabilisation concerns across 
        correct. Use `uv run python -m pytest tests/` to run the full suite.
        221/221 passed under uv. No source changes required.
 
-2. Debt C (DEBT-002 + DEBT-004) — Session lifecycle refactor
-   ├── Lift useStudySession into study-hub parent component
-   ├── Wire PATCH /api/study/sessions on navigation away
-   └── Add server-side stale-session cleanup (optional)
+2. ✅ Debt C (DEBT-002 + DEBT-004) — Complete (with deferred item).
+   ├── Session ownership lifted from LeafStudyCard to NotesColumn.
+   │   LeafStudyCard receives studySessionId as a prop.
+   ├── Best-effort session completion on column unmount via useEndSession hook.
+   └── ⚠️ Server-side stale session cleanup deferred (not yet implemented).
 
 3. Delta K (DEBT-003)   — Weak-spot frontend display
    ├── Add "Needs practice" section to ReviewQueue
    ├── Locale keys + orange theme
    └── Filter weak-spot items from "Needs review" section
 
-4. Post-Epsilon          — Minor gaps (DEBT-005, DEBT-006)
+4. Post-Epsilon          — Minor gaps (DEBT-005, DEBT-006, server-side session cleanup)
    ├── Wire opened/listened events
-   └── Frontend health endpoint (if still needed)
+   ├── Frontend health endpoint (if still needed)
+   └── Server-side auto-close for stale active sessions
 ```
 
 ---
@@ -157,7 +161,19 @@ This register catalogues known technical debt and stabilisation concerns across 
 - [x] No source-level changes required — `pyproject.toml` and `uv.lock` were correct
 - [x] Invocation: use `uv run python -m pytest tests/` for full validation
 
-### After Debt C
-- [ ] `useStudySession` called from study-hub parent, not LeafStudyCard
-- [ ] `PATCH /api/study/sessions/{id}` called on navigate away
-- [ ] No accumulating `active` sessions after normal usage
+### After Debt C (verified)
+- [x] `LeafStudyCard` no longer calls `useStudySession` — session owned by `NotesColumn`
+- [x] `LeafStudyCard` receives `studySessionId?: string` as a prop
+- [x] `useEndSession` mutation hook added — calls `PATCH /api/study/sessions/{id}`
+- [x] Best-effort completion fires on `NotesColumn` unmount via `useEffect` cleanup
+- [x] Events still fire with session ID; if no session (loading), silently skipped
+- [x] Typed reflection text still not persisted (unchanged)
+- [x] ReviewQueue still uses persisted review queue (unchanged)
+- [x] No Delta K frontend weak-spot display added
+- [x] No migrations/schema changes
+- [x] Owner route protection unchanged
+- [x] Learner sidebar unchanged
+- [x] `cd frontend && npm test` → **57/57 passed**
+- [x] `cd frontend && npm run build` → **Clean compilation**
+- [x] `uv run python -m pytest tests/test_study_api.py` → **18/18 passed**
+- [x] `uv run python -m pytest tests/` → **221/221 passed**

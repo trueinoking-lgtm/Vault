@@ -60,6 +60,23 @@ export function useLogReviewEvent() {
 }
 
 /**
+ * End a study session (mark as completed).
+ *
+ * Best-effort — the session lifecycle is non-critical and does not block
+ * learner interaction. Called when the owning component unmounts or the
+ * learner navigates away from the study context.
+ */
+export function useEndSession() {
+  return useMutation({
+    mutationFn: (sessionId: string) =>
+      studyApi.updateSession(sessionId, { status: 'completed' }),
+    onError: (error: unknown) => {
+      console.warn('[study] Failed to end session:', error)
+    },
+  })
+}
+
+/**
  * Fetch the persisted review queue.
  *
  * Returns leaves ordered by recency with a needs_review flag.

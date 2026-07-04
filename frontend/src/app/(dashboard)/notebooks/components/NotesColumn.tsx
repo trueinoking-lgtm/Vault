@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { NoteResponse } from '@/lib/types/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +23,7 @@ import { ContextToggle } from '@/components/common/ContextToggle'
 import type { NoteContextMode } from '../[id]/page'
 import type { NoteContextDefault } from '@/lib/utils/source-context'
 import { useDeleteNote } from '@/lib/hooks/use-notes'
+import { useStudySession, useEndSession } from '@/lib/hooks/use-study'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { CollapsibleColumn, createCollapseButton } from '@/components/notebooks/CollapsibleColumn'
 import { useNotebookColumnsStore } from '@/lib/stores/notebook-columns-store'
@@ -58,6 +59,25 @@ export function NotesColumn({
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
 
   const deleteNote = useDeleteNote()
+
+  // ── Study session lifecycle (Debt C) ─────────────────────────────
+  // Own the active study session at the column level so all LeafStudyCard
+  // instances in this notebook share one session. The session is created
+  // or resumed when the column mounts and completed best-effort on unmount.
+  const { data: session } = useStudySession(notebookId)
+  const endSession = useEndSession()
+
+  // Best-effort completion: mark the session completed when the learner
+  // navigates away from the notebook study context. Unmount is not
+  // guaranteed (e.g. SPA transitions), so this is best-effort.
+  useEffect(() => {
+    const sessionId = session?.id
+    if (!sessionId) return
+
+    return () => {
+      endSession.mutate(sessionId)
+    }
+  }, [session?.id, endSession])
 
   // Collapsible column state
   const { notesCollapsed, toggleNotes } = useNotebookColumnsStore()
@@ -183,6 +203,7 @@ export function NotesColumn({
                     <LeafStudyCard
                       note={note}
                       notebookId={notebookId}
+                      studySessionId={session?.id}
                       onLeafAction={onLeafAction}
                       onReviewMemory={onReviewMemory}
                       onEdit={(n) => setEditingNote(n)}
