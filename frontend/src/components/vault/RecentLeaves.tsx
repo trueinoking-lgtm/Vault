@@ -28,7 +28,7 @@ export default function RecentLeaves() {
       <section>
         <h2 className="text-lg font-semibold mb-1">{t('vault.recentLeaves')}</h2>
         <p className="text-sm text-muted-foreground mb-3">{t('vault.recentLeavesDesc')}</p>
-        <div className="text-center py-8 space-y-3">
+        <div className="text-center py-4 space-y-3">
           <p className="text-sm text-muted-foreground">{t('vault.noRecentLeaves')}</p>
           <Button asChild variant="outline" size="sm">
             <Link href="/notebooks">{t('vault.goToLibraries')}</Link>

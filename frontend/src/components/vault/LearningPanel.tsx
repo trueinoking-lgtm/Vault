@@ -30,7 +30,7 @@ export default function LearningPanel() {
     return (
       <section>
         <h2 className="text-lg font-semibold mb-3">{t('vault.learningPanel')}</h2>
-        <div className="text-center py-8 space-y-3">
+        <div className="text-center py-4 space-y-3">
           <p className="text-sm font-medium">{t('vault.noLearningMemory')}</p>
           <p className="text-sm text-muted-foreground">{t('vault.noLearningMemoryDesc')}</p>
           <Button asChild variant="outline" size="sm">

@@ -322,7 +322,7 @@ export default function SourcesPage() {
           </p>
         </div>
 
-        <div ref={scrollContainerRef} className="flex-1 rounded-md border overflow-auto">
+        <div ref={scrollContainerRef} className="rounded-md border overflow-auto">
           <table
             ref={tableRef}
             tabIndex={0}
