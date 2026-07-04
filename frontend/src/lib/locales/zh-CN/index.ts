@@ -1019,6 +1019,14 @@ export const zhCN = {
     aiGenerated: "AI",
     humanCreated: "Human",
     open: "Open",
+    reviewQueue: "Review queue",
+    reviewQueueDesc: "Revisit leaves you marked for review or recently studied.",
+    reviewQueueEmpty: "Nothing to review yet",
+    reviewQueueEmptyDesc: "As you study leaves, Vault will help you decide what to revisit.",
+    reviewQueueSuggested: "Suggested review",
+    reviewQueueSuggestedDesc: "These recent leaves are good candidates to revisit. Saved review history comes later.",
+    reviewQueueNote: "Review history is not saved yet.",
+
   },
   tts: {
     listen: "播放",
