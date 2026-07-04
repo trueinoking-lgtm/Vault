@@ -15,8 +15,8 @@ export function SetupBanner() {
   const { data: credentialStatus } = useCredentialStatus()
   const { data: envStatus } = useEnvStatus()
 
-  // Only show setup banner on admin pages
-  if (!pathname?.startsWith('/admin')) {
+  // Only show setup banner on owner command room pages
+  if (!pathname?.startsWith('/owner')) {
     return null
   }
 
@@ -79,7 +79,7 @@ export function SetupBanner() {
             asChild
             className="shrink-0 border-amber-500 text-amber-700 hover:bg-amber-100 dark:border-amber-400 dark:text-amber-300 dark:hover:bg-amber-900/30"
           >
-            <Link href="/admin/api-keys">
+            <Link href="/owner/ai">
               {t('setupBanner.goToSettings')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

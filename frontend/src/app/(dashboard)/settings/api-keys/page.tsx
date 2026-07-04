@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
-export default function AdminApiKeysRedirectPage() {
+export default function SettingsApiKeysRedirectPage() {
   redirect('/owner/ai')
 }

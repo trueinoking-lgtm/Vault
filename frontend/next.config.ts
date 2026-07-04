@@ -26,17 +26,17 @@ const nextConfig: NextConfig = {
     ]
   },
 
-  // Redirects: move admin/API-key config out of learner-facing routes
+  // Redirects: preserve legacy admin/settings entry points while routing into the owner shell
   async redirects() {
     return [
       {
         source: '/admin',
-        destination: '/admin/api-keys',
+        destination: '/owner',
         permanent: false,
       },
       {
         source: '/settings/api-keys',
-        destination: '/admin/api-keys',
+        destination: '/owner/ai',
         permanent: false,
       },
     ]
