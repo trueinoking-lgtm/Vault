@@ -16,6 +16,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Badge } from '@/components/ui/badge'
 import { NoteEditorDialog } from './NoteEditorDialog'
+import { LeafStudyCard } from '@/components/notebooks/LeafStudyCard'
 import { getDateLocale } from '@/lib/utils/date-locale'
 import { formatDistanceToNow } from 'date-fns'
 import { ContextToggle } from '@/components/common/ContextToggle'
@@ -158,144 +159,37 @@ export function NotesColumn({
               />
             ) : (
               <div className="space-y-3">
-                {visibleNotes.map((note) => {
-                  const isMemoryLeaf = isLearningMemoryLeaf(note)
-
-                  return (
-                  <div
-                    key={note.id}
-                    className="p-3 border rounded-lg card-hover group relative cursor-pointer"
-                    onClick={() => setEditingNote(note)}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        {note.note_type === 'ai' ? (
-                          <Bot className="h-4 w-4 text-primary" />
-                        ) : (
-                          <User className="h-4 w-4 text-muted-foreground" />
-                        )}
-                        <Badge variant="secondary" className="text-xs">
-                          {isMemoryLeaf
-                            ? 'Memory'
-                            : note.note_type === 'ai'
-                              ? t('common.aiGenerated')
-                              : t('common.human')}
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(note.updated), { 
-                            addSuffix: true,
-                            locale: getDateLocale(language)
-                          })}
-                        </span>
-
-                        {/* Context toggle - only show if handler provided */}
-                        {onContextModeChange && contextSelections?.[note.id] && (
-                          <div onClick={(event) => event.stopPropagation()}>
-                            <ContextToggle
-                              mode={contextSelections[note.id]}
-                              hasInsights={false}
-                              onChange={(mode) => onContextModeChange(note.id, mode)}
-                            />
-                          </div>
-                        )}
-
-                        {/* Ellipsis menu for leaf actions */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-52">
-                            {onLeafAction && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    onLeafAction(note.id, 'teach')
-                                  }}
-                                >
-                                  <GraduationCap className="h-4 w-4 mr-2" />
-                                  Teach this Leaf
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    onLeafAction(note.id, 'explain')
-                                  }}
-                                >
-                                  <BookOpen className="h-4 w-4 mr-2" />
-                                  Explain simply
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    onLeafAction(note.id, 'quiz')
-                                  }}
-                                >
-                                  <HelpCircle className="h-4 w-4 mr-2" />
-                                  Quiz me
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
-                            {isMemoryLeaf && onReviewMemory && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    onReviewMemory(note.id)
-                                  }}
-                                >
-                                  <ListChecks className="h-4 w-4 mr-2" />
-                                  Review this Memory
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDeleteClick(note.id)
-                              }}
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              {t('sources.deleteLeaf')}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                {visibleNotes.map((note) => (
+                  <div key={note.id} className="space-y-1">
+                    {/* Timestamp + context toggle row */}
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(note.updated), {
+                          addSuffix: true,
+                          locale: getDateLocale(language)
+                        })}
+                      </span>
+                      {onContextModeChange && contextSelections?.[note.id] && (
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <ContextToggle
+                            mode={contextSelections[note.id]}
+                            hasInsights={false}
+                            onChange={(mode) => onContextModeChange(note.id, mode)}
+                          />
+                        </div>
+                      )}
                     </div>
 
-                    {note.title && (
-                      <h4 className="text-sm font-medium mb-2 break-all">{note.title}</h4>
-                    )}
-
-                    {note.content && (
-                      <p className="text-sm text-muted-foreground line-clamp-3 break-all">
-                        {note.content}
-                      </p>
-                    )}
-                    {note.content && (
-                      <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                        <TTSButton
-                          text={note.content}
-                          className="h-6 px-1.5 text-xs"
-                        />
-                      </div>
-                    )}
+                    <LeafStudyCard
+                      note={note}
+                      notebookId={notebookId}
+                      onLeafAction={onLeafAction}
+                      onReviewMemory={onReviewMemory}
+                      onEdit={(n) => setEditingNote(n)}
+                      onDelete={handleDeleteClick}
+                    />
                   </div>
-                  )
-                })}
+                ))}
               </div>
             )}
           </CardContent>

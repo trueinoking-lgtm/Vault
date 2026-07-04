@@ -431,6 +431,10 @@ export const enUS = {
     studyHubDesc: "Start with the text, ask questions, or turn the important parts into leaves.",
     readMaterial: "Read material",
     askQuestion: "Ask a question",
+    checkYourself: "Can you explain this in your own words?",
+    leafStudyCard: "Study Card",
+    leafWhatItCovers: "What this leaf covers",
+    leafKeyPoints: "Key points",
   },
   chat: {
     sessions: "Sessions",

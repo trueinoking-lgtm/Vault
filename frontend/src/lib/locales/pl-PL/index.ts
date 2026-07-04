@@ -435,6 +435,11 @@ export const plPL = {
     readMaterial: "Read material",
     askQuestion: "Ask a question",
 
+    checkYourself: "Can you explain this in your own words?",
+    leafStudyCard: "Study Card",
+    leafWhatItCovers: "What this leaf covers",
+    leafKeyPoints: "Key points",
+
   },
   chat: {
     sessions: "Sesje",
