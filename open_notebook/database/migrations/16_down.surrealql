@@ -1,0 +1,4 @@
+-- Rollback migration 16
+DROP TABLE IF EXISTS leaf_review_state;
+DROP TABLE IF EXISTS leaf_review_event;
+DROP TABLE IF EXISTS study_session;

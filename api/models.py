@@ -691,3 +691,88 @@ class NotebookDeleteResponse(BaseModel):
     unlinked_sources: int = Field(
         ..., description="Number of sources unlinked from notebook"
     )
+
+
+# ── Study / Review Persistence Models (Delta F) ──────────────────────────────
+
+
+class StudySessionCreate(BaseModel):
+    """Request to start or resume a study session."""
+
+    notebook_id: str = Field(..., description="Library (notebook) to study")
+
+
+class StudySessionUpdate(BaseModel):
+    """Request to update a study session (close it)."""
+
+    status: Literal["completed", "abandoned"] = Field(
+        ..., description="New status for the session"
+    )
+
+
+class StudySessionResponse(BaseModel):
+    """Response for a study session."""
+
+    id: str
+    notebook_id: str
+    status: str
+    started_at: str
+    ended_at: Optional[str] = None
+    leaf_count: int = 0
+    created: str
+    updated: str
+
+
+class LeafReviewEventCreate(BaseModel):
+    """Request to log a leaf review event."""
+
+    session_id: str = Field(..., description="Study session ID")
+    note_id: str = Field(..., description="Leaf (note) ID")
+    notebook_id: str = Field(..., description="Library (notebook) ID")
+    event_type: Literal[
+        "opened",
+        "check_started",
+        "remembered",
+        "needs_review",
+        "listened",
+    ] = Field(..., description="Type of review event")
+    event_metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Optional flexible metadata"
+    )
+
+
+class LeafReviewEventResponse(BaseModel):
+    """Response for a leaf review event."""
+
+    id: str
+    session_id: str
+    note_id: str
+    notebook_id: str
+    event_type: str
+    event_metadata: Optional[Dict[str, Any]] = None
+    created: str
+
+
+class ReviewQueueItem(BaseModel):
+    """A single item in the review queue."""
+
+    note_id: str
+    title: Optional[str] = None
+    content_preview: Optional[str] = None
+    needs_review: bool
+    last_reviewed: Optional[str] = None
+    review_count: int = 0
+
+
+class ReviewQueueResponse(BaseModel):
+    """Response for the review queue endpoint."""
+
+    items: List[ReviewQueueItem] = Field(default_factory=list)
+    total: int = 0
+
+
+class StudySessionListResponse(BaseModel):
+    """Response for listing study sessions."""
+
+    items: List[StudySessionResponse] = Field(default_factory=list)
+    total: int = 0

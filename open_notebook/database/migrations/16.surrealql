@@ -1,0 +1,34 @@
+-- Migration 16: Study session, review event, and review state tables
+-- for Vault's learner-loop persistence (Delta F).
+
+-- 1. Study session
+DEFINE TABLE IF NOT EXISTS study_session SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS notebook_id ON TABLE study_session TYPE record<notebook>;
+DEFINE FIELD IF NOT EXISTS status ON TABLE study_session TYPE string
+  ASSERT $value INSIDE ["active", "completed", "abandoned"];
+DEFINE FIELD IF NOT EXISTS started_at ON TABLE study_session TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS ended_at ON TABLE study_session TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS leaf_count ON TABLE study_session TYPE int DEFAULT 0;
+DEFINE FIELD IF NOT EXISTS created ON TABLE study_session TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE study_session TYPE datetime DEFAULT time::now();
+
+-- 2. Leaf review event (append-only log)
+DEFINE TABLE IF NOT EXISTS leaf_review_event SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS session_id ON TABLE leaf_review_event TYPE record<study_session>;
+DEFINE FIELD IF NOT EXISTS note_id ON TABLE leaf_review_event TYPE record<note>;
+DEFINE FIELD IF NOT EXISTS notebook_id ON TABLE leaf_review_event TYPE record<notebook>;
+DEFINE FIELD IF NOT EXISTS event_type ON TABLE leaf_review_event TYPE string
+  ASSERT $value INSIDE ["opened", "check_started", "remembered", "needs_review", "listened"];
+DEFINE FIELD IF NOT EXISTS event_metadata ON TABLE leaf_review_event TYPE option<object> FLEXIBLE;
+DEFINE FIELD IF NOT EXISTS created ON TABLE leaf_review_event TYPE datetime DEFAULT time::now();
+
+-- 3. Leaf review state (denormalized, derived from events)
+DEFINE TABLE IF NOT EXISTS leaf_review_state SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS note_id ON TABLE leaf_review_state TYPE record<note> UNIQUE;
+DEFINE FIELD IF NOT EXISTS notebook_id ON TABLE leaf_review_state TYPE record<notebook>;
+DEFINE FIELD IF NOT EXISTS needs_review ON TABLE leaf_review_state TYPE bool DEFAULT false;
+DEFINE FIELD IF NOT EXISTS last_event_type ON TABLE leaf_review_state TYPE string;
+DEFINE FIELD IF NOT EXISTS last_event_at ON TABLE leaf_review_state TYPE datetime;
+DEFINE FIELD IF NOT EXISTS review_count ON TABLE leaf_review_state TYPE int DEFAULT 0;
+DEFINE FIELD IF NOT EXISTS created ON TABLE leaf_review_state TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE leaf_review_state TYPE datetime DEFAULT time::now();

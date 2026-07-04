@@ -239,3 +239,56 @@ export interface BuildContextResponse {
   token_count: number
   char_count: number
 }
+
+// ── Study / Review Persistence Types (Delta F) ─────────────────────────────
+
+export interface StudySessionResponse {
+  id: string
+  notebook_id: string
+  status: 'active' | 'completed' | 'abandoned'
+  started_at: string
+  ended_at?: string
+  leaf_count: number
+  created: string
+  updated: string
+}
+
+export interface CreateStudySessionRequest {
+  notebook_id: string
+}
+
+export interface UpdateStudySessionRequest {
+  status: 'completed' | 'abandoned'
+}
+
+export interface LeafReviewEventResponse {
+  id: string
+  session_id: string
+  note_id: string
+  notebook_id: string
+  event_type: 'opened' | 'check_started' | 'remembered' | 'needs_review' | 'listened'
+  event_metadata?: Record<string, unknown>
+  created: string
+}
+
+export interface CreateLeafReviewEventRequest {
+  session_id: string
+  note_id: string
+  notebook_id: string
+  event_type: LeafReviewEventResponse['event_type']
+  event_metadata?: Record<string, unknown>
+}
+
+export interface ReviewQueueItem {
+  note_id: string
+  title?: string
+  content_preview?: string
+  needs_review: boolean
+  last_reviewed?: string
+  review_count: number
+}
+
+export interface ReviewQueueResponse {
+  items: ReviewQueueItem[]
+  total: number
+}
