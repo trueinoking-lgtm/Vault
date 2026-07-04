@@ -337,7 +337,7 @@ function SourceCardImpl({
                     }}
                   >
                     <GraduationCap className="h-4 w-4 mr-2" />
-                    Teach this Material
+                    Teach this material
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={(e) => {

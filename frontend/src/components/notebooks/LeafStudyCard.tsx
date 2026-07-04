@@ -186,7 +186,7 @@ export function LeafStudyCard({
                     }}
                   >
                     <GraduationCap className="h-4 w-4 mr-2" />
-                    Teach this Leaf
+                    Teach this leaf
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={(e) => {
@@ -218,7 +218,7 @@ export function LeafStudyCard({
                     }}
                   >
                     <ListChecks className="h-4 w-4 mr-2" />
-                    Review this Memory
+                    Review this memory
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
