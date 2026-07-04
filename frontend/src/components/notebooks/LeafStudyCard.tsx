@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { NoteResponse } from '@/lib/types/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,13 @@ import {
   Lightbulb,
   Target,
   ExternalLink,
+  ChevronDown,
+  Check,
+  Bookmark,
+  Info,
+  CheckCircle,
+  BookmarkCheck,
+  RotateCcw,
 } from 'lucide-react'
 import { TTSButton } from '@/components/voice/TTSButton'
 import { useTranslation } from '@/lib/hooks/use-translation'
@@ -113,6 +121,13 @@ export function LeafStudyCard({
 }: LeafStudyCardProps) {
   const { t } = useTranslation()
   const isMemoryLeaf = isLearningMemoryLeaf(note)
+
+  // ── Check-yourself local state ──
+  // LOCAL SCAFFOLDING ONLY: Component state, no persistence.
+  // Weak-spot tracking and study-session logging belong to a later Delta phase.
+  const [checkYourselfOpen, setCheckYourselfOpen] = useState(false)
+  const [answerText, setAnswerText] = useState('')
+  const [checkYourselfSubmitted, setCheckYourselfSubmitted] = useState<'remembered' | 'review' | null>(null)
 
   const sections = useMemo(() => parseSections(note.content), [note.content])
   const hasHeadings = sections.length > 0 && sections.some((s) => s.heading !== null)
@@ -292,25 +307,97 @@ export function LeafStudyCard({
         </div>
       )}
 
-      {/* ── Footer actions ── */}
-      <div className="mt-3 pt-2 border-t flex items-center justify-between gap-2">
-        {/* Left: Check yourself and Listen */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Check yourself — static scaffolding, always shown */}
-          {!isMemoryLeaf && (
-            <div
-              className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1 cursor-default"
-              title={t('sources.checkYourself')}
-            >
-              <HelpCircle className="h-3 w-3" />
-              <span className="hidden sm:inline truncate max-w-[180px]">
-                {t('sources.checkYourself')}
-              </span>
+      {/* ── Check yourself — interactive retrieval practice ── */}
+      {/* LOCAL SCAFFOLDING ONLY: Component state, no persistence.
+          Weak-spot tracking and study-session logging belong to a later Delta phase. */}
+      {!isMemoryLeaf && (
+        <div className="mt-4 border border-amber-200 rounded-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          {/* Expandable header */}
+          <button
+            className="w-full flex items-center justify-between px-4 py-3 bg-amber-50 hover:bg-amber-100/80 transition-colors text-left"
+            onClick={() => setCheckYourselfOpen(!checkYourselfOpen)}
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-amber-800">
+              <HelpCircle className="h-4 w-4" />
+              {t('sources.checkYourselfTitle')}
+            </div>
+            <ChevronDown className={`h-4 w-4 text-amber-600 transition-transform ${checkYourselfOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* Expanded: prompt + textarea + buttons */}
+          {checkYourselfOpen && !checkYourselfSubmitted && (
+            <div className="p-4 border-t border-amber-200 space-y-3">
+              <p className="text-sm text-amber-900">{t('sources.checkYourself')}</p>
+              <Textarea
+                value={answerText}
+                onChange={(e) => setAnswerText(e.target.value)}
+                placeholder={t('sources.checkYourselfPlaceholder')}
+                className="min-h-[80px] resize-y text-sm border-amber-300 focus-visible:ring-amber-400"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => setCheckYourselfSubmitted('remembered')}
+                >
+                  <Check className="h-3.5 w-3.5 mr-1.5" />
+                  {t('sources.checkYourselfRemembered')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-amber-300 text-amber-800 hover:bg-amber-50"
+                  onClick={() => setCheckYourselfSubmitted('review')}
+                >
+                  <Bookmark className="h-3.5 w-3.5 mr-1.5" />
+                  {t('sources.checkYourselfReview')}
+                </Button>
+              </div>
+              <p className="flex items-center gap-1 text-xs text-amber-500/80 italic">
+                <Info className="h-3 w-3" />
+                {t('sources.checkYourselfDisclosure')}
+              </p>
+            </div>
+          )}
+
+          {/* Feedback after submission */}
+          {checkYourselfOpen && checkYourselfSubmitted && (
+            <div className="p-4 border-t border-amber-200 space-y-3">
+              <div className="flex items-start gap-2">
+                {checkYourselfSubmitted === 'remembered' ? (
+                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                ) : (
+                  <BookmarkCheck className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                )}
+                <div>
+                  <p className="text-sm text-amber-900">
+                    {checkYourselfSubmitted === 'remembered'
+                      ? t('sources.checkYourselfSuccessFeedback')
+                      : t('sources.checkYourselfReviewFeedback')}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="mt-2 h-7 px-2 text-xs text-amber-700 hover:text-amber-900 hover:bg-amber-100"
+                    onClick={() => {
+                      setCheckYourselfSubmitted(null)
+                      setAnswerText('')
+                    }}
+                  >
+                    <RotateCcw className="h-3 w-3 mr-1" />
+                    {t('sources.checkYourselfTryAgain')}
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>
+      )}
 
-        {/* Right: TTS */}
+      {/* ── Footer actions ── */}
+      <div className="mt-3 pt-2 border-t flex items-center justify-end gap-2">
+        {/* TTS */}
         {note.content && (
           <div onClick={(e) => e.stopPropagation()}>
             <TTSButton

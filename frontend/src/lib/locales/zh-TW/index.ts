@@ -440,6 +440,15 @@ export const zhTW = {
     leafWhatItCovers: "What this leaf covers",
     leafKeyPoints: "Key points",
 
+    checkYourselfTitle: "Check yourself",
+    checkYourselfPlaceholder: "Write a quick answer for yourself...",
+    checkYourselfRemembered: "I remembered this",
+    checkYourselfReview: "I need to review this",
+    checkYourselfSuccessFeedback: "Nice — this leaf is becoming easier to recall.",
+    checkYourselfReviewFeedback: "Good catch. Mark this leaf for review in your own study plan for now.",
+    checkYourselfDisclosure: "This is just for practice right now. Vault will track review history in a later version.",
+    checkYourselfTryAgain: "Try again",
+
   },
   chat: {
     sessions: "對話",
