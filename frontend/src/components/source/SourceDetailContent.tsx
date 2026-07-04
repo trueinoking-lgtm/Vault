@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import Link from 'next/link'
 import { useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 import ReactMarkdown from 'react-markdown'
@@ -67,8 +68,14 @@ import { formatDistanceToNow } from 'date-fns'
 import { getDateLocale } from '@/lib/utils/date-locale'
 import { toast } from 'sonner'
 import { useTranslation } from '@/lib/hooks/use-translation'
+import { useSourceStatus } from '@/lib/hooks/use-sources'
 import { SourceInsightDialog } from '@/components/source/SourceInsightDialog'
 import { NotebookAssociations } from '@/components/source/NotebookAssociations'
+import {
+  isProcessingSourceStatus,
+  mapBackendSourceStatusToLearnerStatus,
+  normalizeBackendSourceStatus,
+} from '@/lib/source-status'
 
 interface SourceDetailContentProps {
   sourceId: string
@@ -331,6 +338,33 @@ export function SourceDetailContent({
 
   const externalHref = useMemo(() => safeExternalHref(source?.asset?.url), [source?.asset?.url])
 
+  const sourceStatus = useSourceStatus(sourceId, !!sourceId)
+  const backendStatus = normalizeBackendSourceStatus(sourceStatus.data?.status || source?.status, !!source?.command_id)
+  const learnerStatus = mapBackendSourceStatusToLearnerStatus(backendStatus)
+  const isProcessing = isProcessingSourceStatus(backendStatus)
+  const isReadyToStudy = backendStatus === 'completed'
+  const isPreparationFailed = backendStatus === 'failed'
+  const primaryNotebookId = source?.notebooks?.[0]
+
+  const learnerStatusCopy = {
+    preparing: {
+      title: t('sources.statusPreparingText'),
+      description: t('sources.statusPreparingTextDesc'),
+    },
+    building: {
+      title: t('sources.statusBuildingStudyMemory'),
+      description: t('sources.statusBuildingStudyMemoryDesc'),
+    },
+    ready: {
+      title: t('sources.statusReadyToStudy'),
+      description: t('sources.statusReadyToStudyDetailDesc'),
+    },
+    failed: {
+      title: t('sources.statusFailedFriendly'),
+      description: t('sources.statusFailedFriendlyDesc'),
+    },
+  }[learnerStatus]
+
   const handleCopyUrl = useCallback(() => {
     if (source?.asset?.url) {
       navigator.clipboard.writeText(source.asset.url)
@@ -477,7 +511,52 @@ export function SourceDetailContent({
       </div>
 
       {/* Tabs Content */}
-      <div className="flex-1 overflow-y-auto px-2">
+      <div className="flex-1 overflow-y-auto px-2 space-y-4">
+        <Alert variant={isPreparationFailed ? 'destructive' : 'default'}>
+          {isPreparationFailed ? (
+            <AlertCircle className="h-4 w-4" />
+          ) : isReadyToStudy ? (
+            <CheckCircle className="h-4 w-4" />
+          ) : (
+            <Database className="h-4 w-4" />
+          )}
+          <AlertTitle>{learnerStatusCopy.title}</AlertTitle>
+          <AlertDescription>
+            <p>{learnerStatusCopy.description}</p>
+            {isProcessing && sourceStatus.data?.message ? (
+              <p className="mt-2 text-xs italic opacity-80">{sourceStatus.data.message}</p>
+            ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {isReadyToStudy ? (
+                <>
+                  {onChatClick ? (
+                    <Button size="sm" onClick={onChatClick}>
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      {t('sources.askAboutThisMaterial')}
+                    </Button>
+                  ) : null}
+                  <Button size="sm" variant="outline" asChild>
+                    <Link href={`#content-${sourceId}`} scroll={false}>
+                      {t('sources.openMaterial')}
+                    </Link>
+                  </Button>
+                  {primaryNotebookId ? (
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/notebooks/${primaryNotebookId}`}>
+                        {t('sources.createLeaf')}
+                      </Link>
+                    </Button>
+                  ) : null}
+                </>
+              ) : isPreparationFailed ? (
+                <Button size="sm" variant="outline" onClick={() => void fetchSource()}>
+                  {t('common.retry')}
+                </Button>
+              ) : null}
+            </div>
+          </AlertDescription>
+        </Alert>
+
         <Tabs defaultValue="content" className="w-full">
           <TabsList className="grid w-full grid-cols-3 sticky top-0 z-10">
             <TabsTrigger value="content">{t('sources.content')}</TabsTrigger>
@@ -488,7 +567,7 @@ export function SourceDetailContent({
           </TabsList>
 
           <TabsContent value="content" className="mt-6">
-            <Card>
+            <Card id={`content-${sourceId}`}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   {isYouTubeUrl && <Youtube className="h-5 w-5" />}

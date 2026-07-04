@@ -30,10 +30,14 @@ import {
 } from 'lucide-react'
 import { useSourceStatus } from '@/lib/hooks/use-sources'
 import { useTranslation } from '@/lib/hooks/use-translation'
-import type { TFunction } from 'i18next'
 import { cn } from '@/lib/utils'
 import { ContextToggle } from '@/components/common/ContextToggle'
 import { ContextMode } from '@/app/(dashboard)/notebooks/[id]/page'
+import {
+  isProcessingSourceStatus,
+  mapBackendSourceStatusToLearnerStatus,
+  normalizeBackendSourceStatus,
+} from '@/lib/source-status'
 
 interface SourceCardProps {
   source: SourceListResponse
@@ -56,54 +60,42 @@ const SOURCE_TYPE_ICONS = {
   text: FileText,
 } as const
 
-const getStatusConfig = (t: TFunction) => ({
-  new: {
+const getStatusConfig = (
+  t: ReturnType<typeof useTranslation>['t']
+) => ({
+  preparing: {
     icon: Clock,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: t('sources.statusProcessing'),
-    description: t('sources.statusPreparingDesc')
+    label: t('sources.statusPreparingText'),
+    description: t('sources.statusPreparingTextDesc')
   },
-  queued: {
-    icon: Clock,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    label: t('sources.statusQueued'),
-    description: t('sources.statusQueuedDesc')
-  },
-  running: {
+  building: {
     icon: Loader2,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: t('sources.statusProcessing'),
-    description: t('sources.statusProcessingDesc')
+    label: t('sources.statusBuildingStudyMemory'),
+    description: t('sources.statusBuildingStudyMemoryDesc')
   },
-  completed: {
+  ready: {
     icon: CheckCircle,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
-    label: t('sources.statusCompleted'),
-    description: t('sources.statusCompletedDesc')
+    label: t('sources.statusReadyToStudy'),
+    description: t('sources.statusReadyToStudyDetailDesc')
   },
   failed: {
     icon: AlertTriangle,
     color: 'text-red-600',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: t('sources.statusFailed'),
-    description: t('sources.statusFailedDesc')
+    label: t('sources.statusFailedFriendly'),
+    description: t('sources.statusFailedFriendlyDesc')
   }
 } as const)
-
-type SourceStatus = 'new' | 'queued' | 'running' | 'completed' | 'failed'
-
-function isSourceStatus(status: unknown): status is SourceStatus {
-  return typeof status === 'string' && ['new', 'queued', 'running', 'completed', 'failed'].includes(status)
-}
 
 function getSourceType(source: SourceListResponse): 'link' | 'upload' | 'text' {
   // Determine type based on asset information
@@ -157,19 +149,20 @@ function SourceCardImpl({
   )
 
   // Determine current status
-  // If source has a command_id but no status, treat as "new" (just created)
   const rawStatus = statusData?.status || sourceWithStatus.status
-  const currentStatus: SourceStatus = isSourceStatus(rawStatus)
-    ? rawStatus
-    : (sourceWithStatus.command_id ? 'new' : 'completed')
+  const backendStatus = normalizeBackendSourceStatus(rawStatus, !!sourceWithStatus.command_id)
+  const learnerStatus = mapBackendSourceStatusToLearnerStatus(backendStatus)
 
 
   // Track processing state and detect completion
   useEffect(() => {
-    const currentStatusFromData = statusData?.status || sourceWithStatus.status
+    const currentStatusFromData = normalizeBackendSourceStatus(
+      statusData?.status || sourceWithStatus.status,
+      !!sourceWithStatus.command_id
+    )
 
     // If we're currently processing, mark that we were processing
-    if (currentStatusFromData === 'new' || currentStatusFromData === 'running' || currentStatusFromData === 'queued') {
+    if (isProcessingSourceStatus(currentStatusFromData)) {
       setWasProcessing(true)
     }
 
@@ -182,9 +175,9 @@ function SourceCardImpl({
         setTimeout(() => onRefresh(), 500) // Small delay to ensure API is updated
       }
     }
-  }, [statusData, sourceWithStatus.status, wasProcessing, onRefresh, source.id])
+  }, [statusData, sourceWithStatus.status, sourceWithStatus.command_id, wasProcessing, onRefresh, source.id])
   
-  const statusConfig = statusConfigMap[currentStatus] || statusConfigMap.completed
+  const statusConfig = statusConfigMap[learnerStatus]
   const StatusIcon = statusConfig.icon
   const sourceType = getSourceType(source)
   const SourceTypeIcon = SOURCE_TYPE_ICONS[sourceType]
@@ -221,9 +214,9 @@ function SourceCardImpl({
     }
   }
 
-  const isProcessing: boolean = currentStatus === 'new' || currentStatus === 'running' || currentStatus === 'queued'
-  const isFailed: boolean = currentStatus === 'failed'
-  const isCompleted: boolean = currentStatus === 'completed'
+  const isProcessing = isProcessingSourceStatus(backendStatus)
+  const isFailed = backendStatus === 'failed'
+  const isCompleted = backendStatus === 'completed'
 
   return (
     <Card
@@ -237,28 +230,26 @@ function SourceCardImpl({
         {/* Header with status indicator */}
         <div className="flex items-start justify-between gap-3 mb-1">
           <div className="flex-1 min-w-0">
-            {/* Status badge - only show if not completed */}
-            {!isCompleted && (
-              <div className="flex items-center gap-2 mb-2">
-                <div className={cn(
-                  'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium',
-                  statusConfig.bgColor,
-                  statusConfig.color
-                )}>
-                  <StatusIcon className={cn(
-                    'h-3 w-3',
-                    isProcessing && 'animate-spin'
-                  )} />
-                  {statusLoading && shouldFetchStatus ? t('sources.checking') : statusConfig.label}
-                </div>
-
-                {/* Source type indicator */}
-                <div className="flex items-center gap-1 text-gray-500">
-                  <SourceTypeIcon className="h-3 w-3" />
-                  <span className="text-xs capitalize">{t('common.material')}</span>
-                </div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={cn(
+                'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border',
+                statusConfig.bgColor,
+                statusConfig.color,
+                statusConfig.borderColor
+              )}>
+                <StatusIcon className={cn(
+                  'h-3 w-3',
+                  isProcessing && 'animate-spin'
+                )} />
+                {statusLoading && shouldFetchStatus ? t('sources.checking') : statusConfig.label}
               </div>
-            )}
+
+              {/* Source type indicator */}
+              <div className="flex items-center gap-1 text-gray-500">
+                <SourceTypeIcon className="h-3 w-3" />
+                <span className="text-xs capitalize">{t('common.material')}</span>
+              </div>
+            </div>
 
             {/* Title */}
             <div className={cn('mb-1.5', !isCompleted && 'mb-1')}>
@@ -270,8 +261,14 @@ function SourceCardImpl({
               </h4>
             </div>
 
+            <p className="text-xs text-muted-foreground mb-2">
+              {isFailed
+                ? t('sources.statusFailedFriendlyDesc')
+                : statusConfig.description}
+            </p>
+
             {/* Processing message for active statuses */}
-            {statusData?.message && (isProcessing || isFailed) && (
+            {statusData?.message && isProcessing && (
               <p className="text-xs text-gray-600 mb-2 italic">
                 {statusData.message}
               </p>
@@ -440,7 +437,36 @@ function SourceCardImpl({
               className="h-7 text-xs"
             >
               <RefreshCw className="h-3 w-3 mr-1" />
-              {t('sources.retryProcessing')}
+              {t('sources.retry')}
+            </Button>
+          </div>
+        ) : isCompleted ? (
+          <div className="flex flex-wrap gap-2 pt-2 border-t">
+            {onTeachAction && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onTeachAction(source.id, 'teach')
+                }}
+                className="h-7 text-xs"
+              >
+                <GraduationCap className="h-3 w-3 mr-1" />
+                {t('sources.studyThisMaterial')}
+              </Button>
+            )}
+            <Button
+              variant={onTeachAction ? 'outline' : 'default'}
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleCardClick()
+              }}
+              className="h-7 text-xs"
+            >
+              <BookOpen className="h-3 w-3 mr-1" />
+              {t('sources.openMaterial')}
             </Button>
           </div>
         ) : null}
