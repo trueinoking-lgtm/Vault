@@ -17,6 +17,7 @@ import { getDateLocale } from '@/lib/utils/date-locale'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { getApiErrorKey } from '@/lib/utils/error-handler'
+import { useCreateDialogs } from '@/lib/hooks/use-create-dialogs'
 
 export default function SourcesPage() {
   const { t, language } = useTranslation()
@@ -33,6 +34,7 @@ export default function SourcesPage() {
     source: null
   })
   const router = useRouter()
+  const { openSourceDialog } = useCreateDialogs()
   const tableRef = useRef<HTMLTableElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const offsetRef = useRef(0)
@@ -305,8 +307,13 @@ export default function SourcesPage() {
       <AppShell>
         <EmptyState
           icon={FileText}
-          title={t('sources.noSourcesYet')}
-          description={t('sources.allSourcesDescShort')}
+          title="No materials yet"
+          description="Add a PDF, web page, YouTube link, or notes. Vault will prepare it for study."
+          action={
+            <Button onClick={openSourceDialog}>
+              Add your first material
+            </Button>
+          }
         />
       </AppShell>
     )

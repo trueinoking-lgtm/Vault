@@ -208,7 +208,7 @@ export const enUS = {
     manage: "Manage",
     materials: "Materials",
     libraries: "Libraries",
-    askAndSearch: "Ask and Search",
+    askAndSearch: "Study",
     podcasts: "Podcasts",
     models: "Models",
     transformations: "Transformations",
@@ -457,7 +457,7 @@ export const enUS = {
     sessionDeleted: "Session deleted",
   },
   searchPage: {
-    askAndSearch: "Ask and Search",
+    askAndSearch: "Study",
     chooseAMode: "Choose a mode",
     askBeta: "Ask (beta)",
     search: "Search",
@@ -949,8 +949,8 @@ export const enUS = {
     viewDocs: "View docs",
   },
   vault: {
-    title: "Command Center",
-    description: "Your central hub for managing libraries, materials, and learning.",
+    title: "Your Vault",
+    description: "Your dashboard for studying, organizing materials, and tracking progress.",
     aiStatus: {
       title: "Vault AI Status",
       ready: "Vault AI: Ready",
@@ -968,7 +968,7 @@ export const enUS = {
     reviewLearningMemory: "Review Learning Memory",
     reviewMemoryDesc: "Review weak spots and learning progress",
     noLibrariesYet: "No libraries yet. Create one to get started.",
-    vaultHome: "Vault Home",
+    vaultHome: "Your Vault",
     learningPanel: "Learning Progress",
     learningPanelDesc: "Track weak spots and memory entries across your libraries.",
     learningMemoryActive: "Learning Memory active",

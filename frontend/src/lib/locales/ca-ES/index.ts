@@ -949,8 +949,8 @@ export const caES = {
   },
 
   vault: {
-    title: "Command Center",
-    description: "Your central hub for managing libraries, materials, and learning.",
+    title: "Your Vault",
+    description: "Your dashboard for studying, organizing materials, and tracking progress.",
     aiStatus: {
       title: "Vault AI Status",
       ready: "Vault AI: Ready",
@@ -968,7 +968,7 @@ export const caES = {
     reviewLearningMemory: "Review Learning Memory",
     reviewMemoryDesc: "Review weak spots and learning progress",
     noLibrariesYet: "No libraries yet. Create one to get started.",
-    vaultHome: "Vault Home",
+    vaultHome: "Your Vault",
     learningPanel: "Learning Progress",
     learningPanelDesc: "Track weak spots and memory entries across your libraries.",
     learningMemoryActive: "Learning Memory active",
