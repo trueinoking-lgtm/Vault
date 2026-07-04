@@ -7,12 +7,13 @@
 # runs smoke tests.
 #
 # Usage:
-#   ./scripts/deploy_vault_frontend_standalone.sh [--restart] [--smoke]
+#   ./scripts/deploy_vault_frontend_standalone.sh [--restart] [--restart-systemd] [--smoke]
 #
 # Flags:
-#   --restart    After building, restart the running Vault frontend process
-#   --smoke      After building (and optionally restarting), run smoke tests
-#   -h, --help   Show this help message
+#   --restart          After building, restart Vault frontend via nohup
+#   --restart-systemd  After building, restart Vault frontend via systemctl
+#   --smoke            After building (and optionally restarting), run smoke tests
+#   -h, --help         Show this help message
 #
 # Environment:
 #   VAULT_BASE_URL   Base URL for smoke tests (default: https://vault-lms.duckdns.org)
@@ -30,6 +31,8 @@ VAULT_HOSTNAME="${VAULT_HOSTNAME:-0.0.0.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+SYSTEMD_SERVICE_NAME="vault-frontend.service"
 
 # ---- Colors -----------------------------------------------------------------
 GREEN='\033[0;32m'
@@ -49,9 +52,10 @@ Usage: $(basename "$0") [OPTIONS]
 Build and prepare the Vault frontend standalone deployment.
 
 Options:
-  --restart    After building, restart the running Vault frontend process
-  --smoke      After building (and optionally restarting), run smoke tests
-  -h, --help   Show this help message
+  --restart          After building, restart the Vault frontend via nohup
+  --restart-systemd  After building, restart the Vault frontend via systemctl
+  --smoke            After building (and optionally restarting), run smoke tests
+  -h, --help         Show this help message
 
 Environment variables:
   VAULT_BASE_URL   Base URL for smoke tests (default: https://vault-lms.duckdns.org)
@@ -62,8 +66,11 @@ Examples:
   # Build and prepare standalone output (safe — no restart)
   $(basename "$0")
 
-  # Full deploy cycle: build, restart, smoke test
-  $(basename "$0") --restart --smoke
+  # Full deploy cycle: build, restart via systemd, smoke test
+  $(basename "$0") --restart-systemd --smoke
+
+  # Build + restart via nohup
+  $(basename "$0") --restart
 
   # Build + smoke test against a different base URL
   VAULT_BASE_URL=http://localhost:3003 $(basename "$0") --smoke
@@ -73,16 +80,24 @@ EOF
 
 # ---- Parse flags ------------------------------------------------------------
 RESTART=false
+RESTART_SYSTEMD=false
 SMOKE=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --restart) RESTART=true; shift ;;
-        --smoke)   SMOKE=true;   shift ;;
-        -h|--help) usage ;;
+        --restart)          RESTART=true;          shift ;;
+        --restart-systemd)  RESTART_SYSTEMD=true;   shift ;;
+        --smoke)            SMOKE=true;             shift ;;
+        -h|--help)          usage ;;
         *) error "Unknown option: $1"; usage ;;
     esac
 done
+
+# If both restart flags are set, --restart-systemd wins
+if [[ "$RESTART" == true && "$RESTART_SYSTEMD" == true ]]; then
+    warn "Both --restart and --restart-systemd set. Using --restart-systemd."
+    RESTART=false
+fi
 
 # ---- Step 0: Confirm we are in the repo root --------------------------------
 cd "$REPO_ROOT"
@@ -143,9 +158,52 @@ info "Standalone server entry point: .next/standalone/server.js"
 
 cd "$REPO_ROOT"
 
-# ---- Step 7: Optional restart -----------------------------------------------
+# ---- Step 7a: Optional restart via systemd ----------------------------------
+if [[ "$RESTART_SYSTEMD" == true ]]; then
+    info "systemd restart flag set — restarting via systemctl…"
+
+    # Check if the service unit is installed
+    if ! systemctl list-unit-files "$SYSTEMD_SERVICE_NAME" &>/dev/null \
+         || ! systemctl list-unit-files "$SYSTEMD_SERVICE_NAME" | grep -q "$SYSTEMD_SERVICE_NAME"; then
+        error "Service $SYSTEMD_SERVICE_NAME not found in systemd."
+        error ""
+        error "To install it:"
+        error "  sudo cp deploy/systemd/$SYSTEMD_SERVICE_NAME /etc/systemd/system/"
+        error "  sudo systemctl daemon-reload"
+        error "  sudo systemctl enable $SYSTEMD_SERVICE_NAME"
+        error ""
+        error "Then re-run with --restart-systemd, or use --restart for nohup-based restart."
+        exit 1
+    fi
+
+    info "Found $SYSTEMD_SERVICE_NAME — restarting…"
+    if systemctl restart "$SYSTEMD_SERVICE_NAME"; then
+        echo ""
+        info "═══════════════════════════════════════════════════════════════"
+        info "  Vault frontend restarted via systemd ($SYSTEMD_SERVICE_NAME)"
+        info "  Listening on http://$VAULT_HOSTNAME:$VAULT_PORT"
+        info "  Logs: sudo journalctl -fu $SYSTEMD_SERVICE_NAME"
+        info "═══════════════════════════════════════════════════════════════"
+
+        sleep 2
+
+        # Verify the service is active
+        if systemctl is-active --quiet "$SYSTEMD_SERVICE_NAME"; then
+            info "Service is active (running)."
+        else
+            warn "Service is not active after restart — check logs:"
+            warn "  sudo journalctl -u $SYSTEMD_SERVICE_NAME -n 30 --no-pager"
+        fi
+    else
+        error "systemctl restart failed. Check the service status:"
+        error "  sudo systemctl status $SYSTEMD_SERVICE_NAME"
+        exit 1
+    fi
+fi
+
+# ---- Step 7b: Optional restart via nohup (original behavior) ----------------
 if [[ "$RESTART" == true ]]; then
-    info "Restart flag set — restarting Vault frontend (port $VAULT_PORT)…"
+    info "Restart flag set — restarting Vault frontend (port $VAULT_PORT) via nohup…"
 
     # Find and stop existing process on the port
     OLD_PID="$(lsof -ti :"$VAULT_PORT" 2>/dev/null || true)"
@@ -253,8 +311,9 @@ info "  Build ID:     $BUILD_ID"
 info "  Build output: $VAULT_FRONTEND_DIR/.next/standalone/"
 info ""
 info "  Next steps:"
-if [[ "$RESTART" != true ]]; then
-    info "  • Restart the server:  $(basename "$0") --restart"
+if [[ "$RESTART_SYSTEMD" != true && "$RESTART" != true ]]; then
+    info "  • Restart via systemd: $(basename "$0") --restart-systemd"
+    info "  • Restart via nohup:   $(basename "$0") --restart"
     info "  • Or manually:"
     info "      cd $VAULT_FRONTEND_DIR && PORT=$VAULT_PORT HOSTNAME=$VAULT_HOSTNAME \\"
     info "        nohup node .next/standalone/server.js \\"
