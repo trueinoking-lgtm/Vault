@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useParams } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { useSourceChat } from '@/lib/hooks/useSourceChat'
@@ -23,6 +23,12 @@ export default function SourceDetailPage() {
     router.push(returnPath)
     navigation.clearReturnTo()
   }, [navigation, router])
+
+  const chatColumnRef = useRef<HTMLDivElement>(null)
+
+  const handleChatClick = useCallback(() => {
+    chatColumnRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [])
 
   return (
     <div className="flex flex-col h-screen">
@@ -46,12 +52,13 @@ export default function SourceDetailPage() {
           <SourceDetailContent
             sourceId={sourceId}
             showChatButton={false}
+            onChatClick={handleChatClick}
             onClose={handleBack}
           />
         </div>
 
         {/* Right column - Chat */}
-        <div className="overflow-y-auto px-4 pb-6">
+        <div className="overflow-y-auto px-4 pb-6" ref={chatColumnRef} id="source-chat-panel">
           <ChatPanel
             messages={chat.messages}
             isStreaming={chat.isStreaming}

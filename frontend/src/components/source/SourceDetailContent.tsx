@@ -63,6 +63,9 @@ import {
   Database,
   AlertCircle,
   MessageSquare,
+  GraduationCap,
+  BookOpen,
+  StickyNote,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { getDateLocale } from '@/lib/utils/date-locale'
@@ -71,6 +74,7 @@ import { useTranslation } from '@/lib/hooks/use-translation'
 import { useSourceStatus } from '@/lib/hooks/use-sources'
 import { SourceInsightDialog } from '@/components/source/SourceInsightDialog'
 import { NotebookAssociations } from '@/components/source/NotebookAssociations'
+import { TTSButton } from '@/components/voice/TTSButton'
 import {
   isProcessingSourceStatus,
   mapBackendSourceStatusToLearnerStatus,
@@ -556,6 +560,49 @@ export function SourceDetailContent({
             </div>
           </AlertDescription>
         </Alert>
+
+        {/* Study Hub — only for ready materials */}
+        {isReadyToStudy && (
+          <Card className="border-green-200 bg-green-50/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-800">
+                <GraduationCap className="h-5 w-5 text-green-600" />
+                {t('sources.studyHubTitle')}
+              </CardTitle>
+              <CardDescription className="text-green-700/80">
+                {t('sources.studyHubDesc')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-3">
+                <Button variant="default" asChild>
+                  <Link href={`#content-${sourceId}`} scroll={false}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {t('sources.readMaterial')}
+                  </Link>
+                </Button>
+                {onChatClick && (
+                  <Button variant="outline" onClick={onChatClick}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    {t('sources.askQuestion')}
+                  </Button>
+                )}
+                {primaryNotebookId && (
+                  <Button variant="outline" asChild>
+                    <Link href={`/notebooks/${primaryNotebookId}`}>
+                      <StickyNote className="mr-2 h-4 w-4" />
+                      {t('sources.createLeaf')}
+                    </Link>
+                  </Button>
+                )}
+                <TTSButton
+                  text={source?.full_text || ''}
+                  className="h-9 px-3 text-sm"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="content" className="w-full">
           <TabsList className="grid w-full grid-cols-3 sticky top-0 z-10">

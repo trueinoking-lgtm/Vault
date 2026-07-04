@@ -430,6 +430,11 @@ export const itIT = {
     statusFailedFriendly: "Preparation failed",
     statusFailedFriendlyDesc: "Something went wrong while preparing your material. You can try again.",
 
+    studyHubTitle: "Study this material",
+    studyHubDesc: "Start with the text, ask questions, or turn the important parts into leaves.",
+    readMaterial: "Read material",
+    askQuestion: "Ask a question",
+
   },
   chat: {
     sessions: "Sessioni",
