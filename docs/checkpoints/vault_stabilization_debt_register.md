@@ -66,14 +66,14 @@ This register catalogues known technical debt and stabilisation concerns across 
 | Field | Value |
 |-------|-------|
 | **Area** | Backend + Frontend — session lifecycle |
-| **Severity** | ~~Medium~~ → **Partially fixed** |
-| **Evidence** | `POST /api/study/sessions` creates or resumes an active session. `PATCH /api/study/sessions/{id}` with status `completed` exists in the API. Debt C added a `useEndSession()` mutation hook in `use-study.ts` and wired it in `NotesColumn.tsx` via a `useEffect` cleanup that fires `PATCH /api/study/sessions/{id}` with `{ status: 'completed' }` when the column unmounts. However, unmount is not guaranteed in SPA transitions (e.g. navigating between notebooks via client-side routing may not trigger a full remount). A server-side stale-session cleanup has not been implemented. |
-| **Impact** | Sessions are now best-effort completed on unmount. Most normal usage (navigating away from a notebook) will trigger completion. Edge cases remain: (a) browser tab closed without navigation, (b) client-side navigation that doesn't fully unmount the column, (c) network failure during the PATCH request. Accumulation of `active` sessions is reduced but not eliminated. |
-| **Proposed fix** | ~~Two-part fix: (a) Add a frontend effect in the study-hub component that calls `PATCH /api/study/sessions/{id}` ... (b) Add a server-side background job ...~~ Part (a) implemented. Part (b) deferred — a server-side stale-session check (e.g. auto-close sessions older than N hours) can be added later if accumulation becomes a problem. |
-| **Status** | **Partially fixed** — best-effort completion on unmount added. Server-side stale cleanup deferred. |
+| **Severity** | ~~Medium~~ → ✅ Fixed |
+| **Evidence** | `POST /api/study/sessions` creates or resumes an active session. Debt C added best-effort frontend completion via `useEndSession()` on `NotesColumn` unmount. Delta L adds server-side stale-session cleanup: `POST /api/study/sessions` now calls `StudySession.close_stale_sessions_for_notebook()` before looking up an existing session, which marks any active session older than 12 hours as `abandoned`. This prevents unbounded accumulation even if the frontend completion fires unreliably. Two layers now guard against stale sessions: (a) frontend best-effort PATCH on unmount, (b) server-side auto-close on next session create. |
+| **Impact** | **Resolved.** Sessions no longer accumulate indefinitely. Edge case covered: learner closes tab without navigation → stale session auto-closed when they return (or when any session create occurs for that notebook). |
+| **Proposed fix** | ~~Two-part fix: (a) frontend completion, (b) server-side stale cleanup~~ **Both implemented.** |
+| **Status** | **Fixed** — Debt C + Delta L complete. Two-layer guard: frontend best-effort + server-side stale auto-close. |
 | **Blocks Delta J?** | **No.** |
-| **Recommended phase** | **Debt C — partially complete.** Server-side stale session cleanup deferred. |
-| **Classification** | ⚠️ Partially fixed (server side deferred) |
+| **Recommended phase** | **Delta L — complete.** |
+| **Classification** | ✅ Fixed |
 
 ---
 
@@ -113,8 +113,8 @@ This register catalogues known technical debt and stabilisation concerns across 
 |----|-------|----------|----------------|-------------------|
 | DEBT-001 | Environment mismatch (`pytest-asyncio` not in system venv) | ~~High~~ → ✅ Fixed | ✅ Fixed | **Debt B — complete** |
 | DEBT-002 | Session lifecycle starts too low in component tree | ~~Medium~~ → ✅ Fixed | ✅ Fixed | **Debt C — complete** |
-| DEBT-003 | Weak-spot fields exist but no frontend display | Low | Safe to defer | Delta K (next feature) |
-| DEBT-004 | Sessions never explicitly completed | ~~Medium~~ → ⚠️ Partial | Partial (frontend done) | **Debt C — partial** (server cleanup deferred) |
+| DEBT-003 | Weak-spot fields exist but no frontend display | Low | Safe to defer | Delta K — complete |
+| DEBT-004 | Sessions never explicitly completed | ~~Medium~~ → ✅ Fixed | ✅ Fixed | **Delta L — complete** |
 | DEBT-005 | `opened`/`listened` events not wired | Low | Safe to defer | Post-Epsilon cleanup |
 | DEBT-006 | Frontend standalone lacks health endpoint | Low | Safe to defer | Ops phase |
 
@@ -128,21 +128,22 @@ This register catalogues known technical debt and stabilisation concerns across 
        correct. Use `uv run python -m pytest tests/` to run the full suite.
        221/221 passed under uv. No source changes required.
 
-2. ✅ Debt C (DEBT-002 + DEBT-004) — Complete (with deferred item).
+2. ✅ Debt C (DEBT-002 + DEBT-004) — Complete.
    ├── Session ownership lifted from LeafStudyCard to NotesColumn.
    │   LeafStudyCard receives studySessionId as a prop.
-   ├── Best-effort session completion on column unmount via useEndSession hook.
-   └── ⚠️ Server-side stale session cleanup deferred (not yet implemented).
+   └── Best-effort session completion on column unmount via useEndSession hook.
 
-3. Delta K (DEBT-003)   — Weak-spot frontend display
-   ├── Add "Needs practice" section to ReviewQueue
-   ├── Locale keys + orange theme
-   └── Filter weak-spot items from "Needs review" section
+3. ✅ Delta L (DEBT-004) — Complete.
+   └── Server-side stale session auto-close added (12h threshold).
+       Two-layer guard: frontend best-effort + backend auto-close.
 
-4. Post-Epsilon          — Minor gaps (DEBT-005, DEBT-006, server-side session cleanup)
+4. ✅ Delta K (DEBT-003) — Complete.
+   └── Needs-practice section displayed in ReviewQueue.
+       4 locale keys added to all 14 locales.
+
+5. Post-Epsilon          — Minor gaps (DEBT-005, DEBT-006)
    ├── Wire opened/listened events
-   ├── Frontend health endpoint (if still needed)
-   └── Server-side auto-close for stale active sessions
+   └── Frontend health endpoint (if still needed)
 ```
 
 ---

@@ -31,6 +31,12 @@ SESSION_STATUS = Literal[
     "abandoned",
 ]
 
+# Sessions older than this threshold are considered stale and auto-closed
+# as abandoned when a new POST /api/study/sessions arrives for the same
+# notebook. This prevents unbounded accumulation of active sessions when
+# the frontend's best-effort completion fires unreliably (e.g. tab closed).
+STALE_SESSION_HOURS = 12
+
 
 class StudySession(ObjectModel):
     table_name: ClassVar[str] = "study_session"
@@ -56,6 +62,47 @@ class StudySession(ObjectModel):
         except Exception as e:
             logger.error(f"Error fetching active session for {notebook_id}: {e}")
             return None
+
+    @classmethod
+    async def close_stale_sessions_for_notebook(cls, notebook_id: str) -> int:
+        """
+        Close active sessions older than *STALE_SESSION_HOURS* as abandoned.
+
+        Called before creating a new session so that sessions orphaned by a
+        closed tab or failed best-effort frontend completion do not accumulate.
+
+        Returns the number of sessions closed.
+        """
+        try:
+            cutoff = (
+                datetime.now(timezone.utc) - timedelta(hours=STALE_SESSION_HOURS)
+            ).strftime("%Y-%m-%d %H:%M:%S")
+            result = await repo_query(
+                "SELECT * FROM study_session WHERE notebook_id = $nbid "
+                "AND status = 'active' AND started_at < $cutoff "
+                "ORDER BY started_at DESC",
+                {
+                    "nbid": ensure_record_id(notebook_id),
+                    "cutoff": cutoff,
+                },
+            )
+            count = 0
+            for row in result:
+                session = cls(**row)
+                session.status = "abandoned"
+                session.ended_at = datetime.now()
+                await session.save()
+                count += 1
+            if count:
+                logger.info(
+                    f"Closed {count} stale session(s) for notebook {notebook_id}"
+                )
+            return count
+        except Exception as e:
+            logger.error(
+                f"Error closing stale sessions for {notebook_id}: {e}"
+            )
+            return 0
 
     async def update_leaf_count(self) -> int:
         """Recalculate leaf_count from distinct note_ids in this session."""

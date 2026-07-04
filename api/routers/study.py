@@ -68,10 +68,14 @@ async def create_study_session(data: StudySessionCreate):
     """
     Start or resume a study session for a library.
 
-    If an active session already exists for this notebook, returns it.
-    Otherwise creates a new active session.
+    Before looking up an existing session, closes any stale active sessions
+    (older than 12 hours) for this notebook to prevent unbounded accumulation.
+    If a fresh active session exists, returns it. Otherwise creates a new one.
     """
     try:
+        # Close any stale active sessions first (Delta L)
+        await StudySession.close_stale_sessions_for_notebook(data.notebook_id)
+
         existing = await StudySession.get_active_for_notebook(data.notebook_id)
         if existing:
             return _format_session(existing)

@@ -34,6 +34,7 @@ class TestCreateStudySession:
         mock_session.created = "2026-07-04T12:00:00Z"
         mock_session.updated = "2026-07-04T12:00:00Z"
 
+        mock_session_cls.close_stale_sessions_for_notebook = AsyncMock(return_value=0)
         mock_session_cls.get_active_for_notebook = AsyncMock(return_value=None)
         mock_session_cls.return_value = mock_session
 
@@ -47,6 +48,7 @@ class TestCreateStudySession:
         assert data["id"] == "study_session:abc123"
         assert data["status"] == "active"
         assert data["notebook_id"] == "lib1"
+        mock_session_cls.close_stale_sessions_for_notebook.assert_called_once()
 
     @patch("api.routers.study.StudySession")
     def test_resumes_existing_active_session(self, mock_session_cls, client):
@@ -61,6 +63,7 @@ class TestCreateStudySession:
         mock_session.created = "2026-07-04T10:00:00Z"
         mock_session.updated = "2026-07-04T10:30:00Z"
 
+        mock_session_cls.close_stale_sessions_for_notebook = AsyncMock(return_value=0)
         mock_session_cls.get_active_for_notebook = AsyncMock(return_value=mock_session)
 
         response = client.post(
@@ -75,8 +78,39 @@ class TestCreateStudySession:
         mock_session_cls.assert_not_called()
 
     @patch("api.routers.study.StudySession")
+    def test_abandons_stale_and_creates_new_session(self, mock_session_cls, client):
+        """When stale active session exists, closes it and creates fresh."""
+        mock_session_cls.close_stale_sessions_for_notebook = AsyncMock(return_value=1)
+        mock_session_cls.get_active_for_notebook = AsyncMock(return_value=None)
+
+        fresh_session = AsyncMock()
+        fresh_session.id = "study_session:fresh1"
+        fresh_session.notebook_id = "notebook:lib1"
+        fresh_session.status = "active"
+        fresh_session.started_at = "2026-07-04T14:00:00Z"
+        fresh_session.ended_at = None
+        fresh_session.leaf_count = 0
+        fresh_session.created = "2026-07-04T14:00:00Z"
+        fresh_session.updated = "2026-07-04T14:00:00Z"
+        mock_session_cls.return_value = fresh_session
+
+        response = client.post(
+            "/api/study/sessions",
+            json={"notebook_id": "notebook:lib1"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == "study_session:fresh1"
+        assert data["status"] == "active"
+        mock_session_cls.close_stale_sessions_for_notebook.assert_called_once_with(
+            "notebook:lib1"
+        )
+
+    @patch("api.routers.study.StudySession")
     def test_returns_500_on_error(self, mock_session_cls, client):
         """On unexpected error, returns 500."""
+        mock_session_cls.close_stale_sessions_for_notebook = AsyncMock(return_value=0)
         mock_session_cls.get_active_for_notebook = AsyncMock(
             side_effect=RuntimeError("DB connection failed")
         )
