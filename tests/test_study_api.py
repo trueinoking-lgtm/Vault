@@ -239,10 +239,11 @@ class TestCreateLeafReviewEvent:
 class TestGetReviewQueue:
     """GET /api/study/review-queue"""
 
+    @patch("api.routers.study.LeafReviewEvent")
     @patch("api.routers.study.LeafReviewState")
     @patch("api.routers.study.Note")
-    def test_returns_queue_items(self, mock_note_cls, mock_state_cls, client):
-        """Returns formatted review queue items with note data."""
+    def test_returns_queue_items(self, mock_note_cls, mock_state_cls, mock_event_cls, client):
+        """Returns formatted review queue items with note data and weak-spot fields."""
         mock_state = AsyncMock()
         mock_state.note_id = "note:n1"
         mock_state.notebook_id = "notebook:lib1"
@@ -254,9 +255,11 @@ class TestGetReviewQueue:
 
         mock_note = AsyncMock()
         mock_note.title = "Trigonometric Identities"
-        mock_note.content = "sin²θ + cos²θ = 1 is a fundamental identity"
+        mock_note.content = "sin\u00b2\u03b8 + cos\u00b2\u03b8 = 1 is a fundamental identity"
         # get() is a classmethod that must be awaitable
         mock_note_cls.get = AsyncMock(return_value=mock_note)
+
+        mock_event_cls.compute_weak_spot_for_note = AsyncMock(return_value=(False, None))
 
         response = client.get(
             "/api/study/review-queue?notebook_id=notebook:lib1"
@@ -270,6 +273,9 @@ class TestGetReviewQueue:
         assert item["title"] == "Trigonometric Identities"
         assert item["needs_review"] is False
         assert item["review_count"] == 3
+        # Weak-spot fields present
+        assert item["is_weak_spot"] is False
+        assert item["weak_spot_label"] is None
 
     @patch("api.routers.study.LeafReviewState")
     def test_returns_empty_when_no_notebook(self, mock_state_cls, client):
@@ -279,6 +285,100 @@ class TestGetReviewQueue:
         response = client.get("/api/study/review-queue")
         assert response.status_code == 200
         assert response.json() == {"items": [], "total": 0}
+
+
+class TestWeakSpotHeuristic:
+    """Delta J: Weak-spot heuristic derivation from events."""
+
+    def test_below_threshold_returns_false(self):
+        """One needs_review event -> is_weak_spot false."""
+        from types import SimpleNamespace
+        from open_notebook.domain.study import LeafReviewEvent
+
+        events = [
+            SimpleNamespace(event_type="needs_review", created="2026-07-04T14:00:00Z"),
+        ]
+        is_weak, label = LeafReviewEvent._compute_weak_spot_from_events(events)
+        assert is_weak is False
+        assert label is None
+
+    def test_two_needs_review_within_cooldown_returns_false(self):
+        """Two needs_review events within 1h cooldown -> false."""
+        from datetime import datetime, timezone, timedelta
+        from types import SimpleNamespace
+        from open_notebook.domain.study import LeafReviewEvent
+
+        now = datetime.now(timezone.utc)
+        thirty_min_ago = now - timedelta(minutes=30)
+        fifteen_min_ago = now - timedelta(minutes=15)
+
+        events = [
+            SimpleNamespace(event_type="needs_review", created=thirty_min_ago.isoformat()),
+            SimpleNamespace(event_type="needs_review", created=fifteen_min_ago.isoformat()),
+        ]
+        is_weak, label = LeafReviewEvent._compute_weak_spot_from_events(events)
+        assert is_weak is False
+        assert label is None
+
+    def test_two_needs_review_past_cooldown_no_remembered_returns_true(self):
+        """Two needs_review events older than 1h, no later remembered -> weak spot."""
+        from datetime import datetime, timezone, timedelta
+        from types import SimpleNamespace
+        from open_notebook.domain.study import LeafReviewEvent
+
+        # Create timestamps >1h ago
+        now = datetime.now(timezone.utc)
+        old = now - timedelta(hours=2)
+        oldest = now - timedelta(hours=3)
+
+        events = [
+            SimpleNamespace(event_type="needs_review", created=oldest.isoformat()),
+            SimpleNamespace(event_type="needs_review", created=old.isoformat()),
+        ]
+        is_weak, label = LeafReviewEvent._compute_weak_spot_from_events(events)
+        assert is_weak is True
+        assert label == "needs_practice"
+
+    def test_remembered_after_needs_review_clears_weak_spot(self):
+        """Remembered event after most recent needs_review -> not weak."""
+        from datetime import datetime, timezone, timedelta
+        from types import SimpleNamespace
+        from open_notebook.domain.study import LeafReviewEvent
+
+        now = datetime.now(timezone.utc)
+        two_hours_ago = now - timedelta(hours=2)
+        three_hours_ago = now - timedelta(hours=3)
+        one_hour_ago = now - timedelta(hours=1)  # most recent: remembered
+
+        events = [
+            SimpleNamespace(event_type="needs_review", created=three_hours_ago.isoformat()),
+            SimpleNamespace(event_type="needs_review", created=two_hours_ago.isoformat()),
+            SimpleNamespace(event_type="remembered", created=one_hour_ago.isoformat()),
+        ]
+        is_weak, label = LeafReviewEvent._compute_weak_spot_from_events(events)
+        assert is_weak is False
+        assert label is None
+
+    def test_zero_events_returns_false(self):
+        """No events at all -> not weak."""
+        from open_notebook.domain.study import LeafReviewEvent
+
+        is_weak, label = LeafReviewEvent._compute_weak_spot_from_events([])
+        assert is_weak is False
+        assert label is None
+
+    def test_only_remembered_events_returns_false(self):
+        """Only remembered events -> not weak."""
+        from types import SimpleNamespace
+        from open_notebook.domain.study import LeafReviewEvent
+
+        events = [
+            SimpleNamespace(event_type="remembered", created="2026-07-04T14:00:00Z"),
+            SimpleNamespace(event_type="remembered", created="2026-07-04T15:00:00Z"),
+        ]
+        is_weak, label = LeafReviewEvent._compute_weak_spot_from_events(events)
+        assert is_weak is False
+        assert label is None
 
 
 class TestListStudySessions:

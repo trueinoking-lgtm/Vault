@@ -227,6 +227,21 @@ async def get_review_queue(
 
             notebook_id_str = str(state.notebook_id).replace("notebook:", "")
 
+            # Compute weak-spot flag from events (query-time derivation).
+            # Short-circuit: if total review_count < 2, can't have 2+ needs_review.
+            is_weak_spot = False
+            weak_spot_label = None
+            if (state.review_count or 0) >= 2:
+                try:
+                    is_weak_spot, weak_spot_label = (
+                        await LeafReviewEvent.compute_weak_spot_for_note(
+                            str(state.note_id)
+                        )
+                    )
+                except Exception:
+                    # Non-critical — degrade gracefully
+                    pass
+
             items.append(ReviewQueueItem(
                 note_id=note_id_str,
                 notebook_id=notebook_id_str,
@@ -235,6 +250,8 @@ async def get_review_queue(
                 needs_review=state.needs_review or False,
                 last_reviewed=str(state.last_event_at) if state.last_event_at else None,
                 review_count=state.review_count or 0,
+                is_weak_spot=is_weak_spot,
+                weak_spot_label=weak_spot_label,
             ))
 
         return ReviewQueueResponse(

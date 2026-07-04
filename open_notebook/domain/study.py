@@ -7,7 +7,7 @@ Implements the Delta E design for Vault's learner-loop:
 - LeafReviewState: denormalized current review state per leaf
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any, ClassVar, Dict, List, Literal, Optional
 
 from loguru import logger
@@ -96,6 +96,85 @@ class LeafReviewEvent(ObjectModel):
         except Exception as e:
             logger.error(f"Error fetching review events for {note_id}: {e}")
             return []
+
+    @classmethod
+    async def compute_weak_spot_for_note(
+        cls, note_id: str
+    ) -> tuple[bool, Optional[str]]:
+        """
+        Query-time weak-spot heuristic derivation for a single leaf.
+
+        A leaf is a weak spot when ALL of the following hold:
+        - At least 2 ``needs_review`` events have been logged
+        - No ``remembered`` event after the most recent ``needs_review``
+        - The most recent ``needs_review`` is at least 1 hour old (cooldown)
+
+        Returns (is_weak_spot, label).
+        label is ``"needs_practice"`` when a weak spot, otherwise None.
+
+        TODO: If per-item querying becomes a bottleneck (>500ms for 20 items),
+        consider caching or adding a ``consecutive_needs_review`` field to
+        ``leaf_review_state``.
+        """
+        events = await cls.get_for_note(note_id, limit=50)
+        return cls._compute_weak_spot_from_events(events)
+
+    @staticmethod
+    def _compute_weak_spot_from_events(
+        events: list,
+    ) -> tuple[bool, Optional[str]]:
+        """
+        Core heuristic logic, testable without database access.
+
+        Each event must have ``.event_type`` (str) and ``.created`` (str or
+        datetime) attributes.
+        """
+        needs_review_times: List[datetime] = []
+        remembered_times: List[datetime] = []
+
+        for event in events:
+            created_str = str(event.created) if event.created else ""
+            created_dt = _parse_event_time(created_str)
+            if created_dt is None:
+                continue
+
+            if event.event_type == "needs_review":
+                needs_review_times.append(created_dt)
+            elif event.event_type == "remembered":
+                remembered_times.append(created_dt)
+
+        if len(needs_review_times) < 2:
+            return False, None
+
+        last_needs_review = max(needs_review_times)
+        last_remembered = max(remembered_times) if remembered_times else None
+
+        # Learner improved since last struggle
+        if last_remembered and last_remembered > last_needs_review:
+            return False, None
+
+        # Cooldown: needs_review must be at least 1 hour old
+        now = datetime.now(timezone.utc)
+        if (now - last_needs_review) < timedelta(hours=1):
+            return False, None
+
+        return True, "needs_practice"
+
+
+def _parse_event_time(created_str: str) -> Optional[datetime]:
+    """Parse an event timestamp string to an aware datetime.
+
+    Handles ISO-8601 with 'Z' suffix, timezone offsets, and naive datetimes
+    (assumed UTC). Returns None on parse failure.
+    """
+    try:
+        normalized = created_str.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(normalized)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except (ValueError, AttributeError):
+        return None
 
 
 class LeafReviewState(ObjectModel):

@@ -287,6 +287,8 @@ export interface ReviewQueueItem {
   needs_review: boolean
   last_reviewed?: string
   review_count: number
+  is_weak_spot: boolean
+  weak_spot_label?: string
 }
 
 export interface ReviewQueueResponse {

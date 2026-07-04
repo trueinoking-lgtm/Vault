@@ -763,6 +763,8 @@ class ReviewQueueItem(BaseModel):
     needs_review: bool
     last_reviewed: Optional[str] = None
     review_count: int = 0
+    is_weak_spot: bool = False
+    weak_spot_label: Optional[str] = None
 
 
 class ReviewQueueResponse(BaseModel):
