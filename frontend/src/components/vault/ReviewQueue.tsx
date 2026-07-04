@@ -10,6 +10,7 @@ import {
   BookmarkCheck,
   CheckCircle,
   AlertCircle,
+  Target,
 } from 'lucide-react'
 import { useReviewQueue } from '@/lib/hooks/use-study'
 import { useTranslation } from '@/lib/hooks/use-translation'
@@ -20,8 +21,11 @@ import { formatDistanceToNow } from 'date-fns'
 /**
  * Review Queue — powered by persisted review state (Delta H).
  *
- * Reads from GET /api/study/review-queue across all libraries.
- * Distinguishes between leaves needing review and recently remembered ones.
+ * Three sections (Delta K):
+ *   1. Needs practice  — items where is_weak_spot === true
+ *   2. Needs review    — remaining items with needs_review === true
+ *   3. Recently remembered — items with needs_review === false
+ *
  * Falls back to an honest empty/error state when no data is available.
  */
 export default function ReviewQueue() {
@@ -60,8 +64,11 @@ export default function ReviewQueue() {
   }
 
   const items = data?.items ?? []
-  const needsReview = items.filter((i) => i.needs_review)
-  const remembered = items.filter((i) => !i.needs_review)
+
+  // Three-way classification (Delta K)
+  const needsPractice = items.filter((i) => i.is_weak_spot === true)
+  const needsReview = items.filter((i) => i.needs_review === true && i.is_weak_spot !== true)
+  const remembered = items.filter((i) => i.needs_review === false)
 
   // ── Empty state — no review data yet ──
   if (items.length === 0) {
@@ -97,7 +104,43 @@ export default function ReviewQueue() {
       <h2 className="text-lg font-semibold mb-1">{t('vault.reviewQueue')}</h2>
       <p className="text-sm text-muted-foreground mb-3">{t('vault.reviewQueueDesc')}</p>
 
-      {/* Needs review section */}
+      {/* Needs practice section — weak-spot items */}
+      {needsPractice.length > 0 && (
+        <div className="mb-4">
+          <div className="rounded-lg border border-orange-200 bg-orange-50/30 p-3 mb-3">
+            <div className="flex items-start gap-2">
+              <Target className="h-4 w-4 text-orange-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-orange-800">
+                  {t('vault.needsPractice') || 'Needs practice'}
+                </p>
+                <p className="text-xs text-orange-700/70 mt-0.5">
+                  {t('vault.needsPracticeDesc') ||
+                    'You have marked these leaves for review more than once. Revisit them when you are ready.'}
+                </p>
+                <p className="text-xs text-orange-700/50 mt-0.5">
+                  {needsPractice.length === 1
+                    ? (t('vault.needsPracticeSingle') || '1 leaf needs extra practice.')
+                    : (t('vault.needsPracticeMultiple') ||
+                        `${needsPractice.length} leaves need extra practice.`)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {needsPractice.map((item) => (
+              <ReviewQueueItemCard
+                key={item.note_id}
+                item={item}
+                variant="needs_practice"
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Needs review section — regular needs-review items only */}
       {needsReview.length > 0 && (
         <div className="mb-4">
           <div className="rounded-lg border border-amber-200 bg-amber-50/30 p-3 mb-3">
@@ -167,27 +210,33 @@ interface ReviewQueueItemCardProps {
     needs_review: boolean
     last_reviewed?: string | null
     review_count: number
+    is_weak_spot?: boolean
   }
-  variant: 'needs_review' | 'remembered'
+  variant: 'needs_practice' | 'needs_review' | 'remembered'
 }
 
 function ReviewQueueItemCard({ item, variant }: ReviewQueueItemCardProps) {
   const { t } = useTranslation()
 
-  const TypeIcon = variant === 'needs_review' ? RefreshCw : CheckCircle
+  const TypeIcon = variant === 'needs_practice'
+    ? Target
+    : variant === 'needs_review'
+      ? RefreshCw
+      : CheckCircle
+
+  const iconColor = variant === 'needs_practice'
+    ? 'text-orange-500'
+    : variant === 'needs_review'
+      ? 'text-amber-500'
+      : 'text-green-500'
+
   const linkHref = item.notebook_id
     ? `/notebooks/${item.notebook_id}`
     : '/notebooks'
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border">
-      <TypeIcon
-        className={`h-5 w-5 shrink-0 ${
-          variant === 'needs_review'
-            ? 'text-amber-500'
-            : 'text-green-500'
-        }`}
-      />
+      <TypeIcon className={`h-5 w-5 shrink-0 ${iconColor}`} />
       <div className="min-w-0 flex-1">
         <div className="font-medium text-sm truncate">
           {item.title || t('vault.untitledLeaf')}

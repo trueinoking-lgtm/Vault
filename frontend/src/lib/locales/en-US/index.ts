@@ -1022,6 +1022,10 @@ export const enUS = {
     reviewQueueError: "Couldn't load your review history.",
     reviewCount: "Reviewed",
     reviewQueueNote: "Review actions are saved. Check yourself on any leaf to build this queue.",
+    needsPractice: "Needs practice",
+    needsPracticeDesc: "You have marked these leaves for review more than once. Revisit them when you are ready.",
+    needsPracticeSingle: "1 leaf needs extra practice.",
+    needsPracticeMultiple: "{count} leaves need extra practice.",
   },
   tts: {
     listen: "Listen",
