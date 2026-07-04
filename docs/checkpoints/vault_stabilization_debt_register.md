@@ -14,18 +14,19 @@ This register catalogues known technical debt and stabilisation concerns across 
 
 ## Debt Items
 
-### DEBT-001: Backend test suite has 66 pre-existing failures due to missing `pytest-asyncio`
+### DEBT-001: Backend test suite has 66 pre-existing failures due to environment mismatch (`pytest-asyncio` not in system venv)
 
 | Field | Value |
 |-------|-------|
 | **Area** | Backend testing environment |
-| **Severity** | High |
-| **Evidence** | `python -m pytest tests/` reports 66 failures, 155 passed. `pip show pytest-asyncio` returns "not installed". `pyproject.toml` lists `pytest-asyncio>=1.2.0` under `[dependency-groups] dev` (PEP 735) but the dependency was never resolved into the active environment. All 66 failures are `@pytest.mark.asyncio`-decorated tests that fail with "Unknown pytest.mark.asyncio" or "Failed: asyncio" error. The study-api tests pass because they mock all async operations and never use `@pytest.mark.asyncio` directly. The domain tests (`test_domain.py`), sources API tests, credentials tests, graph tests, and embedding tests all use `@pytest.mark.asyncio` and fail. |
-| **Impact** | Every new async backend change can only be validated against the 18 study-api tests. The other 66 tests are dead CI signal — they fail before any assertion runs. A regression in any of the 4 domain models, 5+ API routers, or embedding logic goes undetected. This is the highest-severity item because it undermines all future backend work. |
-| **Proposed fix** | Run `uv sync --group dev` (PEP 735) or `pip install pytest-asyncio` into the active venv. Verify with `python -m pytest tests/ --tb=no -q` that the failure count drops from 66 to 0. If any genuine failures remain after asyncio resolution, fix or isolate them. Add `asyncio_mode = "auto"` to `pyproject.toml` to reduce boilerplate. |
-| **Blocks Delta J?** | **No** — Delta J study-api tests are self-contained and mock all async dependencies. But it blocks *confidence* in any backend change touching non-study code. |
-| **Recommended phase** | **Debt B — fix now.** Fix before any further backend work. |
-| **Classification** | Fix now |
+| **Severity** | ~~High~~ → **Fixed** |
+| **Evidence** | `python -m pytest tests/` reports 66 failures, 155 passed. The system Python venv (`/usr/local/lib/hermes-agent/venv/`) lacks `pytest-asyncio`. The project correctly declares `pytest-asyncio>=1.2.0` under `[dependency-groups] dev` (PEP 735) — this is a `uv`-managed group that `uv sync` installs into the project's own `.venv/`. Running `uv run python -m pytest tests/` from the project root uses the `.venv/` and reports **221/221 passed, 0 failures**. This is an **environment mismatch**, not a dependency gap. The system Python venv is managed by the Hermes agent tooling and does not sync the project's `uv.lock`. All 66 failures are `@pytest.mark.asyncio`-decorated tests that fail with "Unknown pytest.mark.asyncio" because the system `pytest` doesn't recognise the marker. The study-api tests (18/18) pass under both environments because they mock all async operations and never use `@pytest.mark.asyncio`. |
+| **Impact** | ~~Every new async backend change can only be validated against the 18 study-api tests.~~ **Resolved:** Running `uv run python -m pytest tests/` validates the full suite (221 tests). The 66 false failures in the system venv are harmless — they indicate nothing about code quality. |
+| **Proposed fix** | No source-level changes required. Use `uv run python -m pytest tests/` to run the full backend test suite. The `pyproject.toml` and `uv.lock` were already correct. No migration, no config file, no script needed. |
+| **Status** | **Fixed** — Debt B complete. The fix is a documented invocation change, not a dependency change. |
+| **Blocks Delta J?** | **No** — and never did. |
+| **Recommended phase** | **Debt B — complete.** |
+| **Classification** | ✅ Fixed |
 
 ---
 
@@ -108,8 +109,8 @@ This register catalogues known technical debt and stabilisation concerns across 
 
 | ID | Title | Severity | Classification | Recommended phase |
 |----|-------|----------|----------------|-------------------|
-| DEBT-001 | Missing `pytest-asyncio`; 66 pre-existing failures | **High** | Fix now | **Debt B** — immediate |
-| DEBT-002 | Session lifecycle starts too low in component tree | Medium | Fix before Epsilon | **Debt C** (after Debt B) |
+| DEBT-001 | Environment mismatch (`pytest-asyncio` not in system venv) | ~~High~~ → ✅ Fixed | ✅ Fixed | **Debt B — complete** |
+| DEBT-002 | Session lifecycle starts too low in component tree | Medium | Fix before Epsilon | **Debt C** (next) |
 | DEBT-003 | Weak-spot fields exist but no frontend display | Low | Safe to defer | Delta K (next feature) |
 | DEBT-004 | Sessions never explicitly completed | Medium | Fix before Epsilon | **Debt C** (alongside 002) |
 | DEBT-005 | `opened`/`listened` events not wired | Low | Safe to defer | Post-Epsilon cleanup |
@@ -120,8 +121,10 @@ This register catalogues known technical debt and stabilisation concerns across 
 ## Recommended Fix Order
 
 ```
-1. Debt B (DEBT-001)    — Fix backend test environment
-   └── Fix pytest-asyncio. Verify 66→0 failures. Restore CI signal.
+1. ✅ Debt B (DEBT-001) — Complete.
+   └── Root cause: environment mismatch. pyproject.toml + uv.lock were already
+       correct. Use `uv run python -m pytest tests/` to run the full suite.
+       221/221 passed under uv. No source changes required.
 
 2. Debt C (DEBT-002 + DEBT-004) — Session lifecycle refactor
    ├── Lift useStudySession into study-hub parent component
@@ -142,15 +145,17 @@ This register catalogues known technical debt and stabilisation concerns across 
 
 ## Appendix: Verification Checks
 
-### Before Debt B
-- [ ] `git status --short` clean
-- [ ] `python -m pytest tests/test_study_api.py` passes (18/18)
-- [ ] 66 failures confirmed in `python -m pytest tests/ --tb=no -q`
+### Before Debt B (confirmed)
+- [x] `git status --short` clean
+- [x] `python -m pytest tests/test_study_api.py` passes (18/18)
+- [x] 66 failures confirmed in `python -m pytest tests/ --tb=no -q`
 
-### After Debt B
-- [ ] `pip show pytest-asyncio` returns version
-- [ ] `python -m pytest tests/ --tb=no -q` passes (or 0 known failures)
-- [ ] No `PytestUnknownMarkWarning` for `asyncio`
+### After Debt B (verified)
+- [x] `uv run python -m pytest tests/ --tb=no -q` → **221/221 passed, 0 failures**
+- [x] `uv run python -m pytest tests/test_study_api.py` → **18/18 passed**
+- [x] Root cause documented: environment mismatch (system venv vs uv-managed `.venv`)
+- [x] No source-level changes required — `pyproject.toml` and `uv.lock` were correct
+- [x] Invocation: use `uv run python -m pytest tests/` for full validation
 
 ### After Debt C
 - [ ] `useStudySession` called from study-hub parent, not LeafStudyCard
