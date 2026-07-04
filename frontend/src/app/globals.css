@@ -117,10 +117,13 @@
 
   html {
     @apply antialiased;
+    overflow: hidden;
   }
 
   body {
     @apply bg-background text-foreground transition-colors;
+    overflow: hidden;
+    height: 100vh;
   }
 
   /* Ensure proper theme inheritance for popovers and dropdowns */

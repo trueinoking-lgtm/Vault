@@ -39,7 +39,7 @@ export default function VaultPage() {
 
   return (
     <AppShell>
-      <div className="p-6 space-y-6 max-w-4xl mx-auto overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold">{t('vault.title')}</h1>
         <p className="text-muted-foreground">{t('vault.description')}</p>
         {/* AI Status */}
