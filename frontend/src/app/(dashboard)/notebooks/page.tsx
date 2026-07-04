@@ -106,10 +106,10 @@ export default function NotebooksPage() {
             notebooks={filteredActive} 
             isLoading={isLoading}
             title={t('notebooks.activeNotebooks')}
-            emptyTitle={isSearching ? t('common.noMatches') : undefined}
-            emptyDescription={isSearching ? t('common.tryDifferentSearch') : undefined}
+            emptyTitle={isSearching ? t('common.noMatches') : t('vault.firstLibraryTitle')}
+            emptyDescription={isSearching ? t('common.tryDifferentSearch') : t('vault.firstLibraryBody')}
             onAction={!isSearching ? () => setCreateDialogOpen(true) : undefined}
-            actionLabel={!isSearching ? t('notebooks.newNotebook') : undefined}
+            actionLabel={!isSearching ? t('vault.firstLibraryCta') : undefined}
           />
           
           {hasArchived && (
