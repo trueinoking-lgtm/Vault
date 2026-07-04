@@ -20,8 +20,8 @@ describe('AppSidebar', () => {
     expect(screen.getByText('common.appName')).toBeDefined()
     expect(screen.getByText('navigation.materials')).toBeDefined()
     expect(screen.getByText('navigation.libraries')).toBeDefined()
-    // Admin link should be present
-    expect(screen.getByText('navigation.adminSetup')).toBeDefined()
+    // Admin link should NOT be visible in learner sidebar
+    expect(screen.queryByText('navigation.adminSetup')).toBeNull()
   })
 
   it('toggles collapse state when clicking handle', () => {

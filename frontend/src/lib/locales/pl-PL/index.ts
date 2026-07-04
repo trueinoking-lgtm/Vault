@@ -215,7 +215,6 @@ export const plPL = {
     transformation: "Transformacja",
     settings: "Ustawienia",
     advanced: "Zaawansowane",
-    adminSetup: "Admin Setup",
     nav: "Nawigacja",
     language: "Przełącz język",
     theme: "Motyw",
@@ -1006,5 +1005,10 @@ export const plPL = {
     replay: "Odtwórz ponownie",
     replayHint: "Odtwórz ten dźwięk ponownie",
     truncated: "Pierwsze",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

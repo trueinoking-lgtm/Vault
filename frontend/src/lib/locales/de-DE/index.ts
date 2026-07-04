@@ -218,7 +218,6 @@ export const deDE = {
     transformation: "Transformation",
     settings: "Einstellungen",
     advanced: "Erweitert",
-    adminSetup: "Admin Setup",
     nav: "Navigation",
     language: "Sprache wechseln",
     theme: "Design",
@@ -1009,5 +1008,10 @@ export const deDE = {
     replay: "Erneut abspielen",
     replayHint: "Dieses Audio erneut abspielen",
     truncated: "Erste",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

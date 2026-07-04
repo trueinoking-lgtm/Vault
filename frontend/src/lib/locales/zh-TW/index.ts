@@ -215,7 +215,6 @@ export const zhTW = {
     transformation: "轉換",
     settings: "設定",
     advanced: "進階",
-    adminSetup: "Admin Setup",
     nav: "導覽",
     language: "切換語言",
     theme: "主題",
@@ -1006,5 +1005,10 @@ export const zhTW = {
     replay: "重新播放",
     replayHint: "重新播放此音訊",
     truncated: "前",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

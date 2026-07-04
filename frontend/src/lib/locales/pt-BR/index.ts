@@ -215,7 +215,6 @@ export const ptBR = {
     transformation: "Transformação",
     settings: "Configurações",
     advanced: "Avançado",
-    adminSetup: "Admin Setup",
     nav: "Navegação",
     language: "Alternar idioma",
     theme: "Tema",
@@ -1006,5 +1005,10 @@ export const ptBR = {
     replay: "Reproduzir novamente",
     replayHint: "Reproduzir este áudio novamente",
     truncated: "Primeiros",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

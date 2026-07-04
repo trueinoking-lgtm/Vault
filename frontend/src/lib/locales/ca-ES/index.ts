@@ -215,7 +215,6 @@ export const caES = {
     transformation: "Transformació",
     settings: "Configuració",
     advanced: "Avançat",
-    adminSetup: "Admin Setup",
     nav: "Navegació",
     language: "Canvia l'idioma",
     theme: "Tema",
@@ -1006,5 +1005,10 @@ export const caES = {
     replay: "Reproduir de nou",
     replayHint: "Reproduir aquest àudio de nou",
     truncated: "Primers",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

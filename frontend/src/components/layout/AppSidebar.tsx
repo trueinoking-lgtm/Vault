@@ -39,7 +39,6 @@ import {
   FileText,
   Plus,
   Command,
-  Shield,
 } from 'lucide-react'
 
 const getNavigation = (t: TFunction) => [
@@ -351,34 +350,6 @@ export function AppSidebar() {
              </>
            )}
          </div>
-          {/* Admin link */}
-          {isCollapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link href="/admin/api-keys">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-center sidebar-menu-item text-muted-foreground hover:text-foreground"
-                    aria-label={t('navigation.adminSetup')}
-                  >
-                    <Shield className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">{t('navigation.adminSetup')}</TooltipContent>
-            </Tooltip>
-          ) : (
-            <Link href="/admin/api-keys">
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 sidebar-menu-item text-muted-foreground hover:text-foreground text-xs"
-                aria-label={t('navigation.adminSetup')}
-              >
-                <Shield className="h-3 w-3" />
-                {t('navigation.adminSetup')}
-              </Button>
-            </Link>
-          )}
 
           {isCollapsed ? (
             <Tooltip>

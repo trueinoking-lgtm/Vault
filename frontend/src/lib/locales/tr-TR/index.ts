@@ -215,7 +215,6 @@ export const trTR = {
     transformation: "Dönüşüm",
     settings: "Ayarlar",
     advanced: "Gelişmiş",
-    adminSetup: "Admin Setup",
     nav: "Gezinme",
     language: "Dili değiştir",
     theme: "Tema",
@@ -1006,5 +1005,10 @@ export const trTR = {
     replay: "Tekrar dinle",
     replayHint: "Bu sesi tekrar dinle",
     truncated: "İlk",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

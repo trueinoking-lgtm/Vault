@@ -215,7 +215,6 @@ export const zhCN = {
     transformation: "转换",
     settings: "设置",
     advanced: "高级",
-    adminSetup: "Admin Setup",
     nav: "导航",
     language: "切换语言",
     theme: "主题",
@@ -1006,5 +1005,10 @@ export const zhCN = {
     replay: "重新播放",
     replayHint: "重新播放此音频",
     truncated: "前",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

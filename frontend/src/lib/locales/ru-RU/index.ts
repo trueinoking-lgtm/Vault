@@ -215,7 +215,6 @@ export const ruRU = {
     transformation: "Трансформация",
     settings: "Настройки",
     advanced: "Дополнительно",
-    adminSetup: "Admin Setup",
     nav: "Навигация",
     language: "Переключить язык",
     theme: "Тема",
@@ -1006,5 +1005,10 @@ export const ruRU = {
     replay: "Воспроизвести снова",
     replayHint: "Воспроизвести это аудио снова",
     truncated: "Первые",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

@@ -215,7 +215,6 @@ export const bnIN = {
     transformation: "ট্রান্সফরমেশন",
     settings: "সেটিংস",
     advanced: "উন্নত",
-    adminSetup: "Admin Setup",
     nav: "নেভিগেশন",
     language: "ভাষা টগল",
     theme: "থিম",
@@ -1007,5 +1006,10 @@ export const bnIN = {
     replay: "পুনরায় চালান",
     replayHint: "এই অডিও পুনরায় চালান",
     truncated: "প্রথম",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

@@ -215,7 +215,6 @@ export const itIT = {
     transformation: "Trasformazione",
     settings: "Impostazioni",
     advanced: "Avanzate",
-    adminSetup: "Admin Setup",
     nav: "Navigazione",
     language: "Cambia lingua",
     theme: "Tema",
@@ -1006,5 +1005,10 @@ export const itIT = {
     replay: "Ripeti",
     replayHint: "Ripeti questo audio",
     truncated: "Primi",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

@@ -215,7 +215,6 @@ export const jaJP = {
     transformation: "トランスフォーメーション",
     settings: "設定",
     advanced: "詳細設定",
-    adminSetup: "Admin Setup",
     nav: "ナビゲーション",
     language: "言語を切り替え",
     theme: "テーマ",
@@ -1006,5 +1005,10 @@ export const jaJP = {
     replay: "もう一度再生",
     replayHint: "この音声をもう一度再生",
     truncated: "最初の",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

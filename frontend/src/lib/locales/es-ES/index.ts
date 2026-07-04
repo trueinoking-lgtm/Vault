@@ -215,7 +215,6 @@ export const esES = {
     transformation: "Transformación",
     settings: "Configuración",
     advanced: "Avanzado",
-    adminSetup: "Admin Setup",
     nav: "Navegación",
     language: "Cambiar idioma",
     theme: "Tema",
@@ -1007,5 +1006,10 @@ export const esES = {
     replay: "Reproducir de nuevo",
     replayHint: "Reproducir este audio de nuevo",
     truncated: "Primeros",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }

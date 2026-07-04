@@ -215,7 +215,6 @@ export const enUS = {
     transformation: "Transformation",
     settings: "Settings",
     advanced: "Advanced",
-    adminSetup: "Admin Setup",
     nav: "Navigation",
     language: "Toggle language",
     theme: "Theme",
@@ -1006,5 +1005,10 @@ export const enUS = {
     replay: "Replay",
     replayHint: "Replay this audio",
     truncated: "First",
+  },
+  modeEntry: {
+    welcome: "Welcome to Vault",
+    description: "Your central hub for studying, creating Leaves, and learning.",
+    startLearning: "Start Learning",
   },
 }
