@@ -20,6 +20,8 @@ describe('AppSidebar', () => {
     expect(screen.getByText('common.appName')).toBeDefined()
     expect(screen.getByText('navigation.materials')).toBeDefined()
     expect(screen.getByText('navigation.libraries')).toBeDefined()
+    // Admin link should be present
+    expect(screen.getByText('navigation.adminSetup')).toBeDefined()
   })
 
   it('toggles collapse state when clicking handle', () => {

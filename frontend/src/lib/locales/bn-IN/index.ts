@@ -215,6 +215,7 @@ export const bnIN = {
     transformation: "ট্রান্সফরমেশন",
     settings: "সেটিংস",
     advanced: "উন্নত",
+    adminSetup: "Admin Setup",
     nav: "নেভিগেশন",
     language: "ভাষা টগল",
     theme: "থিম",
@@ -952,6 +953,13 @@ export const bnIN = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

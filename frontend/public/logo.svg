@@ -1,60 +1,103 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Gradient Definitions -->
   <defs>
-    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#bd34fe;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#41d1ff;stop-opacity:1" />
+    <linearGradient id="bookGrad" x1="60" y1="70" x2="180" y2="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
     </linearGradient>
-    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#bd34fe;stop-opacity:0.3" />
-      <stop offset="100%" style="stop-color:#41d1ff;stop-opacity:0.3" />
+    <linearGradient id="chainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
     </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.15"/>
+    </filter>
   </defs>
 
-  <!-- Connection Lines -->
-  <g class="connections">
-    <path d="M120 80L80 120" stroke="url(#lineGradient)" stroke-width="2"/>
-    <path d="M120 80L160 120" stroke="url(#lineGradient)" stroke-width="2"/>
-    <path d="M80 120L120 160" stroke="url(#lineGradient)" stroke-width="2"/>
-    <path d="M160 120L120 160" stroke="url(#lineGradient)" stroke-width="2"/>
-    <path d="M80 120L160 120" stroke="url(#lineGradient)" stroke-width="2"/>
+  <!-- Rotating chain group -->
+  <g transform-origin="120 120">
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      from="0 120 120"
+      to="360 120 120"
+      dur="20s"
+      repeatCount="indefinite"
+    />
+
+    <!-- Chain links wrapping around the book -->
+    <g stroke="url(#chainGrad)" stroke-width="3.5" fill="none" stroke-linecap="round">
+      <!-- Top-left chain -->
+      <ellipse cx="68" cy="56" rx="10" ry="7" transform="rotate(-15 68 56)"/>
+      <ellipse cx="52" cy="48" rx="10" ry="7" transform="rotate(-25 52 48)"/>
+      <ellipse cx="38" cy="44" rx="8" ry="6" transform="rotate(-35 38 44)"/>
+
+      <!-- Top-right chain -->
+      <ellipse cx="172" cy="56" rx="10" ry="7" transform="rotate(15 172 56)"/>
+      <ellipse cx="188" cy="48" rx="10" ry="7" transform="rotate(25 188 48)"/>
+      <ellipse cx="202" cy="44" rx="8" ry="6" transform="rotate(35 202 44)"/>
+
+      <!-- Bottom-left chain -->
+      <ellipse cx="68" cy="188" rx="10" ry="7" transform="rotate(15 68 188)"/>
+      <ellipse cx="52" cy="196" rx="10" ry="7" transform="rotate(25 52 196)"/>
+      <ellipse cx="38" cy="200" rx="8" ry="6" transform="rotate(35 38 200)"/>
+
+      <!-- Bottom-right chain -->
+      <ellipse cx="172" cy="188" rx="10" ry="7" transform="rotate(-15 172 188)"/>
+      <ellipse cx="188" cy="196" rx="10" ry="7" transform="rotate(-25 188 196)"/>
+      <ellipse cx="202" cy="200" rx="8" ry="6" transform="rotate(-35 202 200)"/>
+
+      <!-- Left vertical chain -->
+      <ellipse cx="42" cy="80" rx="7" ry="10" transform="rotate(-5 42 80)"/>
+      <ellipse cx="38" cy="100" rx="7" ry="10"/>
+      <ellipse cx="38" cy="120" rx="7" ry="10"/>
+      <ellipse cx="38" cy="140" rx="7" ry="10"/>
+      <ellipse cx="42" cy="160" rx="7" ry="10" transform="rotate(5 42 160)"/>
+
+      <!-- Right vertical chain -->
+      <ellipse cx="198" cy="80" rx="7" ry="10" transform="rotate(5 198 80)"/>
+      <ellipse cx="202" cy="100" rx="7" ry="10"/>
+      <ellipse cx="202" cy="120" rx="7" ry="10"/>
+      <ellipse cx="202" cy="140" rx="7" ry="10"/>
+      <ellipse cx="198" cy="160" rx="7" ry="10" transform="rotate(-5 198 160)"/>
+
+      <!-- Top connecting bar -->
+      <path d="M38 44 Q60 30, 120 28 Q180 30, 202 44" stroke-width="3"/>
+
+      <!-- Bottom connecting bar -->
+      <path d="M38 200 Q60 214, 120 216 Q180 214, 202 200" stroke-width="3"/>
+    </g>
   </g>
 
-  <!-- Nodes -->
-  <g class="nodes">
-    <!-- Central Node -->
-    <circle cx="120" cy="80" r="20" fill="url(#nodeGradient)"/>
-    <circle cx="120" cy="80" r="24" stroke="url(#nodeGradient)" stroke-width="1" fill="none"/>
-    
-    <!-- Left Node -->
-    <circle cx="80" cy="120" r="16" fill="url(#nodeGradient)"/>
-    <circle cx="80" cy="120" r="20" stroke="url(#nodeGradient)" stroke-width="1" fill="none"/>
-    
-    <!-- Right Node -->
-    <circle cx="160" cy="120" r="16" fill="url(#nodeGradient)"/>
-    <circle cx="160" cy="120" r="20" stroke="url(#nodeGradient)" stroke-width="1" fill="none"/>
-    
-    <!-- Bottom Node -->
-    <circle cx="120" cy="160" r="18" fill="url(#nodeGradient)"/>
-    <circle cx="120" cy="160" r="22" stroke="url(#nodeGradient)" stroke-width="1" fill="none"/>
+  <!-- Open Book (static, does not rotate) -->
+  <g filter="url(#shadow)">
+    <!-- Left page -->
+    <path d="M120 72 C110 68, 72 58, 58 62 L58 172 C72 168, 110 178, 120 182 Z"
+          fill="#1e1b4b" opacity="0.9"/>
+    <!-- Right page -->
+    <path d="M120 72 C130 68, 168 58, 182 62 L182 172 C168 168, 130 178, 120 182 Z"
+          fill="#1e1b4b" opacity="0.9"/>
+    <!-- Spine highlight -->
+    <line x1="120" y1="72" x2="120" y2="182" stroke="url(#bookGrad)" stroke-width="2.5" opacity="0.8"/>
+    <!-- Page lines - left -->
+    <line x1="72" y1="90" x2="114" y2="86" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="72" y1="102" x2="114" y2="98" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="72" y1="114" x2="114" y2="110" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="72" y1="126" x2="114" y2="122" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="72" y1="138" x2="114" y2="134" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="72" y1="150" x2="114" y2="146" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <!-- Page lines - right -->
+    <line x1="126" y1="86" x2="168" y2="90" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="126" y1="98" x2="168" y2="102" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="126" y1="110" x2="168" y2="114" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="126" y1="122" x2="168" y2="126" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="126" y1="134" x2="168" y2="138" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
+    <line x1="126" y1="146" x2="168" y2="150" stroke="#a78bfa" stroke-width="1.2" opacity="0.3"/>
   </g>
 
-  <!-- Pulse Animation -->
-  <style>
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(1); opacity: 0.8; }
-    }
-    .nodes circle {
-      animation: pulse 3s infinite ease-in-out;
-    }
-    .nodes circle:nth-child(2n) {
-      animation-delay: 1s;
-    }
-    .nodes circle:nth-child(3n) {
-      animation-delay: 2s;
-    }
-  </style>
+  <!-- Lock icon at top center (static) -->
+  <g transform="translate(110, 18)">
+    <rect x="0" y="8" width="20" height="14" rx="2" fill="url(#bookGrad)" opacity="0.9"/>
+    <path d="M5 8 V6 C5 2, 15 2, 15 6 V8" stroke="url(#chainGrad)" stroke-width="2.5" fill="none"/>
+    <circle cx="10" cy="14" r="2" fill="#1e1b4b"/>
+  </g>
 </svg>

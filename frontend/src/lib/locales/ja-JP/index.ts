@@ -215,6 +215,7 @@ export const jaJP = {
     transformation: "トランスフォーメーション",
     settings: "設定",
     advanced: "詳細設定",
+    adminSetup: "Admin Setup",
     nav: "ナビゲーション",
     language: "言語を切り替え",
     theme: "テーマ",
@@ -951,6 +952,13 @@ export const jaJP = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

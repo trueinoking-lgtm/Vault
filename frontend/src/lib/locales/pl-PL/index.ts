@@ -215,6 +215,7 @@ export const plPL = {
     transformation: "Transformacja",
     settings: "Ustawienia",
     advanced: "Zaawansowane",
+    adminSetup: "Admin Setup",
     nav: "Nawigacja",
     language: "Przełącz język",
     theme: "Motyw",
@@ -951,6 +952,13 @@ export const plPL = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

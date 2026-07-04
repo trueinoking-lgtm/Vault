@@ -44,17 +44,22 @@ export async function GET(request: NextRequest) {
     const hostHeader = request.headers.get('host')
 
     if (hostHeader) {
-      // Extract just the hostname (remove port if present)
-      const hostname = hostHeader.split(':')[0]
+      // When behind a reverse proxy (Nginx), use relative paths so the
+      // browser calls /api/* on the same origin — Nginx proxies to the backend.
+      // Only use an absolute URL with :5055 when there's no reverse proxy
+      // (detected by non-standard port in the host header).
+      const hasCustomPort = hostHeader.includes(':') && !hostHeader.endsWith(':443') && !hostHeader.endsWith(':80')
+      
+      if (hasCustomPort) {
+        // Direct access (no reverse proxy) — use absolute URL with API port
+        const apiUrl = `${proto}://${hostHeader}`
+        console.log(`[runtime-config] Direct access detected, API URL: ${apiUrl}`)
+        return NextResponse.json({ apiUrl })
+      }
 
-      // Construct the API URL with port 5055
-      const apiUrl = `${proto}://${hostname}:5055`
-
-      console.log(`[runtime-config] Auto-detected API URL: ${apiUrl} (proto=${proto}, host=${hostHeader})`)
-
-      return NextResponse.json({
-        apiUrl,
-      })
+      // Behind reverse proxy — use empty string for relative paths
+      console.log(`[runtime-config] Reverse proxy detected, using relative paths`)
+      return NextResponse.json({ apiUrl: '' })
     }
   } catch (error) {
     console.error('[runtime-config] Auto-detection failed:', error)

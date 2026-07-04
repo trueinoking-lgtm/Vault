@@ -215,6 +215,7 @@ export const zhTW = {
     transformation: "轉換",
     settings: "設定",
     advanced: "進階",
+    adminSetup: "Admin Setup",
     nav: "導覽",
     language: "切換語言",
     theme: "主題",
@@ -951,6 +952,13 @@ export const zhTW = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

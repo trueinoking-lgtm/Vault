@@ -215,6 +215,7 @@ export const ptBR = {
     transformation: "Transformação",
     settings: "Configurações",
     advanced: "Avançado",
+    adminSetup: "Admin Setup",
     nav: "Navegação",
     language: "Alternar idioma",
     theme: "Tema",
@@ -951,6 +952,13 @@ export const ptBR = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

@@ -215,6 +215,7 @@ export const enUS = {
     transformation: "Transformation",
     settings: "Settings",
     advanced: "Advanced",
+    adminSetup: "Admin Setup",
     nav: "Navigation",
     language: "Toggle language",
     theme: "Theme",
@@ -951,6 +952,13 @@ export const enUS = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

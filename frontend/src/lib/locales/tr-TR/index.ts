@@ -215,6 +215,7 @@ export const trTR = {
     transformation: "Dönüşüm",
     settings: "Ayarlar",
     advanced: "Gelişmiş",
+    adminSetup: "Admin Setup",
     nav: "Gezinme",
     language: "Dili değiştir",
     theme: "Tema",
@@ -951,6 +952,13 @@ export const trTR = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

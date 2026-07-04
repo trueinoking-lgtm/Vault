@@ -5,6 +5,7 @@ import { FileText, BookOpen, MessageSquare, Brain } from 'lucide-react'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { AppShell } from '@/components/layout/AppShell'
 import dynamic from 'next/dynamic'
+import { AiStatusCard } from '@/components/vault/AiStatusCard'
 
 const ContinueStudying = dynamic(
   () => import('@/components/vault/ContinueStudying'),
@@ -41,6 +42,8 @@ export default function VaultPage() {
       <div className="p-6 space-y-6 max-w-4xl mx-auto overflow-y-auto">
         <h1 className="text-2xl font-bold">{t('vault.title')}</h1>
         <p className="text-muted-foreground">{t('vault.description')}</p>
+        {/* AI Status */}
+        <AiStatusCard />
 
         {/* Quick Actions */}
         <section>

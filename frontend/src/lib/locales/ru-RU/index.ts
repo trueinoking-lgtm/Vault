@@ -215,6 +215,7 @@ export const ruRU = {
     transformation: "Трансформация",
     settings: "Настройки",
     advanced: "Дополнительно",
+    adminSetup: "Admin Setup",
     nav: "Навигация",
     language: "Переключить язык",
     theme: "Тема",
@@ -951,6 +952,13 @@ export const ruRU = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

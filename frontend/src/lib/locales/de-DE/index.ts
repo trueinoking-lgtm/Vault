@@ -218,6 +218,7 @@ export const deDE = {
     transformation: "Transformation",
     settings: "Einstellungen",
     advanced: "Erweitert",
+    adminSetup: "Admin Setup",
     nav: "Navigation",
     language: "Sprache wechseln",
     theme: "Design",
@@ -954,6 +955,13 @@ export const deDE = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",

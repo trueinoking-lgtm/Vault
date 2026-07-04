@@ -31,7 +31,6 @@ import {
   Book,
   Search,
   Mic,
-  Bot,
   Shuffle,
   Settings,
   LogOut,
@@ -39,8 +38,8 @@ import {
   Menu,
   FileText,
   Plus,
-  Wrench,
   Command,
+  Shield,
 } from 'lucide-react'
 
 const getNavigation = (t: TFunction) => [
@@ -72,10 +71,8 @@ const getNavigation = (t: TFunction) => [
   {
     title: t('navigation.manage'),
     items: [
-      { name: t('navigation.models'), href: '/settings/api-keys', icon: Bot },
       { name: t('navigation.transformations'), href: '/transformations', icon: Shuffle },
       { name: t('navigation.settings'), href: '/settings', icon: Settings },
-      { name: t('navigation.advanced'), href: '/advanced', icon: Wrench },
     ],
   },
 ] as const
@@ -348,12 +345,40 @@ export function AppSidebar() {
                 </Tooltip>
               </>
             ) : (
-              <>
-                <ThemeToggle />
-                <LanguageToggle />
-              </>
-            )}
-          </div>
+             <>
+               <ThemeToggle />
+               <LanguageToggle />
+             </>
+           )}
+         </div>
+          {/* Admin link */}
+          {isCollapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/admin/api-keys">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center sidebar-menu-item text-muted-foreground hover:text-foreground"
+                    aria-label={t('navigation.adminSetup')}
+                  >
+                    <Shield className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">{t('navigation.adminSetup')}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Link href="/admin/api-keys">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 sidebar-menu-item text-muted-foreground hover:text-foreground text-xs"
+                aria-label={t('navigation.adminSetup')}
+              >
+                <Shield className="h-3 w-3" />
+                {t('navigation.adminSetup')}
+              </Button>
+            </Link>
+          )}
 
           {isCollapsed ? (
             <Tooltip>

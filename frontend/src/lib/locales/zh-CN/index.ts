@@ -215,6 +215,7 @@ export const zhCN = {
     transformation: "转换",
     settings: "设置",
     advanced: "高级",
+    adminSetup: "Admin Setup",
     nav: "导航",
     language: "切换语言",
     theme: "主题",
@@ -951,6 +952,13 @@ export const zhCN = {
   vault: {
     title: "Command Center",
     description: "Your central hub for managing libraries, materials, and learning.",
+    aiStatus: {
+      title: "Vault AI Status",
+      ready: "Vault AI: Ready",
+      voiceReady: "Voice: Ready",
+      voiceNotConfigured: "Voice: Not configured",
+      askAdmin: "Ask administrator to configure AI",
+    },
     quickActions: "Quick Actions",
     addMaterial: "Add Material",
     addMaterialDesc: "Upload files, paste URLs, or add text content",
