@@ -194,15 +194,16 @@ async def get_review_queue(
     """
     try:
         if not notebook_id:
-            return ReviewQueueResponse(items=[], total=0)
-
-        notebook_id_full = notebook_id if ":" in notebook_id else f"notebook:{notebook_id}"
-
-        states = await LeafReviewState.get_for_notebook(
-            notebook_id=notebook_id_full,
-            limit=limit,
-            needs_review_only=needs_review_only,
-        )
+            # Fetch across all notebooks
+            states = await LeafReviewState.get_all(order_by="updated desc")
+            states = states[:limit]
+        else:
+            notebook_id_full = notebook_id if ":" in notebook_id else f"notebook:{notebook_id}"
+            states = await LeafReviewState.get_for_notebook(
+                notebook_id=notebook_id_full,
+                limit=limit,
+                needs_review_only=needs_review_only,
+            )
 
         items: List[ReviewQueueItem] = []
         for state in states:
@@ -224,8 +225,11 @@ async def get_review_queue(
                 # Note might have been deleted; still show the state entry
                 pass
 
+            notebook_id_str = str(state.notebook_id).replace("notebook:", "")
+
             items.append(ReviewQueueItem(
                 note_id=note_id_str,
+                notebook_id=notebook_id_str,
                 title=title,
                 content_preview=content_preview,
                 needs_review=state.needs_review or False,

@@ -757,6 +757,7 @@ class ReviewQueueItem(BaseModel):
     """A single item in the review queue."""
 
     note_id: str
+    notebook_id: Optional[str] = None
     title: Optional[str] = None
     content_preview: Optional[str] = None
     needs_review: bool

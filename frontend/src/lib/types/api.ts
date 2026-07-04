@@ -281,6 +281,7 @@ export interface CreateLeafReviewEventRequest {
 
 export interface ReviewQueueItem {
   note_id: string
+  notebook_id?: string
   title?: string
   content_preview?: string
   needs_review: boolean

@@ -3,10 +3,12 @@
  *
  * Delta G: wires LeafStudyCard check-yourself interactions to the backend
  * without blocking the UI. Events are non-critical; errors are silent.
+ *
+ * Delta H: provides useReviewQueue for the vault dashboard.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { studyApi } from '@/lib/api/study'
-import type { CreateLeafReviewEventRequest } from '@/lib/types/api'
+import type { CreateLeafReviewEventRequest, ReviewQueueResponse } from '@/lib/types/api'
 
 /** Query keys for study/review persistence */
 export const STUDY_KEYS = {
@@ -54,5 +56,24 @@ export function useLogReviewEvent() {
       // Non-critical — local state already reflected the action
       console.warn('[study] Failed to persist review event:', error)
     },
+  })
+}
+
+/**
+ * Fetch the persisted review queue.
+ *
+ * Returns leaves ordered by recency with a needs_review flag.
+ * Replaces the old useRecentNotes scaffold on the vault dashboard.
+ *
+ * When notebook_id is omitted, returns empty (the backend requires
+ * a notebook filter for the review queue).
+ */
+export function useReviewQueue(notebookId?: string) {
+  return useQuery<ReviewQueueResponse>({
+    queryKey: STUDY_KEYS.reviewQueue(notebookId),
+    queryFn: () => studyApi.getReviewQueue({ notebook_id: notebookId }),
+    enabled: !!notebookId,
+    staleTime: 30_000,  // 30s — dashboard doesn't need real-time freshness
+    retry: 2,
   })
 }

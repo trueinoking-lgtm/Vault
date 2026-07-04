@@ -273,7 +273,9 @@ class TestGetReviewQueue:
 
     @patch("api.routers.study.LeafReviewState")
     def test_returns_empty_when_no_notebook(self, mock_state_cls, client):
-        """Without notebook_id, returns empty list."""
+        """Without notebook_id, fetches all states (still no items if none exist)."""
+        mock_state_cls.get_all = AsyncMock(return_value=[])
+
         response = client.get("/api/study/review-queue")
         assert response.status_code == 200
         assert response.json() == {"items": [], "total": 0}
