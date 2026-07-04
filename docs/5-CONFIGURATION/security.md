@@ -89,7 +89,8 @@ services:
     pull_policy: always
     environment:
       - OPEN_NOTEBOOK_ENCRYPTION_KEY=your-secret-encryption-key
-      - OPEN_NOTEBOOK_PASSWORD=your_secure_password
+      - OPEN_NOTEBOOK_OWNER_PASSWORD=your_separate_owner_password  # preferred for /owner routes
+      - OPEN_NOTEBOOK_PASSWORD=your_secure_password                # optional legacy whole-app password
     # ... rest of config
 ```
 
@@ -98,16 +99,20 @@ Or using environment file:
 ```bash
 # docker.env
 OPEN_NOTEBOOK_ENCRYPTION_KEY=your-secret-encryption-key
+OPEN_NOTEBOOK_OWNER_PASSWORD=your_separate_owner_password
 OPEN_NOTEBOOK_PASSWORD=your_secure_password
 ```
 
 > **Important**: The encryption key is **required** for credential storage. Without it, you cannot save AI provider credentials via the Settings UI. If you change or lose the encryption key, all stored credentials become unreadable.
+>
+> **Owner access recommendation**: Prefer `OPEN_NOTEBOOK_OWNER_PASSWORD` for the privileged `/owner/*` surface. `OPEN_NOTEBOOK_PASSWORD` remains supported as a single-user/self-hosted compatibility fallback and as the owner-gate fallback when no dedicated owner secret is configured.
 
 ### Development Setup
 
 ```bash
 # .env
-OPEN_NOTEBOOK_PASSWORD=your_secure_password
+OPEN_NOTEBOOK_OWNER_PASSWORD=your_separate_owner_password   # preferred when using /owner routes
+OPEN_NOTEBOOK_PASSWORD=your_secure_password                 # optional single-user compatibility password
 ```
 
 ---
