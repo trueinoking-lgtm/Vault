@@ -117,21 +117,46 @@ The deploy helper:
 
 ### Step 6 — Restart Backend (if changed)
 
+If the API code (`api/` or `vault_core/`) changed, restart the backend:
+
 ```bash
-# Find the uvicorn process:
+# Option A — nohup restart (manual process)
 PID=$(pgrep -f "uvicorn api.main:app")
 kill -TERM "$PID"
 sleep 2
-
-# Restart:
 cd "$REPO_DIR"
 nohup uv run uvicorn api.main:app --host 0.0.0.0 --port 5055 \
   > /var/log/vault-api.log 2>&1 &
 
-# Verify:
 sleep 3
-curl -s http://localhost:5055/api/auth/status
+
+# Verify via direct backend health:
+curl -s http://localhost:5055/api/health
+# Expected: {"status":"ok","service":"vault-api"}
+
+# Also verify through the frontend proxy:
+curl -s https://vault-lms.duckdns.org/api/health
+# Expected: {"status":"ok","service":"vault-api"}
 ```
+
+If using **systemd** for the backend:
+
+```bash
+sudo systemctl restart vault-backend.service
+sudo systemctl status vault-backend.service
+# Logs: sudo journalctl -fu vault-backend.service
+```
+
+> **SurrealDB dependency check:** The backend requires SurrealDB to be running on port 8000.
+> Verify before restarting the backend:
+> ```bash
+> ss -tlnp | grep 8000
+> curl -s http://localhost:5055/api/health
+> ```
+> If SurrealDB is down, the backend will start but database operations will fail. Restart SurrealDB first:
+> ```bash
+> sudo systemctl restart surrealdb.service
+> ```
 
 ### Step 7 — Static Asset Verification
 
@@ -169,10 +194,20 @@ bash scripts/smoke_vault_live.sh https://vault-lms.duckdns.org
 ### Step 9 — API Health Check
 
 ```bash
-# Backend health:
-curl -s http://localhost:5055/health
-curl -s https://vault-lms.duckdns.org/api/auth/status
+# Backend health (direct — requires port 5055 access):
+curl -s http://localhost:5055/api/health
+# Expected: {"status":"ok","service":"vault-api"}
 
+# Backend health (via frontend proxy — public domain):
+curl -s https://vault-lms.duckdns.org/api/health
+# Expected: {"status":"ok","service":"vault-api"}
+
+# Legacy /health (backend-direct only, not proxied):
+curl -s http://localhost:5055/health
+# Expected: {"status":"healthy"}
+
+# Auth status (via frontend proxy):
+curl -s https://vault-lms.duckdns.org/api/auth/status
 # Expected: JSON with auth_enabled field
 ```
 
@@ -248,8 +283,8 @@ git revert --no-commit HEAD          # revert the latest commit
 |-----------|-----------|---------|
 | Frontend (nohup) | `/var/log/vault-frontend.log` | `tail -f /var/log/vault-frontend.log` |
 | Frontend (systemd) | journald | `sudo journalctl -fu vault-frontend.service` |
-| Backend (API) | `/var/log/vault-api.log` | `tail -f /var/log/vault-api.log` |
-| Backend (systemd) | journald | `sudo journalctl -fu vault-api.service` |
+| Backend (nohup) | `/var/log/vault-api.log` | `tail -f /var/log/vault-api.log` |
+| Backend (systemd template) | journald | `sudo journalctl -fu vault-backend.service` |
 | SurrealDB | terminal or journald | `sudo journalctl -fu surrealdb` (if running via systemd) |
 | Next.js build | stdout (terminal) | Review build output |
 | `npm ci` / `npm run build` | stdout (terminal) | `cd frontend && npm run build 2>&1 | tee build.log` |
@@ -297,9 +332,20 @@ kill -KILL "$PID" 2>/dev/null
 
 ### Backend Not Responding
 
+**Symptom:** Frontend loads but API calls return errors, or `/api/health` returns nothing.
+
 ```bash
-# Check if uvicorn is running
+# Quick check — is the backend process alive?
 pgrep -f "uvicorn api.main:app"
+# Expected: returns a PID
+
+# Check if it's listening on port 5055:
+ss -tlnp | grep 5055
+# Expected: LISTEN 127.0.0.1:5055
+
+# Check API health:
+curl -s http://localhost:5055/api/health
+# If this fails, the backend is down or not responding
 
 # Check logs
 tail -50 /var/log/vault-api.log
@@ -310,7 +356,44 @@ sleep 2
 cd "$REPO_DIR"
 nohup uv run uvicorn api.main:app --host 0.0.0.0 --port 5055 \
   > /var/log/vault-api.log 2>&1 &
+sleep 3
+curl -s http://localhost:5055/api/health
 ```
+
+### Backend Failure vs Frontend Static Failure — Diagnosis
+
+Knowing whether a problem is in the backend or frontend saves hours of debugging.
+
+| Symptom | Likely Failure | Action |
+|---------|---------------|--------|
+| Page loads but no data / API errors in console | **Backend** down or returning errors | Check `http://localhost:5055/api/health`, restart backend |
+| Blank page or JS errors / white screen | **Frontend** static assets | Check `/_next/static/...` asset URLs, re-run deploy helper |
+| Login page loads but can't log in | **Backend** auth or **SurrealDB** | Check `/api/health`, `ss -tlnp | grep 8000` |
+| HTML loads but no CSS/images | **Frontend** static copy missed | Run `deploy_vault_frontend_standalone.sh` to copy static assets |
+| `/api/health` responds but pages don't load | **Frontend** build/stale server | Rebuild frontend, restart node process |
+| `/api/health` fails or returns 502 | **Backend** or **proxy** | Check uvicorn process, SurrealDB, and port 5055 |
+
+### SurrealDB Dependency
+
+The backend requires SurrealDB on port 8000. If SurrealDB is down:
+
+```bash
+# Check SurrealDB
+ss -tlnp | grep 8000
+# Expected: LISTEN 127.0.0.1:8000
+
+# Check backend status when SurrealDB is down:
+curl -s http://localhost:5055/api/health
+# Backend may start, but database operations will fail silently
+
+# Restart SurrealDB (if via systemd):
+sudo systemctl restart surrealdb.service
+```
+
+> Backend health (`/api/health`) checks the backend process, not the database.
+> A healthy `/api/health` response means the API server is running and accepting
+> connections, but database-dependent endpoints may still fail if SurrealDB is
+> unavailable.
 
 ### Frontend Build Fails
 
@@ -381,7 +464,8 @@ These are the routes checked during a smoke test:
 | `https://vault-lms.duckdns.org/login` | `200` | Login page renders |
 | `https://vault-lms.duckdns.org/owner` (no cookie) | `307` → `/login?owner=1` | Owner gate active |
 | `https://vault-lms.duckdns.org/teacher` | `200` | Teacher dashboard renders |
-| `https://vault-lms.duckdns.org/api/auth/status` | JSON with `auth_enabled` | API reachable from frontend |
+| `https://vault-lms.duckdns.org/api/health` | `200` JSON `{"status":"ok","service":"vault-api"}` | Backend API health — **primary health check** |
+| `https://vault-lms.duckdns.org/api/auth/status` | JSON with `auth_enabled` | Auth subsystem reachable |
 | At least one `/_next/static/...` asset | `200` | Static assets load correctly |
 
 ---

@@ -106,11 +106,15 @@ else
     ((errors++))
 fi
 
-# ---- 2. API status check ----------------------------------------------------
-echo "  ── API check ──"
+# ---- 2. API health check ----------------------------------------------------
+echo "  ── API health check ──"
+check_json_field "$BASE_URL/api/health" "vault-api" "Backend API health (/api/health)"
+
+# ---- 3. API auth status check -----------------------------------------------
+echo "  ── Auth status check ──"
 check_json_field "$BASE_URL/api/auth/status" "auth_enabled" "API auth status (/api/auth/status)"
 
-# ---- 3. Static asset check --------------------------------------------------
+# ---- 4. Static asset check --------------------------------------------------
 echo "  ── Static asset check ──"
 
 # Extract the first _next/static URL from the root HTML
