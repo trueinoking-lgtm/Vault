@@ -1,4 +1,4 @@
-# Contributing to Open Notebook
+# Contributing to Vault
 
 **📍 This file has moved!**
 

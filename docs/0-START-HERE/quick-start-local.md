@@ -1,6 +1,6 @@
 # Quick Start - Local & Private (5 minutes)
 
-Get Open Notebook running with **100% local AI** using Ollama. No cloud API keys needed, completely private.
+Get Vault running with **100% local AI** using Ollama. No cloud API keys needed, completely private.
 
 **Already have Ollama installed?** See [External Ollama Guide](quick-start-external-ollama.md) instead.
 
@@ -26,7 +26,7 @@ Run on a different computer, access from another. Needs network configuration.
 
 ## Step 2: Create Configuration (1 min)
 
-Create a new folder `open-notebook-local` and add this file:
+Create a new folder `vault-local` and add this file:
 
 **docker-compose.yml**:
 ```yaml
@@ -40,22 +40,22 @@ services:
     volumes:
       - ./surreal_data:/mydata
 
-  open_notebook:
-    image: lfnovo/open_notebook:v1-latest
+  vault_core:
+    image: lfnovo/vault_core:v1-latest
     pull_policy: always
     ports:
       - "8502:8502"  # Web UI (React frontend)
       - "5055:5055"  # API (required!)
     environment:
       # Encryption key for credential storage (required)
-      - OPEN_NOTEBOOK_ENCRYPTION_KEY=change-me-to-a-secret-string
+      - VAULT_ENCRYPTION_KEY=change-me-to-a-secret-string
 
       # Database (required)
       - SURREAL_URL=ws://surrealdb:8000/rpc
       - SURREAL_USER=root
       - SURREAL_PASSWORD=password
-      - SURREAL_NAMESPACE=open_notebook
-      - SURREAL_DATABASE=open_notebook
+      - SURREAL_NAMESPACE=vault_core
+      - SURREAL_DATABASE=vault_core
 
       # Ollama (required when running Ollama via Docker, as in this compose file)
       - OLLAMA_BASE_URL=http://ollama:11434
@@ -90,7 +90,7 @@ services:
 
 ## Step 3: Start Services (1 min)
 
-Open terminal in your `open-notebook-local` folder:
+Open terminal in your `vault-local` folder:
 
 ```bash
 docker compose up -d
@@ -106,27 +106,27 @@ Ollama needs at least one language model. Pick one:
 
 ```bash
 # Fastest & smallest (recommended for testing)
-docker exec open-notebook-local-ollama-1 ollama pull mistral
+docker exec vault-local-ollama-1 ollama pull mistral
 
 # OR: Better quality but slower
-docker exec open-notebook-local-ollama-1 ollama pull neural-chat
+docker exec vault-local-ollama-1 ollama pull neural-chat
 
 # OR: Even better quality, more VRAM needed
-docker exec open-notebook-local-ollama-1 ollama pull llama2
+docker exec vault-local-ollama-1 ollama pull llama2
 ```
 
 This downloads the model (will take 1-5 minutes depending on your internet).
 
 ---
 
-## Step 5: Access Open Notebook (instant)
+## Step 5: Access Vault (instant)
 
 Open your browser:
 ```
 http://localhost:8502
 ```
 
-You should see the Open Notebook interface.
+You should see the Vault interface.
 
 ---
 
@@ -234,7 +234,7 @@ docker compose up -d
 Check if GPU is available:
 ```bash
 # Show available GPUs
-docker exec open-notebook-local-ollama-1 ollama ps
+docker exec vault-local-ollama-1 ollama ps
 
 # Enable GPU in docker-compose.yml
 ```
@@ -245,10 +245,10 @@ Then restart: `docker compose restart ollama`
 
 ```bash
 # List available models
-docker exec open-notebook-local-ollama-1 ollama list
+docker exec vault-local-ollama-1 ollama list
 
 # Pull additional model
-docker exec open-notebook-local-ollama-1 ollama pull neural-chat
+docker exec vault-local-ollama-1 ollama pull neural-chat
 ```
 
 ---
@@ -270,7 +270,7 @@ docker exec open-notebook-local-ollama-1 ollama pull neural-chat
 1. Download LM Studio: https://lmstudio.ai
 2. Open the app, download a model from the library
 3. Go to "Local Server" tab, start server (port 1234)
-4. In Open Notebook, go to **Settings** → **API Keys**
+4. In Vault, go to **Settings** → **API Keys**
 5. Click **Add Credential** → Select **OpenAI-Compatible**
 6. Enter base URL: `http://host.docker.internal:1234/v1`
 7. Enter API key: `lm-studio` (placeholder)

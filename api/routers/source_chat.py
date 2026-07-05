@@ -9,13 +9,13 @@ from langchain_core.runnables import RunnableConfig
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from open_notebook.database.repository import ensure_record_id, repo_query
-from open_notebook.domain.notebook import ChatSession, Source
-from open_notebook.exceptions import (
+from vault_core.database.repository import ensure_record_id, repo_query
+from vault_core.domain.notebook import ChatSession, Source
+from vault_core.exceptions import (
     NotFoundError,
 )
-from open_notebook.graphs.source_chat import source_chat_graph as source_chat_graph
-from open_notebook.utils.graph_utils import get_session_message_count
+from vault_core.graphs.source_chat import source_chat_graph as source_chat_graph
+from vault_core.utils.graph_utils import get_session_message_count
 
 router = APIRouter()
 
@@ -476,7 +476,7 @@ async def stream_source_chat_response(
         yield f"data: {json.dumps(completion_event)}\n\n"
 
     except Exception as e:
-        from open_notebook.utils.error_classifier import classify_error
+        from vault_core.utils.error_classifier import classify_error
 
         _, user_message = classify_error(e)
         logger.error(f"Error in source chat streaming: {str(e)}")

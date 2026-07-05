@@ -162,7 +162,7 @@ class TestUpdateStudySession:
     @patch("api.routers.study.StudySession")
     def test_returns_404_for_nonexistent_session(self, mock_session_cls, client):
         """When session not found, returns 404."""
-        from open_notebook.exceptions import NotFoundError
+        from vault_core.exceptions import NotFoundError
 
         mock_session_cls.get.side_effect = NotFoundError("not found")
 
@@ -327,7 +327,7 @@ class TestWeakSpotHeuristic:
     def test_below_threshold_returns_false(self):
         """One needs_review event -> is_weak_spot false."""
         from types import SimpleNamespace
-        from open_notebook.domain.study import LeafReviewEvent
+        from vault_core.domain.study import LeafReviewEvent
 
         events = [
             SimpleNamespace(event_type="needs_review", created="2026-07-04T14:00:00Z"),
@@ -340,7 +340,7 @@ class TestWeakSpotHeuristic:
         """Two needs_review events within 1h cooldown -> false."""
         from datetime import datetime, timezone, timedelta
         from types import SimpleNamespace
-        from open_notebook.domain.study import LeafReviewEvent
+        from vault_core.domain.study import LeafReviewEvent
 
         now = datetime.now(timezone.utc)
         thirty_min_ago = now - timedelta(minutes=30)
@@ -358,7 +358,7 @@ class TestWeakSpotHeuristic:
         """Two needs_review events older than 1h, no later remembered -> weak spot."""
         from datetime import datetime, timezone, timedelta
         from types import SimpleNamespace
-        from open_notebook.domain.study import LeafReviewEvent
+        from vault_core.domain.study import LeafReviewEvent
 
         # Create timestamps >1h ago
         now = datetime.now(timezone.utc)
@@ -377,7 +377,7 @@ class TestWeakSpotHeuristic:
         """Remembered event after most recent needs_review -> not weak."""
         from datetime import datetime, timezone, timedelta
         from types import SimpleNamespace
-        from open_notebook.domain.study import LeafReviewEvent
+        from vault_core.domain.study import LeafReviewEvent
 
         now = datetime.now(timezone.utc)
         two_hours_ago = now - timedelta(hours=2)
@@ -395,7 +395,7 @@ class TestWeakSpotHeuristic:
 
     def test_zero_events_returns_false(self):
         """No events at all -> not weak."""
-        from open_notebook.domain.study import LeafReviewEvent
+        from vault_core.domain.study import LeafReviewEvent
 
         is_weak, label = LeafReviewEvent._compute_weak_spot_from_events([])
         assert is_weak is False
@@ -404,7 +404,7 @@ class TestWeakSpotHeuristic:
     def test_only_remembered_events_returns_false(self):
         """Only remembered events -> not weak."""
         from types import SimpleNamespace
-        from open_notebook.domain.study import LeafReviewEvent
+        from vault_core.domain.study import LeafReviewEvent
 
         events = [
             SimpleNamespace(event_type="remembered", created="2026-07-04T14:00:00Z"),

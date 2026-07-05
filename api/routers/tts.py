@@ -9,8 +9,8 @@ from fastapi.responses import Response
 from loguru import logger
 from pydantic import BaseModel, Field, field_validator
 
-from open_notebook.ai.models import model_manager
-from open_notebook.exceptions import ConfigurationError
+from vault_core.ai.models import model_manager
+from vault_core.exceptions import ConfigurationError
 
 router = APIRouter(prefix="/tts", tags=["tts"])
 MAX_TTS_TEXT_LENGTH = 5000

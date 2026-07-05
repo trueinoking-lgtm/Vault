@@ -448,7 +448,7 @@ export interface ReviewQueueResponse {
 
 ## Migration Plan
 
-### New migration file: `open_notebook/database/migrations/16.surrealql`
+### New migration file: `vault_core/database/migrations/16.surrealql`
 
 ```surql
 -- Migration 16: Study session, review event, and review state tables
@@ -491,7 +491,7 @@ DEFINE FIELD IF NOT EXISTS updated ON TABLE leaf_review_state TYPE datetime DEFA
 
 Add migration 16 to both the `up_migrations` and `down_migrations` lists in `AsyncMigrationManager.__init__()`.
 
-### Down migration: `open_notebook/database/migrations/16_down.surrealql`
+### Down migration: `vault_core/database/migrations/16_down.surrealql`
 
 ```surql
 -- Rollback migration 16
@@ -531,8 +531,8 @@ DROP TABLE IF EXISTS study_session;
 
 ```bash
 # 1. Revert backend migration
-surreal sql --endpoint http://localhost:8000 --ns open_notebook --db open_notebook \
-  < open_notebook/database/migrations/16_down.surrealql
+surreal sql --endpoint http://localhost:8000 --ns vault_core --db vault_core \
+  < vault_core/database/migrations/16_down.surrealql
 
 # 2. Revert code changes (git revert)
 git revert <delta-f-commit-hash>
@@ -548,7 +548,7 @@ sudo systemctl restart vault-api.service
 ### Delta F — Backend models, migration, API skeleton
 
 **Scope:**
-1. Create `open_notebook/domain/study.py` with `StudySession`, `LeafReviewEvent`, `LeafReviewState` models inheriting from `ObjectModel`.
+1. Create `vault_core/domain/study.py` with `StudySession`, `LeafReviewEvent`, `LeafReviewState` models inheriting from `ObjectModel`.
 2. Add migration 16 `.surrealql` / `16_down.surrealql`.
 3. Register migration 16 in `AsyncMigrationManager`.
 4. Create `api/routers/study.py` with all proposed endpoints.

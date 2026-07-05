@@ -108,7 +108,7 @@ Three issues were found during verification and corrected. **No application code
 **Fix:** Kill the old process (PID 1886183 / 1886194) and restart:
 ```bash
 kill -TERM <old-pid>
-cd /root/vault-open-notebook/frontend
+cd /root/vault-vault/frontend
 PORT=3003 HOSTNAME=0.0.0.0 node .next/standalone/server.js
 ```
 
@@ -118,8 +118,8 @@ PORT=3003 HOSTNAME=0.0.0.0 node .next/standalone/server.js
 
 **Fix:** Manually copy the static directory into the standalone output:
 ```bash
-cp -r /root/vault-open-notebook/frontend/.next/static \
-      /root/vault-open-notebook/frontend/.next/standalone/.next/static
+cp -r /root/vault-vault/frontend/.next/static \
+      /root/vault-vault/frontend/.next/standalone/.next/static
 ```
 Then restart the frontend process.
 
@@ -162,7 +162,7 @@ Add a `deploy.sh` that runs the full cycle atomically:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-cd /root/vault-open-notebook/frontend
+cd /root/vault-vault/frontend
 
 npm run build
 cp -r .next/static .next/standalone/.next/static
@@ -189,7 +189,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/root/vault-open-notebook/frontend
+WorkingDirectory=/root/vault-vault/frontend
 ExecStart=/usr/bin/node .next/standalone/server.js
 Environment=PORT=3003
 Environment=HOSTNAME=0.0.0.0

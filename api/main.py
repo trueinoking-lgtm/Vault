@@ -38,18 +38,18 @@ from api.routers import (
     tts,
 )
 from api.routers import commands as commands_router
-from open_notebook.database.async_migrate import AsyncMigrationManager
-from open_notebook.exceptions import (
+from vault_core.database.async_migrate import AsyncMigrationManager
+from vault_core.exceptions import (
     AuthenticationError,
     ConfigurationError,
     ExternalServiceError,
     InvalidInputError,
     NetworkError,
     NotFoundError,
-    OpenNotebookError,
+    VaultError,
     RateLimitError,
 )
-from open_notebook.utils.encryption import get_secret_from_env
+from vault_core.utils.encryption import get_secret_from_env
 
 
 def _parse_cors_origins(raw: str) -> list[str]:
@@ -107,11 +107,11 @@ async def lifespan(app: FastAPI):
     logger.info("Starting API initialization...")
 
     # Security check: Encryption key
-    if not get_secret_from_env("OPEN_NOTEBOOK_ENCRYPTION_KEY"):
+    if not get_secret_from_env("VAULT_ENCRYPTION_KEY"):
         logger.warning(
-            "OPEN_NOTEBOOK_ENCRYPTION_KEY not set. "
+            "VAULT_ENCRYPTION_KEY not set. "
             "API key encryption will fail until this is configured. "
-            "Set OPEN_NOTEBOOK_ENCRYPTION_KEY to any secret string."
+            "Set VAULT_ENCRYPTION_KEY to any secret string."
         )
 
     # Run database migrations
@@ -140,7 +140,7 @@ async def lifespan(app: FastAPI):
 
     # Run podcast profile data migration (legacy strings -> Model registry)
     try:
-        from open_notebook.podcasts.migration import migrate_podcast_profiles
+        from vault_core.podcasts.migration import migrate_podcast_profiles
 
         await migrate_podcast_profiles()
     except Exception as e:
@@ -279,8 +279,8 @@ async def external_service_error_handler(request: Request, exc: ExternalServiceE
     )
 
 
-@app.exception_handler(OpenNotebookError)
-async def open_notebook_error_handler(request: Request, exc: OpenNotebookError):
+@app.exception_handler(VaultError)
+async def vault_error_handler(request: Request, exc: VaultError):
     return JSONResponse(
         status_code=500,
         content={"detail": str(exc)},
@@ -318,7 +318,7 @@ app.include_router(tts.router, prefix="/api", tags=["tts"])
 
 @app.get("/")
 async def root():
-    return {"message": "Open Notebook API is running"}
+    return {"message": "Vault API is running"}
 
 
 @app.get("/health")

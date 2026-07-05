@@ -1,12 +1,12 @@
-# Open Notebook Frontend Stability Report
+# Vault Frontend Stability Report
 
 Date: 2026-07-02
-Repo: `/root/vault-open-notebook`
-Frontend artifact: `/root/vault-open-notebook/frontend/.next/standalone/server.js`
+Repo: `/root/vault-vault`
+Frontend artifact: `/root/vault-vault/frontend/.next/standalone/server.js`
 Verification scope: isolated standalone runtime on `127.0.0.1:3003` only
 
 ## Executive Verdict
-The Open Notebook frontend production build is **functionally verified and short-run stable** when run as a standalone Next.js server on `127.0.0.1:3003`, with backend proxying to FastAPI at `127.0.0.1:5055` working correctly.
+The Vault frontend production build is **functionally verified and short-run stable** when run as a standalone Next.js server on `127.0.0.1:3003`, with backend proxying to FastAPI at `127.0.0.1:5055` working correctly.
 
 A 5-minute soak test completed cleanly with zero route failures and zero process deaths. Within the scope of this verification — isolated localhost runtime correctness plus short-duration uptime under repeated probing — the artifact now meets the bar for a **stable runtime baseline**.
 
@@ -36,7 +36,7 @@ Initial route check on port 3003 only:
 
 | Route | Result | Notes |
 |---|---:|---|
-| `/notebooks` | 200 | Returned full HTML page; contained `Open Notebook` and `/_next/static/` |
+| `/notebooks` | 200 | Returned full HTML page; contained `Vault` and `/_next/static/` |
 | `/api/settings` | 200 | Returned real JSON settings payload |
 | `/api/notebooks` | 200 | Returned `[]` |
 | `/api/sources` | 200 | Returned `[]` |
@@ -79,7 +79,7 @@ Per-route outcome summary:
 | `process alive` | 30 | 0 | always `alive` | n/a |
 
 Raw soak evidence file:
-- `/root/vault-open-notebook/.run/soak_3003_results.jsonl`
+- `/root/vault-vault/.run/soak_3003_results.jsonl`
 
 ## Memory / Swap Pressure
 Measured before and after the soak:
@@ -94,7 +94,7 @@ Measured before and after the soak:
 
 Interpretation:
 - the host remains memory-constrained
-- however, the isolated Open Notebook standalone runtime did **not** exhibit runaway growth or crash behavior during the 5-minute soak
+- however, the isolated Vault standalone runtime did **not** exhibit runaway growth or crash behavior during the 5-minute soak
 
 ## OOM / Kill Signal Review
 Checked before and after the soak:
@@ -103,7 +103,7 @@ Checked before and after the soak:
 
 Result:
 - **no fresh OOM events** during the soak
-- **no fresh kill signals** for the Open Notebook standalone process during the soak
+- **no fresh kill signals** for the Vault standalone process during the soak
 - the only visible OOM evidence is the earlier historical event involving a different `next-server` PID from before this isolated verification
 
 ## Important Isolation Note
@@ -135,7 +135,7 @@ The frontend proxy endpoints matched a live backend rather than mocked fallback 
    - `[]` from notebooks, sources, and notes is consistent with an empty dataset, not a defect
 
 ## Tag Recommendation
-**Create `open-notebook-stable-runtime-baseline`.**
+**Create `vault-stable-runtime-baseline`.**
 
 Justification:
 - the standalone build artifact exists and boots cleanly
@@ -150,8 +150,8 @@ Recommended tag target:
 
 Recommended tag message:
 ```text
-Frontend standalone runtime verified stable on 127.0.0.1:3003 over 5-minute soak test. 0 failures. See OPEN_NOTEBOOK_FRONTEND_STABILITY_REPORT.md for full evidence.
+Frontend standalone runtime verified stable on 127.0.0.1:3003 over 5-minute soak test. 0 failures. See VAULT_FRONTEND_STABILITY_REPORT.md for full evidence.
 ```
 
 ## Bottom Line
-The Open Notebook frontend build is **production-runnable and verified stable for the defined validation scope** on `127.0.0.1:3003`. Environmental memory pressure remains a real VPS concern, but the repository artifact itself now has enough direct evidence to justify the tag `open-notebook-stable-runtime-baseline`.
+The Vault frontend build is **production-runnable and verified stable for the defined validation scope** on `127.0.0.1:3003`. Environmental memory pressure remains a real VPS concern, but the repository artifact itself now has enough direct evidence to justify the tag `vault-stable-runtime-baseline`.

@@ -13,17 +13,17 @@ from api.models import (
     ModelResponse,
     ProviderAvailabilityResponse,
 )
-from open_notebook.ai.connection_tester import test_individual_model
-from open_notebook.ai.key_provider import provision_provider_keys
-from open_notebook.ai.model_discovery import (
+from vault_core.ai.connection_tester import test_individual_model
+from vault_core.ai.key_provider import provision_provider_keys
+from vault_core.ai.model_discovery import (
     discover_provider_models,
     get_provider_model_count,
     sync_all_providers,
     sync_provider_models,
 )
-from open_notebook.ai.models import DefaultModels, Model
-from open_notebook.domain.credential import Credential
-from open_notebook.exceptions import InvalidInputError, NotFoundError
+from vault_core.ai.models import DefaultModels, Model
+from vault_core.domain.credential import Credential
+from vault_core.exceptions import InvalidInputError, NotFoundError
 
 router = APIRouter()
 
@@ -207,7 +207,7 @@ async def create_model(model_data: ModelCreate):
             )
 
         # Check for duplicate model name under the same provider and type (case-insensitive)
-        from open_notebook.database.repository import repo_query
+        from vault_core.database.repository import repo_query
 
         existing = await repo_query(
             "SELECT * FROM model WHERE string::lowercase(provider) = $provider AND string::lowercase(name) = $name AND string::lowercase(type) = $type LIMIT 1",
@@ -615,7 +615,7 @@ async def get_models_by_provider(provider: str):
     Returns models from the database that belong to the specified provider.
     """
     try:
-        from open_notebook.database.repository import repo_query
+        from vault_core.database.repository import repo_query
 
         models = await repo_query(
             "SELECT * FROM model WHERE provider = $provider ORDER BY type, name",
@@ -701,7 +701,7 @@ async def auto_assign_defaults():
         - missing: List of slots with no available models
     """
     try:
-        from open_notebook.database.repository import repo_query
+        from vault_core.database.repository import repo_query
 
         # Get current defaults
         defaults = await DefaultModels.get_instance()

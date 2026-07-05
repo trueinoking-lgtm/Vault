@@ -134,12 +134,12 @@ Thanks to the [Esperanto](https://github.com/lfnovo/esperanto) library, Vault su
 1. **Get the compose file**
 
    ```bash
-   curl -o docker-compose.yml https://raw.githubusercontent.com/lfnovo/open-notebook/main/docker-compose.yml
+   curl -o docker-compose.yml https://raw.githubusercontent.com/lfnovo/vault/main/docker-compose.yml
    ```
 
 2. **Set your encryption key**
 
-   Open `docker-compose.yml` and replace the `OPEN_NOTEBOOK_ENCRYPTION_KEY` value with any secret string.
+   Open `docker-compose.yml` and replace the `VAULT_ENCRYPTION_KEY` value with any secret string.
 
 3. **Start services**
 
@@ -149,7 +149,7 @@ Thanks to the [Esperanto](https://github.com/lfnovo/esperanto) library, Vault su
 
 4. **Open Vault** at `http://localhost:8502` and configure your AI provider in Settings.
 
-> **Note:** Vault uses the same backend infrastructure as Open Notebook. The Docker setup above pulls the upstream backend image, which is fully compatible with Vault's frontend.
+> **Note:** Vault uses the same backend infrastructure as Vault. The Docker setup above pulls the upstream backend image, which is fully compatible with Vault's frontend.
 
 ### More Options
 
@@ -193,7 +193,7 @@ Vault preserves all required license notices and copyright attribution. The MIT 
 
 Vault is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-Copyright (c) 2024 Luis Novo — retained from Open Notebook.
+Copyright (c) 2024 Luis Novo — retained from Vault.
 
 ---
 

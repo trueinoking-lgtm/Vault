@@ -1,4 +1,4 @@
-"""Surreal-commands integration for Open Notebook"""
+"""Surreal-commands integration for Vault"""
 
 from .embedding_commands import (
     embed_insight_command,

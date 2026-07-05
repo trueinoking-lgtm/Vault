@@ -1,12 +1,12 @@
 # Security Configuration
 
-Protect your Open Notebook deployment with password authentication and production hardening.
+Protect your Vault deployment with password authentication and production hardening.
 
 ---
 
 ## API Key Encryption
 
-Open Notebook encrypts API keys stored in the database using Fernet symmetric encryption (AES-128-CBC with HMAC-SHA256).
+Vault encrypts API keys stored in the database using Fernet symmetric encryption (AES-128-CBC with HMAC-SHA256).
 
 ### Configuration Methods
 
@@ -21,7 +21,7 @@ Set the encryption key to any secret string:
 
 ```bash
 # .env or docker.env
-OPEN_NOTEBOOK_ENCRYPTION_KEY=my-secret-passphrase
+VAULT_ENCRYPTION_KEY=my-secret-passphrase
 ```
 
 Any string works — it will be securely derived via SHA-256 internally. Use a strong passphrase for production deployments.
@@ -30,10 +30,10 @@ Any string works — it will be securely derived via SHA-256 internally. Use a s
 
 | Setting | Default | Security Level |
 |---------|---------|----------------|
-| Password | `open-notebook-change-me` | Development only |
+| Password | `vault-change-me` | Development only |
 | Encryption Key | **None** (must be configured) | Required for API key storage |
 
-**The encryption key has no default.** You must set `OPEN_NOTEBOOK_ENCRYPTION_KEY` before using the API key configuration feature. Without it, encrypting/decrypting API keys will fail.
+**The encryption key has no default.** You must set `VAULT_ENCRYPTION_KEY` before using the API key configuration feature. Without it, encrypting/decrypting API keys will fail.
 
 ### Docker Secrets Support
 
@@ -41,8 +41,8 @@ Both settings support Docker secrets via `_FILE` suffix:
 
 ```yaml
 environment:
-  - OPEN_NOTEBOOK_PASSWORD_FILE=/run/secrets/app_password
-  - OPEN_NOTEBOOK_ENCRYPTION_KEY_FILE=/run/secrets/encryption_key
+  - VAULT_PASSWORD_FILE=/run/secrets/app_password
+  - VAULT_ENCRYPTION_KEY_FILE=/run/secrets/encryption_key
 ```
 
 ### Security Notes
@@ -84,13 +84,13 @@ environment:
 ```yaml
 # Add to your docker-compose.yml (requires surrealdb service, see installation guide)
 services:
-  open_notebook:
-    image: lfnovo/open_notebook:v1-latest
+  vault_core:
+    image: lfnovo/vault_core:v1-latest
     pull_policy: always
     environment:
-      - OPEN_NOTEBOOK_ENCRYPTION_KEY=your-secret-encryption-key
-      - OPEN_NOTEBOOK_OWNER_PASSWORD=your_separate_owner_password  # preferred for /owner routes
-      - OPEN_NOTEBOOK_PASSWORD=your_secure_password                # optional legacy whole-app password
+      - VAULT_ENCRYPTION_KEY=your-secret-encryption-key
+      - VAULT_OWNER_PASSWORD=your_separate_owner_password  # preferred for /owner routes
+      - VAULT_PASSWORD=your_secure_password                # optional legacy whole-app password
     # ... rest of config
 ```
 
@@ -98,21 +98,21 @@ Or using environment file:
 
 ```bash
 # docker.env
-OPEN_NOTEBOOK_ENCRYPTION_KEY=your-secret-encryption-key
-OPEN_NOTEBOOK_OWNER_PASSWORD=your_separate_owner_password
-OPEN_NOTEBOOK_PASSWORD=your_secure_password
+VAULT_ENCRYPTION_KEY=your-secret-encryption-key
+VAULT_OWNER_PASSWORD=your_separate_owner_password
+VAULT_PASSWORD=your_secure_password
 ```
 
 > **Important**: The encryption key is **required** for credential storage. Without it, you cannot save AI provider credentials via the Settings UI. If you change or lose the encryption key, all stored credentials become unreadable.
 >
-> **Owner access recommendation**: Prefer `OPEN_NOTEBOOK_OWNER_PASSWORD` for the privileged `/owner/*` surface. `OPEN_NOTEBOOK_PASSWORD` remains supported as a single-user/self-hosted compatibility fallback and as the owner-gate fallback when no dedicated owner secret is configured.
+> **Owner access recommendation**: Prefer `VAULT_OWNER_PASSWORD` for the privileged `/owner/*` surface. `VAULT_PASSWORD` remains supported as a single-user/self-hosted compatibility fallback and as the owner-gate fallback when no dedicated owner secret is configured.
 
 ### Development Setup
 
 ```bash
 # .env
-OPEN_NOTEBOOK_OWNER_PASSWORD=your_separate_owner_password   # preferred when using /owner routes
-OPEN_NOTEBOOK_PASSWORD=your_secure_password                 # optional single-user compatibility password
+VAULT_OWNER_PASSWORD=your_separate_owner_password   # preferred when using /owner routes
+VAULT_PASSWORD=your_secure_password                 # optional single-user compatibility password
 ```
 
 ---
@@ -123,20 +123,20 @@ OPEN_NOTEBOOK_PASSWORD=your_secure_password                 # optional single-us
 
 ```bash
 # Strong: 20+ characters, mixed case, numbers, symbols
-OPEN_NOTEBOOK_PASSWORD=MySecure2024!Research#Tool
-OPEN_NOTEBOOK_PASSWORD=Notebook$Dev$2024$Strong!
+VAULT_PASSWORD=MySecure2024!Research#Tool
+VAULT_PASSWORD=Notebook$Dev$2024$Strong!
 
 # Generated (recommended)
-OPEN_NOTEBOOK_PASSWORD=$(openssl rand -base64 24)
+VAULT_PASSWORD=$(openssl rand -base64 24)
 ```
 
 ### Bad Passwords
 
 ```bash
 # DON'T use these
-OPEN_NOTEBOOK_PASSWORD=password123
-OPEN_NOTEBOOK_PASSWORD=opennotebook
-OPEN_NOTEBOOK_PASSWORD=admin
+VAULT_PASSWORD=password123
+VAULT_PASSWORD=opennotebook
+VAULT_PASSWORD=admin
 ```
 
 ---
@@ -202,7 +202,7 @@ curl -X POST \
 ```python
 import requests
 
-class OpenNotebookClient:
+class VaultClient:
     def __init__(self, base_url: str, password: str):
         self.base_url = base_url
         self.headers = {"Authorization": f"Bearer {password}"}
@@ -223,7 +223,7 @@ class OpenNotebookClient:
         return response.json()
 
 # Usage
-client = OpenNotebookClient("http://localhost:5055", "your_password")
+client = VaultClient("http://localhost:5055", "your_password")
 notebooks = client.get_notebooks()
 ```
 
@@ -252,13 +252,13 @@ async function getNotebooks() {
 ```yaml
 # Add to your docker-compose.yml (requires surrealdb service, see installation guide)
 services:
-  open_notebook:
-    image: lfnovo/open_notebook:v1-latest
+  vault_core:
+    image: lfnovo/vault_core:v1-latest
     pull_policy: always
     ports:
       - "127.0.0.1:8502:8502"  # Bind to localhost only
     environment:
-      - OPEN_NOTEBOOK_PASSWORD=your_secure_password
+      - VAULT_PASSWORD=your_secure_password
     security_opt:
       - no-new-privileges:true
     deploy:
@@ -321,7 +321,7 @@ CORS_ORIGINS=https://notebook.example.com,https://admin.example.com
 
 ## Security Limitations
 
-Open Notebook's password protection provides **basic access control**, not enterprise-grade security:
+Vault's password protection provides **basic access control**, not enterprise-grade security:
 
 | Feature | Status |
 |---------|--------|
@@ -364,10 +364,10 @@ For deployments requiring advanced security:
 
 ```bash
 # Check env var is set
-docker exec open-notebook env | grep OPEN_NOTEBOOK_PASSWORD
+docker exec vault env | grep VAULT_PASSWORD
 
 # Check logs
-docker logs open-notebook | grep -i auth
+docker logs vault | grep -i auth
 
 # Test API directly
 curl -H "Authorization: Bearer your_password" \
@@ -382,7 +382,7 @@ curl -v -H "Authorization: Bearer your_password" \
   http://localhost:5055/api/notebooks
 
 # Verify password matches
-echo "Password length: $(echo -n $OPEN_NOTEBOOK_PASSWORD | wc -c)"
+echo "Password length: $(echo -n $VAULT_PASSWORD | wc -c)"
 ```
 
 ### Cannot Access After Setting Password

@@ -666,8 +666,8 @@ Epsilon B through E are implementation phases. Epsilon A (this document) defines
 
 1. Create migration 17 (SurrealQL file + async_migrate registration)
 2. Add domain models:
-   - `open_notebook/domain/school.py`: `School`, `SchoolMembership`, `Classroom`, `ClassEnrollment`, `ClassroomAssignment`
-   - `open_notebook/domain/user.py`: `User`, `AuthSession`
+   - `vault_core/domain/school.py`: `School`, `SchoolMembership`, `Classroom`, `ClassEnrollment`, `ClassroomAssignment`
+   - `vault_core/domain/user.py`: `User`, `AuthSession`
    - Each model extends `ObjectModel` following the pattern in `study.py`
 3. Add scoping fields to existing domain models:
    - `StudySession`: add `user_id` and `school_id` fields

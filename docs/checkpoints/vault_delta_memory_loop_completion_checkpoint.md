@@ -77,7 +77,7 @@ Delta spans two sub-phases:
 ### 2.6 Delta F — Backend Study/Review Persistence (`80c16e4`)
 
 - Three SurrealDB tables (migration 16): `study_session`, `leaf_review_event`, `leaf_review_state`
-- Domain models in `open_notebook/domain/study.py`: `StudySession`, `LeafReviewEvent`, `LeafReviewState`
+- Domain models in `vault_core/domain/study.py`: `StudySession`, `LeafReviewEvent`, `LeafReviewState`
 - API router in `api/routers/study.py` with 5 endpoints:
 
 | Endpoint | Method | Purpose |

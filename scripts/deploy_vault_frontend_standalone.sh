@@ -103,7 +103,7 @@ fi
 cd "$REPO_ROOT"
 
 if [[ ! -d "$VAULT_FRONTEND_DIR" ]] || [[ ! -f "$VAULT_FRONTEND_DIR/package.json" ]]; then
-    error "Must be run from the vault-open-notebook repository root."
+    error "Must be run from the vault-vault repository root."
     error "Expected '$VAULT_FRONTEND_DIR/package.json' to exist."
     exit 1
 fi

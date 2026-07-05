@@ -20,10 +20,10 @@ from api.models import (
     StudySessionResponse,
     StudySessionUpdate,
 )
-from open_notebook.database.repository import ensure_record_id, repo_query
-from open_notebook.domain.study import LeafReviewEvent, LeafReviewState, StudySession
-from open_notebook.domain.notebook import Note
-from open_notebook.exceptions import NotFoundError
+from vault_core.database.repository import ensure_record_id, repo_query
+from vault_core.domain.study import LeafReviewEvent, LeafReviewState, StudySession
+from vault_core.domain.notebook import Note
+from vault_core.exceptions import NotFoundError
 
 router = APIRouter()
 

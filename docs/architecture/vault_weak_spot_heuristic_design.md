@@ -397,7 +397,7 @@ No data loss — events remain in `leaf_review_event`.
 |-------|-------|--------------|------------|
 | **Delta J** | Backend heuristic + API response | `api/models.py` (ReviewQueueItem), `api/routers/study.py` (computation), `tests/test_study_api.py` | `pytest` backend tests |
 | **Delta K** | ReviewQueue display | `ReviewQueue.tsx`, locale files, optionally theme tokens | `npm test` + `npm run build` |
-| **Delta L** | Optional session-lifecycle tuning | `open_notebook/domain/study.py` or `api/routers/study.py` | `pytest` + `npm test` |
+| **Delta L** | Optional session-lifecycle tuning | `vault_core/domain/study.py` or `api/routers/study.py` | `pytest` + `npm test` |
 | Later | Teacher dashboard | Separate design, not in scope here | TBD |
 
 ---

@@ -1,10 +1,10 @@
-# Open Notebook - Root CLAUDE.md
+# Vault - Root CLAUDE.md
 
-This file provides architectural guidance for contributors working on Open Notebook at the project level.
+This file provides architectural guidance for contributors working on Vault at the project level.
 
 ## Project Overview
 
-**Open Notebook** is an open-source, privacy-focused alternative to Google's Notebook LM. It's an AI-powered research assistant enabling users to upload multi-modal content (PDFs, audio, video, web pages), generate intelligent notes, search semantically, chat with AI models, and produce professional podcasts—all with complete control over data and choice of AI providers.
+**Vault** is an open-source, privacy-focused alternative to Google's Notebook LM. It's an AI-powered research assistant enabling users to upload multi-modal content (PDFs, audio, video, web pages), generate intelligent notes, search semantically, chat with AI models, and produce professional podcasts—all with complete control over data and choice of AI providers.
 
 **Key Values**: Privacy-first, multi-provider AI support, fully self-hosted option, open-source transparency.
 
@@ -59,7 +59,7 @@ User documentation is at @docs/
 - **Build Tool**: Webpack (via Next.js)
 - **i18n compatible**: All front-end changes must also consider the translation keys
 
-### API Backend (`api/` + `open_notebook/`)
+### API Backend (`api/` + `vault_core/`)
 - **Framework**: FastAPI 0.104+
 - **Language**: Python 3.11+
 - **Workflows**: LangGraph state machines
@@ -150,11 +150,11 @@ See dedicated CLAUDE.md files for detailed guidance:
 
 - **[frontend/CLAUDE.md](frontend/CLAUDE.md)**: React/Next.js architecture, state management, API integration
 - **[api/CLAUDE.md](api/CLAUDE.md)**: FastAPI structure, service pattern, endpoint development
-- **[open_notebook/CLAUDE.md](open_notebook/CLAUDE.md)**: Backend core, domain models, LangGraph workflows, AI provisioning
-- **[open_notebook/domain/CLAUDE.md](open_notebook/domain/CLAUDE.md)**: Data models, repository pattern, search functions
-- **[open_notebook/ai/CLAUDE.md](open_notebook/ai/CLAUDE.md)**: ModelManager, AI provider integration, Esperanto usage
-- **[open_notebook/graphs/CLAUDE.md](open_notebook/graphs/CLAUDE.md)**: LangGraph workflow design, state machines
-- **[open_notebook/database/CLAUDE.md](open_notebook/database/CLAUDE.md)**: SurrealDB operations, migrations, async patterns
+- **[vault_core/CLAUDE.md](vault_core/CLAUDE.md)**: Backend core, domain models, LangGraph workflows, AI provisioning
+- **[vault_core/domain/CLAUDE.md](vault_core/domain/CLAUDE.md)**: Data models, repository pattern, search functions
+- **[vault_core/ai/CLAUDE.md](vault_core/ai/CLAUDE.md)**: ModelManager, AI provider integration, Esperanto usage
+- **[vault_core/graphs/CLAUDE.md](vault_core/graphs/CLAUDE.md)**: LangGraph workflow design, state machines
+- **[vault_core/database/CLAUDE.md](vault_core/database/CLAUDE.md)**: SurrealDB operations, migrations, async patterns
 
 ---
 
@@ -188,7 +188,7 @@ See dedicated CLAUDE.md files for detailed guidance:
 5. Test via http://localhost:5055/docs
 
 ### Add a New LangGraph Workflow
-1. Create `open_notebook/graphs/workflow_name.py`
+1. Create `vault_core/graphs/workflow_name.py`
 2. Define StateDict and node functions
 3. Build graph with `.add_node()` / `.add_edge()`
 4. Invoke in service: `graph.ainvoke({"input": ...}, config={"..."})`
@@ -211,8 +211,8 @@ See dedicated CLAUDE.md files for detailed guidance:
 
 ## Support & Community
 
-- **Documentation**: https://open-notebook.ai
+- **Documentation**: https://vault.ai
 - **Discord**: https://discord.gg/37XJPXfz2w
-- **Issues**: https://github.com/lfnovo/open-notebook/issues
+- **Issues**: https://github.com/lfnovo/vault/issues
 - **License**: MIT (see LICENSE)
 

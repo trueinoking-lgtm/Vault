@@ -1,6 +1,6 @@
 # Vaultification Plan
 
-> Goal: transform `/root/vault-open-notebook` from donor-brand Open Notebook into Vault’s knowledge engine without breaking the verified working runtime.
+> Goal: transform `/root/vault-vault` from donor-brand Vault into Vault’s knowledge engine without breaking the verified working runtime.
 
 ## Current grounded inventory
 
@@ -39,18 +39,18 @@
 - sidebar/navigation in `frontend/src/components/layout/AppSidebar.tsx`
 - notebook workspace in `frontend/src/app/(dashboard)/notebooks/[id]/page.tsx`
 - ingestion job in `commands/source_commands.py`
-- donor namespace package in `open_notebook/`
+- donor namespace package in `vault_core/`
 
 ---
 
-## 1. Open Notebook concepts that should survive unchanged
+## 1. Vault concepts that should survive unchanged
 
 These are already good Vault infrastructure and should stay intact in phase 1.
 
 ### Survive unchanged
 1. **Source ingestion pipeline**
    - Keep `commands/source_commands.py::process_source_command`
-   - Keep `open_notebook.graphs.source.source_graph`
+   - Keep `vault_core.graphs.source.source_graph`
    - Rationale: this is already the correct fetch → extract → process → persist backbone for Vault knowledge ingestion.
 
 2. **Async command/job architecture**
@@ -91,7 +91,7 @@ Do **not** rewrite ingestion, embeddings, command retries, or storage internals 
 
 | Donor term | Vault term | Why |
 |---|---|---|
-| Open Notebook | Vault | product identity |
+| Vault | Vault | product identity |
 | Notebook | Vault | top-level knowledge container |
 | Source | Source | already correct; keep initially |
 | Note | Artifact | umbrella Vault output type |
@@ -352,7 +352,7 @@ The first real skill-layer connection should likely be:
 
 ---
 
-## 9. The smallest first code change that starts transforming Open Notebook into Vault
+## 9. The smallest first code change that starts transforming Vault into Vault
 
 ### Recommendation
 The first commit should be **small, visible, non-breaking, and identity-setting**.
@@ -363,8 +363,8 @@ The first commit should be **small, visible, non-breaking, and identity-setting*
 
 ### What the first commit should do
 1. Add `VAULTIFICATION_PLAN.md` to the repo root
-2. Change frontend brand strings from `Open Notebook` to `Vault`
-3. Change FastAPI OpenAPI metadata from `Open Notebook API` to `Vault API`
+2. Change frontend brand strings from `Vault` to `Vault`
+3. Change FastAPI OpenAPI metadata from `Vault API` to `Vault API`
 4. Change only the most obvious label:
    - sidebar/app brand text
    - do **not** rename routes yet
@@ -388,7 +388,7 @@ The first commit should be **small, visible, non-breaking, and identity-setting*
 - `VAULTIFICATION_PLAN.md`
 
 ### What **not** to do in the first commit
-- do not rename the Python package `open_notebook/`
+- do not rename the Python package `vault_core/`
 - do not rename DB tables
 - do not rename every `notebook_id` field
 - do not replace routes yet
@@ -428,8 +428,8 @@ The first commit should be **small, visible, non-breaking, and identity-setting*
 vault: introduce Vault identity and publish transformation plan
 
 - add Vaultification plan to repo root
-- rebrand frontend app identity from Open Notebook to Vault
-- rebrand FastAPI OpenAPI metadata from Open Notebook API to Vault API
+- rebrand frontend app identity from Vault to Vault
+- rebrand FastAPI OpenAPI metadata from Vault API to Vault API
 - preserve all working donor internals, routes, and data model names for now
 ```
 
@@ -447,7 +447,7 @@ Only lightweight verification is needed:
 
 ## Final stance
 
-The donor codebase has already proven itself as working infrastructure. The correct next move is **not** more Open Notebook testing. The correct move is:
+The donor codebase has already proven itself as working infrastructure. The correct next move is **not** more Vault testing. The correct move is:
 
 1. establish Vault identity
 2. add Vault-native language at the product surface

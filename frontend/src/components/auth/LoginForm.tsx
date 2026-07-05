@@ -285,7 +285,7 @@ export function LoginForm() {
               <div className="flex items-start gap-2 text-sm text-red-600">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <div>
-                  Owner access is not configured yet. Set `OPEN_NOTEBOOK_OWNER_PASSWORD` or enable the existing API password before using owner routes.
+                  Owner access is not configured yet. Set `VAULT_OWNER_PASSWORD` or enable the existing API password before using owner routes.
                 </div>
               </div>
             )}

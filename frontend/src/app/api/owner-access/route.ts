@@ -23,7 +23,7 @@ function getSameOriginUrl(request: NextRequest, pathname: string): string {
 }
 
 async function resolveOwnerAccessConfig(request: NextRequest): Promise<OwnerAccessConfig> {
-  const ownerPassword = process.env.OPEN_NOTEBOOK_OWNER_PASSWORD?.trim()
+  const ownerPassword = process.env.VAULT_OWNER_PASSWORD?.trim()
   if (ownerPassword) {
     return {
       enabled: true,
@@ -32,7 +32,7 @@ async function resolveOwnerAccessConfig(request: NextRequest): Promise<OwnerAcce
     }
   }
 
-  const apiPassword = process.env.OPEN_NOTEBOOK_PASSWORD?.trim()
+  const apiPassword = process.env.VAULT_PASSWORD?.trim()
   if (apiPassword) {
     return {
       enabled: true,
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         detail:
-          'Owner access is not configured yet. Set OPEN_NOTEBOOK_OWNER_PASSWORD or enable API password auth before using /owner routes.',
+          'Owner access is not configured yet. Set VAULT_OWNER_PASSWORD or enable API password auth before using /owner routes.',
       },
       { status: 403 }
     )

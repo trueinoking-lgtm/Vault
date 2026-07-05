@@ -5,7 +5,7 @@ Settings service layer using API.
 from loguru import logger
 
 from api.client import api_client
-from open_notebook.domain.content_settings import ContentSettings
+from vault_core.domain.content_settings import ContentSettings
 
 
 class SettingsService:

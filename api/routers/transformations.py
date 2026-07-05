@@ -12,10 +12,10 @@ from api.models import (
     TransformationResponse,
     TransformationUpdate,
 )
-from open_notebook.ai.models import Model
-from open_notebook.domain.transformation import DefaultPrompts, Transformation
-from open_notebook.exceptions import InvalidInputError, OpenNotebookError
-from open_notebook.graphs.transformation import graph as transformation_graph
+from vault_core.ai.models import Model
+from vault_core.domain.transformation import DefaultPrompts, Transformation
+from vault_core.exceptions import InvalidInputError, VaultError
+from vault_core.graphs.transformation import graph as transformation_graph
 
 router = APIRouter()
 
@@ -109,7 +109,7 @@ async def execute_transformation(execute_request: TransformationExecuteRequest):
 
     except HTTPException:
         raise
-    except OpenNotebookError:
+    except VaultError:
         raise  # Let global exception handlers return proper status codes
     except Exception as e:
         logger.error(f"Error executing transformation: {str(e)}")

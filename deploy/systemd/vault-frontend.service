@@ -22,7 +22,7 @@ Wants=network-online.target
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/root/vault-open-notebook/frontend
+WorkingDirectory=/root/vault-vault/frontend
 
 # Node.js runtime
 ExecStart=/usr/bin/node .next/standalone/server.js

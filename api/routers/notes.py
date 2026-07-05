@@ -4,8 +4,8 @@ from fastapi import APIRouter, HTTPException, Query
 from loguru import logger
 
 from api.models import NoteCreate, NoteResponse, NoteUpdate
-from open_notebook.domain.notebook import Note
-from open_notebook.exceptions import InvalidInputError, NotFoundError
+from vault_core.domain.notebook import Note
+from vault_core.exceptions import InvalidInputError, NotFoundError
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ async def get_notes(
     try:
         if notebook_id:
             # Get notes for a specific notebook
-            from open_notebook.domain.notebook import Notebook
+            from vault_core.domain.notebook import Notebook
 
             notebook = await Notebook.get(notebook_id)
             notes = await notebook.get_notes()
@@ -53,7 +53,7 @@ async def create_note(note_data: NoteCreate):
         # Auto-generate title if not provided and it's an AI note
         title = note_data.title
         if not title and note_data.note_type == "ai" and note_data.content:
-            from open_notebook.graphs.prompt import graph as prompt_graph
+            from vault_core.graphs.prompt import graph as prompt_graph
 
             prompt = "Based on the Note below, please provide a Title for this content, with max 15 words"
             result = await prompt_graph.ainvoke(
@@ -82,7 +82,7 @@ async def create_note(note_data: NoteCreate):
 
         # Add to notebook if specified
         if note_data.notebook_id:
-            from open_notebook.domain.notebook import Notebook
+            from vault_core.domain.notebook import Notebook
 
             # Verify the notebook exists (raises NotFoundError -> 404)
             await Notebook.get(note_data.notebook_id)

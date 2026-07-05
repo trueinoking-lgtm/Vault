@@ -3,9 +3,9 @@ from loguru import logger
 
 from api.command_service import CommandService
 from api.models import EmbedRequest, EmbedResponse
-from open_notebook.ai.models import model_manager
-from open_notebook.domain.notebook import Note, Source
-from open_notebook.exceptions import NotFoundError
+from vault_core.ai.models import model_manager
+from vault_core.domain.notebook import Note, Source
+from vault_core.exceptions import NotFoundError
 
 router = APIRouter()
 
@@ -48,7 +48,7 @@ async def embed_content(embed_request: EmbedRequest):
                     command_input = {"note_id": item_id}
 
                 command_id = await CommandService.submit_command_job(
-                    "open_notebook",
+                    "vault_core",
                     command_name,
                     command_input,
                 )

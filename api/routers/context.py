@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException
 from loguru import logger
 
 from api.models import ContextRequest, ContextResponse
-from open_notebook.domain.notebook import Note, Notebook, Source
-from open_notebook.exceptions import InvalidInputError
-from open_notebook.utils import token_count
+from vault_core.domain.notebook import Note, Notebook, Source
+from vault_core.exceptions import InvalidInputError
+from vault_core.utils import token_count
 
 router = APIRouter()
 

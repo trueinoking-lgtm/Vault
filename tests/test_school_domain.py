@@ -7,7 +7,7 @@ and validation — all testable without database access.
 
 from datetime import datetime, timezone
 
-from open_notebook.domain.school import (
+from vault_core.domain.school import (
     AuthSession,
     ClassEnrollment,
     Classroom,
@@ -15,7 +15,7 @@ from open_notebook.domain.school import (
     School,
     SchoolMembership,
 )
-from open_notebook.domain.user import User
+from vault_core.domain.user import User
 
 
 class TestUserModel:

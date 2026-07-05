@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Working directory: repository root (`vault-open-notebook/`)
+- Working directory: repository root (`vault-vault/`)
 - `node` and `npm` installed and in `PATH`
 - `package-lock.json` present (committed — do not delete)
 - Port `3003` free for frontend (or override via `VAULT_PORT`)

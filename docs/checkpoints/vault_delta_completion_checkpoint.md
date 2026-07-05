@@ -18,7 +18,7 @@ Delta was always scoped as a **foundational persistence and feedback layer** —
 
 | Commit | Delta | Description | Files |
 |--------|-------|-------------|-------|
-| `80c16e4` | **E → F** | Backend: study sessions, leaf review events, review state tables, API endpoints | `api/routers/study.py`, `open_notebook/domain/study.py`, migrations, tests |
+| `80c16e4` | **E → F** | Backend: study sessions, leaf review events, review state tables, API endpoints | `api/routers/study.py`, `vault_core/domain/study.py`, migrations, tests |
 | `34e5759` | **G** | Frontend: wire leaf review events to backend from LeafStudyCard | `LeafStudyCard.tsx`, `use-study.ts`, `api/study.ts` |
 | `49c246d` | **H** | Frontend: consume persisted review queue (replace `useRecentNotes`) | `ReviewQueue.tsx`, `api/types.ts` hooks |
 | `a38e1e5` | **I** | Docs: weak-spot heuristic design doc | `docs/architecture/vault_weak_spot_heuristic_design.md` |
