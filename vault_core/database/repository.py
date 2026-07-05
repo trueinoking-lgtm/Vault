@@ -173,6 +173,7 @@ async def repo_upsert(
     data.pop("id", None)
     if add_timestamp:
         data["updated"] = datetime.now(timezone.utc)
+    data = ensure_record_refs(data)
     query = f"UPSERT {id if id else table} MERGE $data;"
     return await repo_query(query, {"data": data})
 
@@ -191,6 +192,8 @@ async def repo_update(
         if "created" in data and isinstance(data["created"], str):
             data["created"] = datetime.fromisoformat(data["created"])
         data["updated"] = datetime.now(timezone.utc)
+        # Normalize string record references to RecordID objects
+        data = ensure_record_refs(data)
         query = f"UPDATE {record_id} MERGE $data;"
         # logger.debug(f"Update query: {query}")
         result = await repo_query(query, {"data": data})

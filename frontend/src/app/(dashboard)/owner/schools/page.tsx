@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Building2, Loader2, Plus, RefreshCw } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Building2, Loader2, Plus, RefreshCw, ChevronRight } from 'lucide-react'
 
 import { useSchools, useCreateSchool, useUpdateSchool } from '@/lib/hooks/use-schools'
 import { useTranslation } from '@/lib/hooks/use-translation'
@@ -20,6 +21,7 @@ import { Label } from '@/components/ui/label'
 
 export default function OwnerSchoolsPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const { data: schools, isLoading, isError, refetch } = useSchools()
   const createSchool = useCreateSchool()
   const updateSchool = useUpdateSchool()
@@ -132,7 +134,8 @@ export default function OwnerSchoolsPage() {
             {schools.map((school) => (
               <div
                 key={school.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                onClick={() => router.push(`/owner/schools/${school.id}`)}
+                className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
@@ -156,9 +159,12 @@ export default function OwnerSchoolsPage() {
                       </p>
                     )}
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(school)}>
-                    {t('common.edit')}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEdit(school); }}>
+                      {t('common.edit')}
+                    </Button>
+                    <ChevronRight className="h-4 w-4 text-slate-400" />
+                  </div>
                 </div>
               </div>
             ))}

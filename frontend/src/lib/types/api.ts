@@ -321,3 +321,55 @@ export interface SchoolUpdate {
   description?: string | null
   active?: boolean
 }
+
+// ── School Membership Types (Epsilon D2a) ──────────────────────────────
+
+export interface SchoolMembershipResponse {
+  id: string
+  school_id: string
+  user_id: string
+  role: string
+  active: boolean
+  joined_at?: string | null
+}
+
+export interface SchoolMembershipCreate {
+  user_id: string
+  role: 'owner' | 'teacher' | 'learner'
+}
+
+export interface SchoolMembershipUpdate {
+  role?: 'owner' | 'teacher' | 'learner'
+  active?: boolean
+}
+
+// ── Classroom Types (Epsilon D2a) ─────────────────────────────────────
+
+export interface ClassroomResponse {
+  id: string
+  school_id: string
+  teacher_id: string
+  name: string
+  description?: string | null
+  subject?: string | null
+  grade_level?: string | null
+  active: boolean
+  created: string
+  updated: string
+}
+
+export interface ClassroomCreate {
+  teacher_id: string
+  name: string
+  description?: string | null
+  subject?: string | null
+  grade_level?: string | null
+}
+
+export interface ClassroomUpdate {
+  name?: string
+  description?: string | null
+  subject?: string | null
+  grade_level?: string | null
+  active?: boolean
+}
