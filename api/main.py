@@ -174,7 +174,7 @@ else:
     logger.info(f"CORS allowed origins: {CORS_ALLOWED_ORIGINS}")
 
 # Add password authentication middleware first
-# Exclude /api/auth/status and /api/config from authentication
+# Exclude public endpoints from authentication
 app.add_middleware(
     PasswordAuthMiddleware,
     excluded_paths=[
@@ -184,6 +184,7 @@ app.add_middleware(
         "/openapi.json",
         "/redoc",
         "/api/auth/status",
+        "/api/auth/login",
         "/api/config",
     ],
 )

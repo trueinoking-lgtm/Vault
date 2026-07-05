@@ -922,3 +922,46 @@ class ClassroomAssignmentResponse(BaseModel):
     assigned_by: str
     assigned_at: Optional[str] = None
     active: bool = True
+
+
+# ============================================================================
+# Auth API Models (Epsilon C3a — bootstrap session auth)
+# ============================================================================
+
+
+class AuthLoginRequest(BaseModel):
+    """Request to log in with a password."""
+
+    password: str = Field(..., description="Password for authentication")
+
+
+class AuthUserResponse(BaseModel):
+    """Public user profile — never exposes password_hash or token_hash."""
+
+    id: str
+    display_name: str
+    email: str
+    is_global_owner: bool = False
+    active: bool = True
+
+
+class AuthLoginResponse(BaseModel):
+    """Response from a successful login."""
+
+    token: str = Field(..., description="Raw session token (one-time return)")
+    expires_at: str = Field(..., description="ISO-8601 expiry timestamp")
+    user: AuthUserResponse = Field(..., description="Authenticated user profile")
+    is_owner: bool = Field(
+        False, description="Whether the user has global owner privileges"
+    )
+
+
+class AuthMeResponse(BaseModel):
+    """Response from GET /api/auth/me."""
+
+    authenticated: bool
+    auth_mode: str = Field(
+        ..., description="One of: session, password, disabled"
+    )
+    user: Optional[AuthUserResponse] = None
+    owner_access: bool = False

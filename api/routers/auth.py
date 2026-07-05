@@ -1,23 +1,68 @@
 """
 Authentication router for Vault API.
-Provides endpoints to check authentication status.
+
+Provides login, logout, and session-identity endpoints alongside the
+existing /api/auth/status endpoint.  This is a **coexistence** layer:
+the old ``PasswordAuthMiddleware`` still works, and the new session
+auth is available but not required.
+
+Epsilon C3a — bootstrap session auth.  No role enforcement yet.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Request
+from loguru import logger
 
+from api.auth import (
+    _format_user,
+    create_session_for_user,
+    delete_session,
+    get_or_create_legacy_user,
+    get_or_create_owner_user,
+    resolve_session,
+)
+from api.models import (
+    AuthLoginRequest,
+    AuthLoginResponse,
+    AuthMeResponse,
+    AuthUserResponse,
+)
 from vault_core.utils.encryption import get_secret_from_env
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 
 
-@router.get("/status")
-async def get_auth_status():
+# ---------------------------------------------------------------------------
+# Helper: check password against configured env vars
+# ---------------------------------------------------------------------------
+def _check_password(password: str) -> tuple[bool, bool]:
+    """Return (is_valid, is_owner).
+
+    Checks ``VAULT_OWNER_PASSWORD`` first, then ``VAULT_PASSWORD``.
     """
-    Check if authentication is enabled.
+    owner_pw = get_secret_from_env("VAULT_OWNER_PASSWORD")
+    if owner_pw and password == owner_pw:
+        return True, True
+
+    api_pw = get_secret_from_env("VAULT_PASSWORD")
+    if api_pw and password == api_pw:
+        return True, False
+
+    return False, False
+
+
+# ---------------------------------------------------------------------------
+# GET /api/auth/status  (existing — preserved exactly)
+# ---------------------------------------------------------------------------
+@router.get("/auth/status")
+async def get_auth_status():
+    """Check if authentication is enabled.
+
     Returns whether a password is required to access the API.
     Supports Docker secrets via VAULT_PASSWORD_FILE.
     """
-    auth_enabled = bool(get_secret_from_env("VAULT_PASSWORD"))
+    auth_enabled = bool(get_secret_from_env("VAULT_PASSWORD")) or bool(
+        get_secret_from_env("VAULT_OWNER_PASSWORD")
+    )
 
     return {
         "auth_enabled": auth_enabled,
@@ -25,3 +70,123 @@ async def get_auth_status():
         if auth_enabled
         else "Authentication is disabled",
     }
+
+
+# ---------------------------------------------------------------------------
+# POST /api/auth/login
+# ---------------------------------------------------------------------------
+@router.post("/auth/login", response_model=AuthLoginResponse)
+async def login(body: AuthLoginRequest):
+    """Authenticate with a password and receive a session token.
+
+    Accepts either ``VAULT_OWNER_PASSWORD`` (creates/returns a global-owner
+    user record) or ``VAULT_PASSWORD`` (creates/returns a generic legacy user).
+
+    On first successful owner login, a ``User`` record with
+    ``is_global_owner = true`` is bootstrapped automatically.
+    """
+    password = body.password
+    is_valid, is_owner = _check_password(password)
+
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        if is_owner:
+            user = await get_or_create_owner_user(password)
+        else:
+            user = await get_or_create_legacy_user(password)
+
+        session = await create_session_for_user(user)
+
+        # Build response
+        user_data = _format_user(user)
+        return AuthLoginResponse(
+            token=session["token"],
+            expires_at=session["expires_at"],
+            user=AuthUserResponse(**user_data),
+            is_owner=is_owner,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail="Login failed")
+
+
+# ---------------------------------------------------------------------------
+# POST /api/auth/logout
+# ---------------------------------------------------------------------------
+@router.post("/auth/logout")
+async def logout(request: Request):
+    """Invalidate the current session token.
+
+    Extracts the bearer token from the ``Authorization`` header and
+    deletes the matching session record.  Best-effort — always returns
+    200 even if the token was already invalid.
+    """
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        await delete_session(token)
+
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# GET /api/auth/me
+# ---------------------------------------------------------------------------
+@router.get("/auth/me", response_model=AuthMeResponse)
+async def get_me(request: Request):
+    """Return information about the currently authenticated user.
+
+    Three modes:
+    - **session**: a valid session token was resolved to a ``User``.
+    - **password**: a legacy env-var password was used (no user identity).
+    - **disabled**: no auth is configured; the API is open.
+    """
+    auth_header = request.headers.get("Authorization", "")
+
+    # 1) Try session token
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        user = await resolve_session(token)
+        if user is not None:
+            user_data = _format_user(user)
+            return AuthMeResponse(
+                authenticated=True,
+                auth_mode="session",
+                user=AuthUserResponse(**user_data),
+                owner_access=user.is_global_owner,
+            )
+
+    # 2) Check legacy password auth
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        is_valid, is_owner = _check_password(token)
+        if is_valid:
+            return AuthMeResponse(
+                authenticated=True,
+                auth_mode="password",
+                user=None,
+                owner_access=is_owner,
+            )
+
+    # 3) Auth disabled (no password configured)
+    owner_pw = get_secret_from_env("VAULT_OWNER_PASSWORD")
+    api_pw = get_secret_from_env("VAULT_PASSWORD")
+    if not owner_pw and not api_pw:
+        return AuthMeResponse(
+            authenticated=True,
+            auth_mode="disabled",
+            user=None,
+            owner_access=False,
+        )
+
+    # 4) Not authenticated
+    return AuthMeResponse(
+        authenticated=False,
+        auth_mode="password",
+        user=None,
+        owner_access=False,
+    )
