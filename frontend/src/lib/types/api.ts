@@ -445,3 +445,28 @@ export interface ClassActivityEntry {
   event_type: string
   event_time: string
 }
+
+// ── Auth Types (Epsilon C3a / Phase F2) ──────────────────────────────────
+
+export interface AuthUserResponse {
+  id: string
+  display_name: string
+  email: string
+  is_global_owner: boolean
+  active: boolean
+}
+
+export interface AuthMeResponse {
+  authenticated: boolean
+  auth_mode: 'session' | 'password' | 'disabled'
+  user: AuthUserResponse | null
+  owner_access: boolean
+}
+
+/**
+ * Frontend-only role classification derived from AuthMeResponse.
+ * The backend does not yet expose teacher/school membership data
+ * through /api/auth/me, so 'teacher' cannot be derived yet.
+ * See docs/architecture/vault_frontend_role_navigation_design.md
+ */
+export type UserRole = 'global_owner' | 'teacher' | 'learner' | 'anonymous'
