@@ -1,0 +1,8 @@
+-- Rollback migration 17
+DROP TABLE IF EXISTS auth_session;
+DROP TABLE IF EXISTS classroom_assignment;
+DROP TABLE IF EXISTS class_enrollment;
+DROP TABLE IF EXISTS classroom;
+DROP TABLE IF EXISTS school_membership;
+DROP TABLE IF EXISTS school;
+DROP TABLE IF EXISTS user;

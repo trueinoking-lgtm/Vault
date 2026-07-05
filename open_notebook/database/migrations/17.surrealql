@@ -1,0 +1,71 @@
+-- Migration 17: School, user, classroom, and enrollment tables
+-- for Vault's school-ready foundation (Epsilon B).
+-- All tables are dormant until Epsilon C+ wires API/UI.
+-- Single-tenant mode is unaffected.
+
+-- 1. User accounts
+DEFINE TABLE IF NOT EXISTS user SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS display_name ON TABLE user TYPE string;
+DEFINE FIELD IF NOT EXISTS email ON TABLE user TYPE string
+  ASSERT string::is::email($value);
+DEFINE FIELD IF NOT EXISTS password_hash ON TABLE user TYPE string;
+DEFINE FIELD IF NOT EXISTS avatar_url ON TABLE user TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS is_global_owner ON TABLE user TYPE bool DEFAULT false;
+DEFINE FIELD IF NOT EXISTS active ON TABLE user TYPE bool DEFAULT true;
+DEFINE FIELD IF NOT EXISTS last_login_at ON TABLE user TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS created ON TABLE user TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE user TYPE datetime DEFAULT time::now();
+
+-- 2. School
+DEFINE TABLE IF NOT EXISTS school SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS name ON TABLE school TYPE string;
+DEFINE FIELD IF NOT EXISTS slug ON TABLE school TYPE string
+  ASSERT string::len($value) >= 2 AND string::len($value) <= 32;
+DEFINE FIELD IF NOT EXISTS description ON TABLE school TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS settings ON TABLE school TYPE option<object> FLEXIBLE;
+DEFINE FIELD IF NOT EXISTS active ON TABLE school TYPE bool DEFAULT true;
+DEFINE FIELD IF NOT EXISTS created ON TABLE school TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE school TYPE datetime DEFAULT time::now();
+
+-- 3. School membership
+DEFINE TABLE IF NOT EXISTS school_membership SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE school_membership TYPE record<school>;
+DEFINE FIELD IF NOT EXISTS user_id ON TABLE school_membership TYPE record<user>;
+DEFINE FIELD IF NOT EXISTS role ON TABLE school_membership TYPE string
+  ASSERT $value INSIDE ["owner", "teacher", "learner"];
+DEFINE FIELD IF NOT EXISTS joined_at ON TABLE school_membership TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS active ON TABLE school_membership TYPE bool DEFAULT true;
+
+-- 4. Classroom
+DEFINE TABLE IF NOT EXISTS classroom SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE classroom TYPE record<school>;
+DEFINE FIELD IF NOT EXISTS teacher_id ON TABLE classroom TYPE record<school_membership>;
+DEFINE FIELD IF NOT EXISTS name ON TABLE classroom TYPE string;
+DEFINE FIELD IF NOT EXISTS description ON TABLE classroom TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS subject ON TABLE classroom TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS grade_level ON TABLE classroom TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS active ON TABLE classroom TYPE bool DEFAULT true;
+DEFINE FIELD IF NOT EXISTS created ON TABLE classroom TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE classroom TYPE datetime DEFAULT time::now();
+
+-- 5. Class enrollment
+DEFINE TABLE IF NOT EXISTS class_enrollment SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS classroom_id ON TABLE class_enrollment TYPE record<classroom>;
+DEFINE FIELD IF NOT EXISTS learner_id ON TABLE class_enrollment TYPE record<school_membership>;
+DEFINE FIELD IF NOT EXISTS enrolled_at ON TABLE class_enrollment TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS active ON TABLE class_enrollment TYPE bool DEFAULT true;
+
+-- 6. Classroom assignment (notebook → classroom)
+DEFINE TABLE IF NOT EXISTS classroom_assignment SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS classroom_id ON TABLE classroom_assignment TYPE record<classroom>;
+DEFINE FIELD IF NOT EXISTS notebook_id ON TABLE classroom_assignment TYPE record<notebook>;
+DEFINE FIELD IF NOT EXISTS assigned_by ON TABLE classroom_assignment TYPE record<school_membership>;
+DEFINE FIELD IF NOT EXISTS assigned_at ON TABLE classroom_assignment TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS active ON TABLE classroom_assignment TYPE bool DEFAULT true;
+
+-- 7. Auth session (dormant — not wired into current auth)
+DEFINE TABLE IF NOT EXISTS auth_session SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS user_id ON TABLE auth_session TYPE record<user>;
+DEFINE FIELD IF NOT EXISTS token_hash ON TABLE auth_session TYPE string;
+DEFINE FIELD IF NOT EXISTS expires_at ON TABLE auth_session TYPE datetime;
+DEFINE FIELD IF NOT EXISTS created ON TABLE auth_session TYPE datetime DEFAULT time::now();
