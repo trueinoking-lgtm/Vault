@@ -16,7 +16,11 @@ import { cn } from '@/lib/utils'
  * FirstStudyChecklist — learner onboarding checklist for the /vault dashboard.
  *
  * Infers completion from existing data (notebooks, sources, leaves).
- * Shows CTAs for incomplete steps. Collapses once most steps are done.
+ * Shows CTAs for incomplete steps. Collapses once required steps are done.
+ *
+ * Phase I2b: honest completion — 4 required steps + 1 optional follow-up.
+ * "Review what you missed" is a follow-up action, not a required gate.
+ * The all-complete banner appears when the 4 required steps are done.
  *
  * Phase I2: no backend changes, no persistence, no new routes.
  */
@@ -29,6 +33,8 @@ interface ChecklistStep {
   ctaHref?: string
   ctaAction?: 'openNotebookDialog' | 'openSourceDialog'
   icon: typeof CheckCircle2
+  /** If true, this step is optional — counted in display but not in required completion. */
+  optional?: boolean
 }
 
 export default function FirstStudyChecklist() {
@@ -55,9 +61,10 @@ export default function FirstStudyChecklist() {
   // "Started studying" = has at least one leaf (study card created from material)
   const hasStartedStudying = (leaves?.length ?? 0) > 0
 
-  // "Reviewed" = we can't check review queue without a notebookId,
-  // so we mark this as incomplete and link to the review section on dashboard
-  const hasReviewed = false
+  // Review is a follow-up — not a required gate for checklist completion.
+  // We don't have a reliable global review queue check, so we show it as
+  // gentle follow-up guidance that never blocks the all-complete state.
+  const hasReviewData = false
 
   const steps: ChecklistStep[] = [
     {
@@ -95,15 +102,18 @@ export default function FirstStudyChecklist() {
     {
       key: 'reviewMissed',
       labelKey: 'vault.checklist.reviewMissed',
-      completed: hasReviewed,
+      completed: hasReviewData,
       ctaLabelKey: 'vault.checklist.reviewMissedCta',
       ctaHref: '/notebooks',
       icon: CheckCircle2,
+      optional: true,
     },
   ]
 
-  const completedCount = steps.filter((s) => s.completed).length
-  const allComplete = completedCount === steps.length
+  const requiredSteps = steps.filter((s) => !s.optional)
+  const optionalSteps = steps.filter((s) => s.optional)
+  const requiredCompletedCount = requiredSteps.filter((s) => s.completed).length
+  const allRequiredComplete = requiredCompletedCount === requiredSteps.length
 
   // ── Loading state ──
   if (isLoading) {
@@ -116,8 +126,8 @@ export default function FirstStudyChecklist() {
     )
   }
 
-  // ── All done — collapse to a subtle summary ──
-  if (allComplete) {
+  // ── All required done — collapse to a subtle summary ──
+  if (allRequiredComplete) {
     return (
       <Card className="border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/30">
         <CardContent className="flex items-center gap-3 py-4">
@@ -137,7 +147,7 @@ export default function FirstStudyChecklist() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{t('vault.checklist.title')}</CardTitle>
           <span className="text-xs text-muted-foreground">
-            {completedCount}/{steps.length}
+            {requiredCompletedCount}/{requiredSteps.length}
           </span>
         </div>
       </CardHeader>
@@ -166,12 +176,18 @@ export default function FirstStudyChecklist() {
                 className={cn(
                   'text-sm flex-1',
                   step.completed ? 'text-muted-foreground line-through' : 'font-medium',
+                  step.optional && !step.completed ? 'text-muted-foreground italic' : '',
                 )}
               >
                 {t(step.labelKey)}
+                {step.optional && !step.completed ? (
+                  <span className="ml-1 text-xs normal-case not-italic">
+                    ({t('vault.checklist.optionalHint')})
+                  </span>
+                ) : null}
               </span>
 
-              {/* CTA button */}
+              {/* CTA button — show for incomplete required steps, or for optional follow-up */}
               {!step.completed && step.ctaLabelKey && (
                 <>
                   {step.ctaAction === 'openNotebookDialog' ? (
