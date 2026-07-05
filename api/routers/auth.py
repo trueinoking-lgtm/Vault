@@ -23,17 +23,21 @@ from api.auth import (
 from api.models import (
     AuthLoginRequest,
     AuthLoginResponse,
+    AuthMembershipResponse,
     AuthMeResponse,
     AuthUserResponse,
 )
+from vault_core.database.repository import ensure_record_id, repo_query
 from vault_core.utils.encryption import get_secret_from_env
 
 router = APIRouter(tags=["auth"])
 
 
 # ---------------------------------------------------------------------------
-# Helper: check password against configured env vars
+# Helpers
 # ---------------------------------------------------------------------------
+
+
 def _check_password(password: str) -> tuple[bool, bool]:
     """Return (is_valid, is_owner).
 
@@ -48,6 +52,41 @@ def _check_password(password: str) -> tuple[bool, bool]:
         return True, False
 
     return False, False
+
+
+async def _get_memberships(user_id_str: str) -> list[AuthMembershipResponse]:
+    """Query active school memberships for the given user.
+
+    Returns a list of ``AuthMembershipResponse`` safe for public exposure.
+    Returns an empty list if the user has no memberships or the query fails.
+    """
+    try:
+        prefixed = f"user:{user_id_str}" if ":" not in user_id_str else user_id_str
+        result = await repo_query(
+            "SELECT id, school_id, role, active "
+            "FROM school_membership "
+            "WHERE user_id = $uid AND active = true",
+            {"uid": ensure_record_id(prefixed)},
+        )
+    except Exception:
+        logger.warning("Failed to query memberships for user %s", user_id_str)
+        return []
+
+    memberships: list[AuthMembershipResponse] = []
+    for row in result:
+        mid_raw = str(row.get("id", ""))
+        sid_raw = str(row.get("school_id", ""))
+        mid = mid_raw.split(":", 1)[1] if ":" in mid_raw else mid_raw
+        sid = sid_raw.split(":", 1)[1] if ":" in sid_raw else sid_raw
+        memberships.append(
+            AuthMembershipResponse(
+                membership_id=mid,
+                school_id=sid,
+                role=str(row.get("role", "learner")),
+                active=bool(row.get("active", True)),
+            )
+        )
+    return memberships
 
 
 # ---------------------------------------------------------------------------
@@ -153,11 +192,13 @@ async def get_me(request: Request):
         user = await resolve_session(token)
         if user is not None:
             user_data = _format_user(user)
+            memberships = await _get_memberships(str(user.id))
             return AuthMeResponse(
                 authenticated=True,
                 auth_mode="session",
                 user=AuthUserResponse(**user_data),
                 owner_access=user.is_global_owner,
+                memberships=memberships,
             )
 
     # 2) Check legacy password auth

@@ -33,6 +33,7 @@ function createMockMe(
       active: true,
     },
     owner_access: false,
+    memberships: [],
     ...overrides,
   }
 }
@@ -217,5 +218,130 @@ describe('useUserRole', () => {
     // Wait a tick to ensure no API call is made
     await new Promise((r) => setTimeout(r, 50))
     expect(authApi.me).not.toHaveBeenCalled()
+  })
+
+  // ── Teacher derivation from memberships (Phase F3a) ──────────────────────
+
+  it('returns teacher when active teacher membership exists', async () => {
+    const meData = createMockMe({
+      memberships: [
+        {
+          membership_id: 'm1',
+          school_id: 's1',
+          role: 'teacher',
+          active: true,
+        },
+      ],
+    })
+    vi.mocked(authApi.me).mockResolvedValue(meData)
+
+    const { result } = renderHook(() => useUserRole())
+
+    await waitFor(() => {
+      expect(result.current.isResolved).toBe(true)
+    })
+
+    expect(result.current.role).toBe('teacher')
+  })
+
+  it('returns teacher when active school-owner membership exists', async () => {
+    const meData = createMockMe({
+      memberships: [
+        {
+          membership_id: 'm2',
+          school_id: 's2',
+          role: 'owner',
+          active: true,
+        },
+      ],
+    })
+    vi.mocked(authApi.me).mockResolvedValue(meData)
+
+    const { result } = renderHook(() => useUserRole())
+
+    await waitFor(() => {
+      expect(result.current.isResolved).toBe(true)
+    })
+
+    expect(result.current.role).toBe('teacher')
+  })
+
+  it('returns learner when only inactive teacher membership exists', async () => {
+    const meData = createMockMe({
+      memberships: [
+        {
+          membership_id: 'm3',
+          school_id: 's3',
+          role: 'teacher',
+          active: false,
+        },
+      ],
+    })
+    vi.mocked(authApi.me).mockResolvedValue(meData)
+
+    const { result } = renderHook(() => useUserRole())
+
+    await waitFor(() => {
+      expect(result.current.isResolved).toBe(true)
+    })
+
+    // Inactive memberships don't count
+    expect(result.current.role).toBe('learner')
+  })
+
+  it('returns learner when only learner membership exists', async () => {
+    const meData = createMockMe({
+      memberships: [
+        {
+          membership_id: 'm4',
+          school_id: 's4',
+          role: 'learner',
+          active: true,
+        },
+      ],
+    })
+    vi.mocked(authApi.me).mockResolvedValue(meData)
+
+    const { result } = renderHook(() => useUserRole())
+
+    await waitFor(() => {
+      expect(result.current.isResolved).toBe(true)
+    })
+
+    expect(result.current.role).toBe('learner')
+  })
+
+  it('returns teacher when mixed memberships include active teacher role', async () => {
+    const meData = createMockMe({
+      memberships: [
+        {
+          membership_id: 'm5',
+          school_id: 's5',
+          role: 'learner',
+          active: true,
+        },
+        {
+          membership_id: 'm6',
+          school_id: 's6',
+          role: 'teacher',
+          active: true,
+        },
+        {
+          membership_id: 'm7',
+          school_id: 's7',
+          role: 'teacher',
+          active: false,
+        },
+      ],
+    })
+    vi.mocked(authApi.me).mockResolvedValue(meData)
+
+    const { result } = renderHook(() => useUserRole())
+
+    await waitFor(() => {
+      expect(result.current.isResolved).toBe(true)
+    })
+
+    expect(result.current.role).toBe('teacher')
   })
 })

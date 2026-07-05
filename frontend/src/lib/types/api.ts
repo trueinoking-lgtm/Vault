@@ -461,12 +461,23 @@ export interface AuthMeResponse {
   auth_mode: 'session' | 'password' | 'disabled'
   user: AuthUserResponse | null
   owner_access: boolean
+  memberships: AuthMembershipResponse[]
+}
+
+export interface AuthMembershipResponse {
+  membership_id: string
+  school_id: string
+  role: string
+  active: boolean
 }
 
 /**
  * Frontend-only role classification derived from AuthMeResponse.
- * The backend does not yet expose teacher/school membership data
- * through /api/auth/me, so 'teacher' cannot be derived yet.
- * See docs/architecture/vault_frontend_role_navigation_design.md
+ *
+ * Derivation rules (see useUserRole):
+ *  - owner_access or user.is_global_owner → global_owner
+ *  - any active membership with role 'teacher' or 'owner' → teacher
+ *  - authenticated but no owner/teacher role → learner
+ *  - not authenticated → anonymous
  */
 export type UserRole = 'global_owner' | 'teacher' | 'learner' | 'anonymous'

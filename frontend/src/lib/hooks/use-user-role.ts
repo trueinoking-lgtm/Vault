@@ -23,18 +23,11 @@ export interface UserRoleState {
 /**
  * Derive a frontend role from the /api/auth/me response.
  *
- * Derivation is intentionally conservative because the backend does
- * not yet expose teacher/school membership data through this endpoint.
- *
  * Rules:
  *  1. Not authenticated → anonymous
  *  2. owner_access or user.is_global_owner → global_owner
- *  3. Otherwise authenticated → learner
- *
- * The "teacher" role will be added when the backend schema evolves to
- * return school memberships or role lists in /api/auth/me.
- *
- * @see docs/architecture/vault_frontend_role_navigation_design.md
+ *  3. Any active membership with role 'teacher' or 'owner' → teacher
+ *  4. Otherwise authenticated → learner
  */
 function deriveRole(me: AuthMeResponse): UserRole {
   if (!me.authenticated) {
@@ -46,7 +39,17 @@ function deriveRole(me: AuthMeResponse): UserRole {
     return 'global_owner'
   }
 
-  // Conservative fallback: cannot derive teacher without backend support
+  // Teacher / school-owner check — active memberships
+  if (me.memberships && me.memberships.length > 0) {
+    const hasTeacherRole = me.memberships.some(
+      (m) => m.active && (m.role === 'teacher' || m.role === 'owner'),
+    )
+    if (hasTeacherRole) {
+      return 'teacher'
+    }
+  }
+
+  // Conservative fallback
   return 'learner'
 }
 

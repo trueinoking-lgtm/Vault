@@ -1,5 +1,5 @@
 """
-Tests for session authentication API endpoints (Epsilon C3a).
+Tests for session authentication API endpoints (Epsilon C3a / Phase F3a).
 
 Uses mocked env vars and domain models.  The existing conftest.py sets
 VAULT_PASSWORD="" so the middleware is disabled during tests, allowing
@@ -174,11 +174,12 @@ class TestLogin:
 
 
 class TestAuthMe:
-    """GET /api/auth/me"""
+    """GET /api/auth/me — existing session/password response."""
 
     @patch("api.routers.auth.resolve_session")
-    def test_me_with_valid_session(self, mock_resolve, client):
-        """Valid session token returns user profile."""
+    @patch("api.routers.auth._get_memberships")
+    def test_me_with_valid_session(self, mock_get_memberships, mock_resolve, client):
+        """Valid session token returns user profile and empty memberships."""
         mock_user = AsyncMock()
         mock_user.id = "user:owner1"
         mock_user.display_name = "Administrator"
@@ -186,6 +187,7 @@ class TestAuthMe:
         mock_user.is_global_owner = True
         mock_user.active = True
         mock_resolve.return_value = mock_user
+        mock_get_memberships.return_value = []
 
         response = client.get(
             "/api/auth/me",
@@ -198,10 +200,12 @@ class TestAuthMe:
         assert data["auth_mode"] == "session"
         assert data["user"]["display_name"] == "Administrator"
         assert data["owner_access"] is True
+        assert data["memberships"] == []
 
     @patch("api.routers.auth.resolve_session")
-    def test_me_with_non_owner_session(self, mock_resolve, client):
-        """Non-owner user session returns owner_access=False."""
+    @patch("api.routers.auth._get_memberships")
+    def test_me_with_non_owner_session(self, mock_get_memberships, mock_resolve, client):
+        """Non-owner user session returns owner_access=False and memberships."""
         mock_user = AsyncMock()
         mock_user.id = "user:legacy1"
         mock_user.display_name = "Vault User"
@@ -209,6 +213,7 @@ class TestAuthMe:
         mock_user.is_global_owner = False
         mock_user.active = True
         mock_resolve.return_value = mock_user
+        mock_get_memberships.return_value = []
 
         response = client.get(
             "/api/auth/me",
@@ -221,13 +226,14 @@ class TestAuthMe:
         assert data["auth_mode"] == "session"
         assert data["user"]["is_global_owner"] is False
         assert data["owner_access"] is False
+        assert data["memberships"] == []
 
     @patch("api.routers.auth.resolve_session")
     @patch("api.routers.auth._check_password")
     def test_me_with_legacy_password(
         self, mock_check_pw, mock_resolve, client
     ):
-        """Legacy password auth returns password mode (no user)."""
+        """Legacy password auth returns password mode (no user, no memberships)."""
         mock_resolve.return_value = None
         mock_check_pw.return_value = (True, True)
 
@@ -242,9 +248,10 @@ class TestAuthMe:
         assert data["auth_mode"] == "password"
         assert data["user"] is None
         assert data["owner_access"] is True
+        assert data["memberships"] == []
 
     def test_me_when_auth_disabled(self, client):
-        """When no password configured, returns disabled mode."""
+        """When no password configured, returns disabled mode with no memberships."""
         response = client.get("/api/auth/me")
 
         assert response.status_code == 200
@@ -252,6 +259,7 @@ class TestAuthMe:
         assert data["authenticated"] is True
         assert data["auth_mode"] == "disabled"
         assert data["user"] is None
+        assert data["memberships"] == []
 
     @patch("api.routers.auth.resolve_session")
     @patch("api.routers.auth._check_password")
@@ -277,6 +285,219 @@ class TestAuthMe:
         assert data["authenticated"] is False
         assert data["auth_mode"] == "password"
         assert data["user"] is None
+        assert data["memberships"] == []
+
+
+# =========================================================================
+# GET /api/auth/me — membership data (Phase F3a)
+# =========================================================================
+
+
+class TestAuthMeMemberships:
+    """Verify that /api/auth/me returns safe membership data."""
+
+    @patch("api.routers.auth.repo_query")
+    @patch("api.routers.auth.resolve_session")
+    def test_session_user_with_teacher_membership(
+        self, mock_resolve_session, mock_repo_query, client
+    ):
+        """Session user with an active teacher membership sees it in response."""
+        user = _make_mock_user(is_global_owner=False, user_id="user:teacher1")
+        mock_resolve_session.return_value = user
+        mock_repo_query.return_value = [
+            _make_mock_membership_row(
+                membership_id="school_membership:m1",
+                school_id="school:s1",
+                role="teacher",
+                active=True,
+            ),
+        ]
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer test-session-token"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["authenticated"] is True
+        assert data["auth_mode"] == "session"
+        assert data["owner_access"] is False
+        assert len(data["memberships"]) == 1
+        mem = data["memberships"][0]
+        assert mem["membership_id"] == "m1"
+        assert mem["school_id"] == "s1"
+        assert mem["role"] == "teacher"
+        assert mem["active"] is True
+
+    @patch("api.routers.auth.repo_query")
+    @patch("api.routers.auth.resolve_session")
+    def test_session_user_with_school_owner_membership(
+        self, mock_resolve_session, mock_repo_query, client
+    ):
+        """Session user with an active school-owner membership sees it."""
+        user = _make_mock_user(is_global_owner=False, user_id="user:so1")
+        mock_resolve_session.return_value = user
+        mock_repo_query.return_value = [
+            _make_mock_membership_row(
+                membership_id="school_membership:m2",
+                school_id="school:s2",
+                role="owner",
+                active=True,
+            ),
+        ]
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer test-session-token"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["memberships"]) == 1
+        mem = data["memberships"][0]
+        assert mem["role"] == "owner"
+
+    @patch("api.routers.auth.repo_query")
+    @patch("api.routers.auth.resolve_session")
+    def test_session_user_no_memberships(
+        self, mock_resolve_session, mock_repo_query, client
+    ):
+        """Session user with no memberships gets empty list."""
+        user = _make_mock_user(is_global_owner=False, user_id="user:learner1")
+        mock_resolve_session.return_value = user
+        mock_repo_query.return_value = []
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer test-session-token"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["authenticated"] is True
+        assert data["memberships"] == []
+
+    @patch("api.routers.auth.repo_query")
+    @patch("api.routers.auth.resolve_session")
+    def test_global_owner_memberships_may_be_empty(
+        self, mock_resolve_session, mock_repo_query, client
+    ):
+        """Global owner still works even with empty memberships."""
+        user = _make_mock_user(is_global_owner=True, user_id="user:god")
+        mock_resolve_session.return_value = user
+        mock_repo_query.return_value = []  # No memberships needed
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer test-session-token"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["authenticated"] is True
+        assert data["owner_access"] is True
+        assert data["user"]["is_global_owner"] is True
+        # Global owners get empty memberships (not a blocker)
+        assert data["memberships"] == []
+
+    @patch("api.routers.auth.repo_query")
+    @patch("api.routers.auth.resolve_session")
+    def test_inactive_membership_excluded(
+        self, mock_resolve_session, mock_repo_query, client
+    ):
+        """Inactive memberships are not returned (query filters active=true)."""
+        user = _make_mock_user(is_global_owner=False, user_id="user:inactive1")
+        mock_resolve_session.return_value = user
+        # Only active memberships returned by the query
+        mock_repo_query.return_value = []
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer test-session-token"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        # No inactive memberships in response
+        assert data["memberships"] == []
+
+    @patch("api.routers.auth.repo_query")
+    @patch("api.routers.auth.resolve_session")
+    def test_no_sensitive_fields_in_memberships(
+        self, mock_resolve_session, mock_repo_query, client
+    ):
+        """Membership response never exposes sensitive fields."""
+        user = _make_mock_user(is_global_owner=False, user_id="user:safe1")
+        mock_resolve_session.return_value = user
+        mock_repo_query.return_value = [
+            _make_mock_membership_row(
+                membership_id="school_membership:m1",
+                school_id="school:s1",
+                role="teacher",
+                active=True,
+            ),
+        ]
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer test-session-token"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        mem = data["memberships"][0]
+        # Only safe fields present
+        assert "password_hash" not in mem
+        assert "token_hash" not in mem
+        assert "token" not in mem
+        assert "user_id" not in mem
+        assert "api_key" not in mem
+        # Allowed fields
+        assert "membership_id" in mem
+        assert "school_id" in mem
+        assert "role" in mem
+        assert "active" in mem
+
+    @patch("api.routers.auth._check_password")
+    def test_legacy_password_empty_memberships(
+        self, mock_check_password, client
+    ):
+        """Legacy password auth returns empty memberships."""
+        mock_check_password.return_value = (True, False)  # valid, not owner
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer legacy-password"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["authenticated"] is True
+        assert data["auth_mode"] == "password"
+        assert data["user"] is None
+        assert data["memberships"] == []
+
+    @patch("api.routers.auth.repo_query")
+    @patch("api.routers.auth.resolve_session")
+    def test_repo_query_failure_returns_empty(
+        self, mock_resolve_session, mock_repo_query, client
+    ):
+        """If the membership query fails, an empty list is returned (graceful)."""
+        user = _make_mock_user(is_global_owner=False, user_id="user:err1")
+        mock_resolve_session.return_value = user
+        mock_repo_query.side_effect = Exception("DB timeout")
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer test-session-token"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["authenticated"] is True
+        # Graceful degradation: empty memberships on query failure
+        assert data["memberships"] == []
 
 
 # =========================================================================
@@ -376,3 +597,39 @@ class TestSessionTokenHashing:
             vars_dict = call_args[1] if len(call_args) > 1 else {}
             assert vars_dict.get("hash") == expected_hash
             assert vars_dict.get("hash") != raw_token
+
+
+# =========================================================================
+# Helpers (shared across test classes)
+# =========================================================================
+
+
+def _make_mock_user(
+    is_global_owner: bool = False,
+    user_id: str = "user:t1",
+    display_name: str = "Test User",
+    email: str = "test@example.com",
+):
+    """Build a mock User-like object for auth tests."""
+    u = AsyncMock()
+    u.id = user_id
+    u.is_global_owner = is_global_owner
+    u.active = True
+    u.display_name = display_name
+    u.email = email
+    return u
+
+
+def _make_mock_membership_row(
+    membership_id: str = "school_membership:m1",
+    school_id: str = "school:s1",
+    role: str = "teacher",
+    active: bool = True,
+) -> dict:
+    """Build a mock SurrealDB result row for a school membership."""
+    return {
+        "id": membership_id,
+        "school_id": school_id,
+        "role": role,
+        "active": active,
+    }

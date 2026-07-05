@@ -965,6 +965,19 @@ class AuthMeResponse(BaseModel):
     )
     user: Optional[AuthUserResponse] = None
     owner_access: bool = False
+    memberships: list["AuthMembershipResponse"] = Field(
+        default_factory=list,
+        description="Active school memberships for role derivation",
+    )
+
+
+class AuthMembershipResponse(BaseModel):
+    """Safe membership data — never exposes password_hash or token_hash."""
+
+    membership_id: str
+    school_id: str
+    role: str
+    active: bool = True
 
 
 # ============================================================================
