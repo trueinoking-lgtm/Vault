@@ -525,15 +525,16 @@ async def list_class_activity(
     if not assigned_nids:
         return []
 
-    # Build OR filter for notebook IDs
-    notebook_filters = " OR ".join(
-        f"notebook_id = ${i}" for i in range(len(assigned_nids))
-    )
-    params: Dict[str, Any] = {
-        f"{i}": ensure_record_id(str(assigned_nids[i]))
-        for i in range(len(assigned_nids))
-    }
+    # Build OR filter for notebook IDs using SurrealDB-safe named params
+    # ($0, $1 … are not valid SurrealDB identifiers — use $nid_0, $nid_1 …)
+    filters: List[str] = []
+    params: Dict[str, Any] = {}
+    for i, nid in enumerate(assigned_nids):
+        pname = f"nid_{i}"
+        filters.append(f"notebook_id = ${pname}")
+        params[pname] = ensure_record_id(str(nid))
     params["lim"] = limit
+    notebook_filters = " OR ".join(filters)
 
     events = await repo_query(
         f"SELECT * FROM leaf_review_event "
