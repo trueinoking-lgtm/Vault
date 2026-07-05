@@ -2,15 +2,11 @@
 
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { FileText, BookOpen, MessageSquare, Brain, ArrowRight } from 'lucide-react'
+import { FileText, BookOpen, MessageSquare, Brain } from 'lucide-react'
 
 import { AppShell } from '@/components/layout/AppShell'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useCreateDialogs } from '@/lib/hooks/use-create-dialogs'
 import { useNotebooks } from '@/lib/hooks/use-notebooks'
 import { useTranslation } from '@/lib/hooks/use-translation'
-import { useRecentSources } from '@/lib/hooks/use-vault'
 
 const ContinueStudying = dynamic(
   () => import('@/components/vault/ContinueStudying'),
@@ -42,6 +38,11 @@ const LearnerAssignmentsSection = dynamic(
   { ssr: false }
 )
 
+const FirstStudyChecklist = dynamic(
+  () => import('./components/FirstStudyChecklist'),
+  { ssr: false }
+)
+
 const quickActions = [
   { icon: FileText, titleKey: 'vault.addMaterial', descKey: 'vault.addMaterialDesc', href: '/sources' },
   { icon: BookOpen, titleKey: 'vault.createLeaf', descKey: 'vault.createLeafDesc', href: '/sources' },
@@ -51,14 +52,10 @@ const quickActions = [
 
 export default function VaultPage() {
   const { t } = useTranslation()
-  const { openNotebookDialog } = useCreateDialogs()
   const { data: notebooks, isLoading: notebooksLoading } = useNotebooks(false)
-  const { data: recentMaterials, isLoading: materialsLoading } = useRecentSources(1)
 
   const hasLibraries = (notebooks?.length ?? 0) > 0
-  const hasMaterials = (recentMaterials?.length ?? 0) > 0
   const showFirstLibraryOnboarding = !notebooksLoading && !hasLibraries
-  const showFirstMaterialPrompt = !notebooksLoading && hasLibraries && !materialsLoading && !hasMaterials
 
   return (
     <AppShell>
@@ -66,44 +63,10 @@ export default function VaultPage() {
         <h1 className="text-2xl font-bold">{t('vault.title')}</h1>
         <p className="text-muted-foreground">{t('vault.description')}</p>
 
-        {showFirstLibraryOnboarding ? (
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle>{t('vault.firstLibraryTitle')}</CardTitle>
-              <CardDescription className="max-w-2xl text-sm leading-6">
-                {t('vault.firstLibraryBody')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3 sm:flex-row">
-              <Button onClick={openNotebookDialog}>
-                {t('vault.firstLibraryCta')}
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/sources">{t('vault.addMaterial')}</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {showFirstMaterialPrompt && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('vault.firstMaterialTitle')}</CardTitle>
-                  <CardDescription className="max-w-2xl text-sm leading-6">
-                    {t('vault.firstMaterialBody')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild>
-                    <Link href="/sources">
-                      {t('vault.addMaterial')}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+        <FirstStudyChecklist />
 
+        {showFirstLibraryOnboarding ? null : (
+          <>
             <section>
               <h2 className="text-lg font-semibold mb-3">{t('vault.quickActions')}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
