@@ -24,7 +24,7 @@ DEFINE FIELD IF NOT EXISTS created ON TABLE leaf_review_event TYPE datetime DEFA
 
 -- 3. Leaf review state (denormalized, derived from events)
 DEFINE TABLE IF NOT EXISTS leaf_review_state SCHEMAFULL;
-DEFINE FIELD IF NOT EXISTS note_id ON TABLE leaf_review_state TYPE record<note> UNIQUE;
+DEFINE FIELD IF NOT EXISTS note_id ON TABLE leaf_review_state TYPE record<note>;
 DEFINE FIELD IF NOT EXISTS notebook_id ON TABLE leaf_review_state TYPE record<notebook>;
 DEFINE FIELD IF NOT EXISTS needs_review ON TABLE leaf_review_state TYPE bool DEFAULT false;
 DEFINE FIELD IF NOT EXISTS last_event_type ON TABLE leaf_review_state TYPE string;
