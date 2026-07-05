@@ -1,0 +1,12 @@
+-- Rollback migration 18: Remove scoping fields from existing tables.
+-- No data loss — events, sessions, notes, notebooks, and sources remain intact.
+REMOVE FIELD IF EXISTS school_id ON TABLE notebook;
+REMOVE FIELD IF EXISTS created_by ON TABLE notebook;
+REMOVE FIELD IF EXISTS school_id ON TABLE source;
+REMOVE FIELD IF EXISTS created_by ON TABLE source;
+REMOVE FIELD IF EXISTS school_id ON TABLE note;
+REMOVE FIELD IF EXISTS user_id ON TABLE note;
+REMOVE FIELD IF EXISTS user_id ON TABLE study_session;
+REMOVE FIELD IF EXISTS school_id ON TABLE study_session;
+REMOVE FIELD IF EXISTS user_id ON TABLE leaf_review_event;
+REMOVE FIELD IF EXISTS user_id ON TABLE leaf_review_state;

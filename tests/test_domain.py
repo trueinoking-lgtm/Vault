@@ -19,6 +19,11 @@ from vault_core.ai.models import ModelManager
 from vault_core.domain.base import RecordModel
 from vault_core.domain.content_settings import ContentSettings
 from vault_core.domain.notebook import Asset, Note, Notebook, Source
+from vault_core.domain.study import (
+    LeafReviewEvent,
+    LeafReviewState,
+    StudySession,
+)
 from vault_core.domain.transformation import Transformation
 from vault_core.exceptions import InvalidInputError
 from vault_core.podcasts.models import EpisodeProfile, SpeakerProfile
@@ -724,6 +729,176 @@ class TestCredentialConfigBag:
             Credential(
                 name="Local Ollama", provider="ollama", config={"num_ctx": "not-an-int"}
             )
+
+
+# ============================================================================
+# TEST SUITE 8: Scoping Fields — legacy compat and school/user fields
+# ============================================================================
+
+
+class TestNotebookScopingFields:
+    """Notebook — dormant school scoping fields."""
+
+    def test_legacy_notebook_without_scoping(self):
+        """Legacy notebook (no school_id/created_by) still serializes."""
+        nb = Notebook(name="Legacy", description="No scoping")
+        assert nb.school_id is None
+        assert nb.created_by is None
+        data = nb.model_dump()
+        assert "school_id" in data
+        assert data["school_id"] is None
+        assert "created_by" in data
+        assert data["created_by"] is None
+
+    def test_notebook_with_scoping(self):
+        """Notebook carries optional school_id and created_by."""
+        nb = Notebook(
+            name="Scoped",
+            description="In school",
+            school_id="school:abc",
+            created_by="user:teacher1",
+        )
+        assert nb.school_id == "school:abc"
+        assert nb.created_by == "user:teacher1"
+        data = nb.model_dump()
+        assert data["school_id"] == "school:abc"
+        assert data["created_by"] == "user:teacher1"
+
+
+class TestSourceScopingFields:
+    """Source — dormant school scoping fields."""
+
+    def test_legacy_source_without_scoping(self):
+        """Legacy source (no school_id/created_by) still serializes."""
+        src = Source(title="Legacy Source")
+        assert src.school_id is None
+        assert src.created_by is None
+        data = src.model_dump()
+        assert "school_id" in data
+        assert data["school_id"] is None
+        assert "created_by" in data
+        assert data["created_by"] is None
+
+    def test_source_with_scoping(self):
+        """Source carries optional school_id and created_by."""
+        src = Source(
+            title="Scoped Source",
+            school_id="school:abc",
+            created_by="user:teacher1",
+        )
+        assert src.school_id == "school:abc"
+        assert src.created_by == "user:teacher1"
+
+
+class TestNoteScopingFields:
+    """Note — dormant school scoping fields."""
+
+    def test_legacy_note_without_scoping(self):
+        """Legacy note (no school_id/user_id) still serializes."""
+        note = Note(title="Legacy Note", content="Valid content")
+        assert note.school_id is None
+        assert note.user_id is None
+        data = note.model_dump()
+        assert "school_id" in data
+        assert data["school_id"] is None
+        assert "user_id" in data
+        assert data["user_id"] is None
+
+    def test_note_with_scoping(self):
+        """Note carries optional school_id and user_id."""
+        note = Note(
+            title="Scoped Note",
+            content="Learner note",
+            school_id="school:abc",
+            user_id="user:learner1",
+        )
+        assert note.school_id == "school:abc"
+        assert note.user_id == "user:learner1"
+
+
+# ============================================================================
+# TEST SUITE 9: Study/Review Domain Models — legacy and scoping
+# ============================================================================
+
+
+class TestStudySessionScopingFields:
+    """StudySession — dormant school scoping fields."""
+
+    def test_legacy_session_without_scoping(self):
+        """Legacy study session (no school_id/user_id) still serializes."""
+        session = StudySession(notebook_id="notebook:lib1")
+        assert session.school_id is None
+        assert session.user_id is None
+        data = session.model_dump()
+        assert "school_id" in data
+        assert data["school_id"] is None
+        assert "user_id" in data
+        assert data["user_id"] is None
+
+    def test_session_with_scoping(self):
+        """StudySession carries optional school_id and user_id."""
+        session = StudySession(
+            notebook_id="notebook:lib1",
+            school_id="school:abc",
+            user_id="user:learner1",
+        )
+        assert session.school_id == "school:abc"
+        assert session.user_id == "user:learner1"
+        # nullable_fields includes the new scoping fields
+        assert "school_id" in StudySession.nullable_fields
+        assert "user_id" in StudySession.nullable_fields
+
+
+class TestLeafReviewEventScopingFields:
+    """LeafReviewEvent — dormant user scoping field."""
+
+    def test_legacy_event_without_scoping(self):
+        """Legacy event (no user_id) still serializes."""
+        event = LeafReviewEvent(
+            session_id="study_session:s1",
+            note_id="note:n1",
+            notebook_id="notebook:lib1",
+            event_type="opened",
+        )
+        assert event.user_id is None
+        data = event.model_dump()
+        assert "user_id" in data
+        assert data["user_id"] is None
+
+    def test_event_with_user_id(self):
+        """LeafReviewEvent carries optional user_id."""
+        event = LeafReviewEvent(
+            session_id="study_session:s1",
+            note_id="note:n1",
+            notebook_id="notebook:lib1",
+            event_type="remembered",
+            user_id="user:learner1",
+        )
+        assert event.user_id == "user:learner1"
+
+
+class TestLeafReviewStateScopingFields:
+    """LeafReviewState — dormant user scoping field."""
+
+    def test_legacy_state_without_scoping(self):
+        """Legacy state (no user_id) still serializes."""
+        state = LeafReviewState(
+            note_id="note:n1",
+            notebook_id="notebook:lib1",
+        )
+        assert state.user_id is None
+        data = state.model_dump()
+        assert "user_id" in data
+        assert data["user_id"] is None
+
+    def test_state_with_user_id(self):
+        """LeafReviewState carries optional user_id."""
+        state = LeafReviewState(
+            note_id="note:n1",
+            notebook_id="notebook:lib1",
+            user_id="user:learner1",
+        )
+        assert state.user_id == "user:learner1"
 
 
 if __name__ == "__main__":

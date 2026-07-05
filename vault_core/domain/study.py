@@ -40,12 +40,14 @@ STALE_SESSION_HOURS = 12
 
 class StudySession(ObjectModel):
     table_name: ClassVar[str] = "study_session"
-    nullable_fields: ClassVar[set[str]] = {"ended_at"}
+    nullable_fields: ClassVar[set[str]] = {"ended_at", "school_id", "user_id"}
     notebook_id: str
     status: str = "active"
     started_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
     leaf_count: int = 0
+    school_id: Optional[str] = None
+    user_id: Optional[str] = None
 
     @classmethod
     async def get_active_for_notebook(cls, notebook_id: str) -> Optional["StudySession"]:
@@ -123,12 +125,13 @@ class StudySession(ObjectModel):
 
 class LeafReviewEvent(ObjectModel):
     table_name: ClassVar[str] = "leaf_review_event"
-    nullable_fields: ClassVar[set[str]] = {"event_metadata"}
+    nullable_fields: ClassVar[set[str]] = {"event_metadata", "user_id"}
     session_id: str
     note_id: str
     notebook_id: str
     event_type: str
     event_metadata: Optional[Dict[str, Any]] = None
+    user_id: Optional[str] = None
 
     @classmethod
     async def get_for_note(cls, note_id: str, limit: int = 50) -> List["LeafReviewEvent"]:
@@ -226,12 +229,14 @@ def _parse_event_time(created_str: str) -> Optional[datetime]:
 
 class LeafReviewState(ObjectModel):
     table_name: ClassVar[str] = "leaf_review_state"
+    nullable_fields: ClassVar[set[str]] = {"user_id"}
     note_id: str
     notebook_id: str
     needs_review: bool = False
     last_event_type: str = ""
     last_event_at: Optional[datetime] = None
     review_count: int = 0
+    user_id: Optional[str] = None
 
     @classmethod
     async def get_for_notebook(

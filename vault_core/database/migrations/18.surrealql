@@ -1,0 +1,28 @@
+-- Migration 18: Add nullable scoping fields to existing learner/material tables.
+--
+-- Adds dormant school_id, created_by, and user_id fields to support future
+-- Epsilon school/class tenancy without data migration.
+-- All fields are option<> so existing single-learner records are unaffected.
+-- No tenancy enforcement; no query filtering; no backfill.
+
+-- 1. Notebook — optional school and creator reference
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE notebook TYPE option<record<school>>;
+DEFINE FIELD IF NOT EXISTS created_by ON TABLE notebook TYPE option<record<user>>;
+
+-- 2. Source — optional school and creator reference
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE source TYPE option<record<school>>;
+DEFINE FIELD IF NOT EXISTS created_by ON TABLE source TYPE option<record<user>>;
+
+-- 3. Note — optional school and owning user reference
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE note TYPE option<record<school>>;
+DEFINE FIELD IF NOT EXISTS user_id ON TABLE note TYPE option<record<user>>;
+
+-- 4. Study session — optional user and school scoping
+DEFINE FIELD IF NOT EXISTS user_id ON TABLE study_session TYPE option<record<user>>;
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE study_session TYPE option<record<school>>;
+
+-- 5. Leaf review event — optional user scoping
+DEFINE FIELD IF NOT EXISTS user_id ON TABLE leaf_review_event TYPE option<record<user>>;
+
+-- 6. Leaf review state — optional user scoping
+DEFINE FIELD IF NOT EXISTS user_id ON TABLE leaf_review_state TYPE option<record<user>>;

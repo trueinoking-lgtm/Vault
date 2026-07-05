@@ -15,9 +15,12 @@ from vault_core.exceptions import DatabaseOperationError, InvalidInputError
 
 class Notebook(ObjectModel):
     table_name: ClassVar[str] = "notebook"
+    nullable_fields: ClassVar[set[str]] = {"school_id", "created_by"}
     name: str
     description: str
     archived: Optional[bool] = False
+    school_id: Optional[str] = None
+    created_by: Optional[str] = None
 
     @field_validator("name")
     @classmethod
@@ -357,6 +360,8 @@ class Source(ObjectModel):
     table_name: ClassVar[str] = "source"
     asset: Optional[Asset] = None
     title: Optional[str] = None
+    school_id: Optional[str] = None
+    created_by: Optional[str] = None
     topics: Optional[List[str]] = Field(default_factory=list)
     full_text: Optional[str] = None
     command: Optional[Union[str, RecordID]] = Field(
@@ -625,6 +630,8 @@ class Note(ObjectModel):
     title: Optional[str] = None
     note_type: Optional[Literal["human", "ai"]] = None
     content: Optional[str] = None
+    school_id: Optional[str] = None
+    user_id: Optional[str] = None
 
     @field_validator("content")
     @classmethod

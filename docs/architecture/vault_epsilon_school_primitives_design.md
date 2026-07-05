@@ -940,4 +940,20 @@ No data loss — events, sessions, and notes remain intact. The `user_id` and `s
 
 ---
 
+    *-- Rollback migration 18*
+    *REMOVE FIELD IF EXISTS school_id ON TABLE notebook;*
+    *REMOVE FIELD IF EXISTS created_by ON TABLE notebook;*
+    *REMOVE FIELD IF EXISTS school_id ON TABLE source;*
+    *REMOVE FIELD IF EXISTS created_by ON TABLE source;*
+    *REMOVE FIELD IF EXISTS school_id ON TABLE note;*
+    *REMOVE FIELD IF EXISTS user_id ON TABLE note;*
+    *REMOVE FIELD IF EXISTS user_id ON TABLE study_session;*
+    *REMOVE FIELD IF EXISTS school_id ON TABLE study_session;*
+    *REMOVE FIELD IF EXISTS user_id ON TABLE leaf_review_event;*
+    *REMOVE FIELD IF EXISTS user_id ON TABLE leaf_review_state;*
+    *
+
+No data loss — events, sessions, and notes remain intact. The `user_id` and `school_id` fields are simply removed from the schema.
+
+---
 *Prepared: 2026-07-04 · Git ref: `0595c15`*
