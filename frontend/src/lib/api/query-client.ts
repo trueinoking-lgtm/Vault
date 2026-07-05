@@ -47,4 +47,10 @@ export const QUERY_KEYS = {
   classroom: (id: string) => ['classrooms', id] as const,
   classroomEnrollments: (classroomId: string) => ['classrooms', classroomId, 'enrollments'] as const,
   classroomAssignments: (classroomId: string) => ['classrooms', classroomId, 'assignments'] as const,
+
+  // Teacher dashboard
+  teacherClasses: ['teacher', 'classes'] as const,
+  classProgress: (classroomId: string) => ['teacher', 'classes', classroomId] as const,
+  classLearners: (classroomId: string) => ['teacher', 'classes', classroomId, 'learners'] as const,
+  classActivity: (classroomId: string) => ['teacher', 'classes', classroomId, 'activity'] as const,
 }

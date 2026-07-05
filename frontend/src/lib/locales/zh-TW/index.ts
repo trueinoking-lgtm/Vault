@@ -1126,4 +1126,18 @@ export const zhTW = {
     libraryPickerDeferred: "Library/notebook picker not yet available. Enter the notebook ID directly.",
 
   },
+    // Teacher dashboard
+    teacherDashboard: "Teacher Dashboard",
+    teacherDashboardDescription: "Review class activity and learner progress signals. Vault shows review signals, not grades. Private reflections are not shown.",
+    noClassesYet: "No classes yet. Contact your school administrator to get started.",
+    teacherLoadError: "Failed to load class data. Please try again.",
+    learnerCount: "Learners",
+    activeLearnerCount: "Active",
+    assignmentCount: "Assignments",
+    needsPractice: "Needs Practice",
+    needsReview: "Needs Review",
+    remembered: "Remembered",
+    lastActivity: "Last Activity",
+    limitedData: "Limited data (user scoping not yet available)",
+    privacyNotice: "Vault shows review signals, not grades. Private reflections are not shown.",
 }

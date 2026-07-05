@@ -403,3 +403,45 @@ export interface ClassroomAssignmentCreate {
   notebook_id: string
   assigned_by: string
 }
+
+// ── Teacher Dashboard Types (Epsilon E3) ─────────────────────────────
+
+export interface TeacherClassSummary {
+  classroom_id: string
+  classroom_name: string
+  subject?: string | null
+  grade_level?: string | null
+  school_id: string
+  learner_count: number
+  active_learner_count: number
+  assignment_count: number
+  active_assignment_count: number
+  recent_study_session_count: number
+  needs_practice_leaf_count: number
+  needs_review_leaf_count: number
+  remembered_leaf_count: number
+  last_activity_at?: string | null
+  data_status: string
+}
+
+export type ClassProgressSummary = TeacherClassSummary
+
+export interface LearnerProgressSummary {
+  learner_id: string
+  learner_display_name?: string | null
+  enrollment_id: string
+  enrollment_active: boolean
+  needs_practice_leaf_count: number
+  needs_review_leaf_count: number
+  remembered_leaf_count: number
+  last_activity_at?: string | null
+}
+
+export interface ClassActivityEntry {
+  event_id: string
+  learner_id?: string | null
+  notebook_id: string
+  note_id: string
+  event_type: string
+  event_time: string
+}
