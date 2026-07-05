@@ -965,3 +965,75 @@ class AuthMeResponse(BaseModel):
     )
     user: Optional[AuthUserResponse] = None
     owner_access: bool = False
+
+
+# ============================================================================
+# Teacher / Class Progress Read Models (Epsilon E2)
+# ============================================================================
+
+
+class TeacherClassSummary(BaseModel):
+    """Summary of a classroom for the teacher class list view."""
+
+    classroom_id: str
+    classroom_name: str
+    subject: Optional[str] = None
+    grade_level: Optional[str] = None
+    school_id: str
+    learner_count: int = 0
+    active_learner_count: int = 0
+    assignment_count: int = 0
+    active_assignment_count: int = 0
+    recent_study_session_count: int = 0
+    needs_practice_leaf_count: int = 0
+    needs_review_leaf_count: int = 0
+    remembered_leaf_count: int = 0
+    last_activity_at: Optional[str] = None
+    data_status: str = "ok"
+
+
+class ClassProgressSummary(BaseModel):
+    """Aggregate progress summary for a single classroom."""
+
+    classroom_id: str
+    classroom_name: str
+    subject: Optional[str] = None
+    grade_level: Optional[str] = None
+    school_id: str
+    learner_count: int = 0
+    active_learner_count: int = 0
+    assignment_count: int = 0
+    active_assignment_count: int = 0
+    recent_study_session_count: int = 0
+    needs_practice_leaf_count: int = 0
+    needs_review_leaf_count: int = 0
+    remembered_leaf_count: int = 0
+    last_activity_at: Optional[str] = None
+    data_status: str = "ok"
+
+
+class LearnerProgressSummary(BaseModel):
+    """Per-learner progress summary — safe fields only."""
+
+    learner_id: str
+    learner_display_name: Optional[str] = None
+    enrollment_id: str
+    enrollment_active: bool = True
+    needs_practice_leaf_count: int = 0
+    needs_review_leaf_count: int = 0
+    remembered_leaf_count: int = 0
+    last_activity_at: Optional[str] = None
+
+
+class ClassActivityEntry(BaseModel):
+    """A single review event in the class activity feed.
+
+    Contains only metadata — no reflection text, no AI diagnosis.
+    """
+
+    event_id: str
+    learner_id: Optional[str] = None
+    notebook_id: str
+    note_id: str
+    event_type: str
+    event_time: str
