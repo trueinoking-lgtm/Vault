@@ -18,6 +18,7 @@
 |---------|------|--------|------------|
 | **Vault frontend** | `3003` | `0.0.0.0:3003` (public) | Next.js 16 standalone |
 | **Vault backend (API)** | `5055` | `127.0.0.1:5055` (local-only) | FastAPI / uvicorn |
+| **Vault worker** | — | (no port) | surreal-commands background worker |
 | **SurrealDB** | `8000` | `127.0.0.1:8000` (local-only) | SurrealDB |
 | **AetherLink** | `3002` | `127.0.0.1:3002` (local-only) | Next.js (separate app) |
 
@@ -34,6 +35,10 @@ ss -tlnp | grep 3003
 # Vault backend
 ss -tlnp | grep 5055
 # Expected: LISTEN 127.0.0.1:5055 with uvicorn
+
+# Vault worker (no listening port — check process)
+pgrep -af "surreal-commands-worker" | grep -v grep
+# Expected: one or more worker processes
 
 # SurrealDB
 ss -tlnp | grep 8000
@@ -146,6 +151,19 @@ sudo systemctl restart vault-backend.service
 sudo systemctl status vault-backend.service
 # Logs: sudo journalctl -fu vault-backend.service
 ```
+
+If using **systemd** for the worker (recommended for production):
+
+```bash
+sudo systemctl restart vault-worker.service
+sudo systemctl status vault-worker.service
+# Logs: sudo journalctl -fu vault-worker.service
+```
+
+> **⚠️ Worker is required for async jobs.** Without the worker running,
+> source embedding, note embedding, insight creation, and podcast generation
+> will be queued but never processed. Sources stay stuck at "CommandStatus.NEW".
+> See `deploy/systemd/vault-worker.service` for the service template.
 
 > **SurrealDB dependency check:** The backend requires SurrealDB to be running on port 8000.
 > Verify before restarting the backend:
@@ -285,6 +303,7 @@ git revert --no-commit HEAD          # revert the latest commit
 | Frontend (systemd) | journald | `sudo journalctl -fu vault-frontend.service` |
 | Backend (nohup) | `/var/log/vault-api.log` | `tail -f /var/log/vault-api.log` |
 | Backend (systemd template) | journald | `sudo journalctl -fu vault-backend.service` |
+| Worker (systemd template) | journald | `sudo journalctl -fu vault-worker.service` |
 | SurrealDB | terminal or journald | `sudo journalctl -fu surrealdb` (if running via systemd) |
 | Next.js build | stdout (terminal) | Review build output |
 | `npm ci` / `npm run build` | stdout (terminal) | `cd frontend && npm run build 2>&1 | tee build.log` |

@@ -18,6 +18,26 @@ Vault can bootstrap Fireworks AI as the default AI provider automatically when `
 - Existing user-customized defaults are NOT overwritten (unless forced)
 - No secrets are committed to git or exposed in API responses
 
+### ⚠️ Worker Required for Embeddings
+
+The Fireworks embedding model (`qwen3-embedding-8b`) is used for source and note embeddings. These embeddings are processed by the **background worker** (`surreal-commands-worker`), not the API server directly.
+
+**Without the worker running:**
+- Source uploads succeed but embedding jobs stay queued forever
+- Sources show `Source processing status: CommandStatus.NEW` indefinitely
+- Vector search returns no results for newly uploaded content
+
+**Start the worker:**
+```bash
+# Development
+make worker
+# or: uv run --env-file .env surreal-commands-worker --import-modules commands
+
+# Production (systemd)
+sudo systemctl start vault-worker.service
+```
+
+See `deploy/systemd/vault-worker.service` for the systemd service template.
 ---
 
 ## Required Environment Variables
