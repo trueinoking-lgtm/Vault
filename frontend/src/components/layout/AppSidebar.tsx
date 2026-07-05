@@ -8,6 +8,9 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks/use-auth'
+import { useUserRole } from '@/lib/hooks/use-user-role'
+import type { UserRole } from '@/lib/types/api'
+import type { LucideIcon } from 'lucide-react'
 import { useSidebarStore } from '@/lib/stores/sidebar-store'
 import { useCreateDialogs } from '@/lib/hooks/use-create-dialogs'
 import {
@@ -36,27 +39,73 @@ import {
   FileText,
   Plus,
   Command,
+  GraduationCap,
+  Shield,
 } from 'lucide-react'
 
-const getNavigation = (t: TFunction) => [
-  {
-    title: '',
-    items: [
-      { name: t('vault.vaultHome'), href: '/vault', icon: Command },
-      { name: t('navigation.materials'), href: '/sources', icon: FileText },
-      { name: t('navigation.libraries'), href: '/notebooks', icon: Book },
-      { name: t('navigation.askAndSearch'), href: '/search', icon: Search },
-    ],
-  },
-] as const
+/**
+ * Build sidebar navigation items based on the current user role.
+ *
+ * NAV VISIBILITY IS UX, NOT AUTHORIZATION.
+ * Backend permission guards remain the real security boundary for all
+ * /owner/*, /api/owner/*, /teacher/*, and /api/teacher/* routes.
+ */
+const getNavigation = (t: TFunction, role: UserRole | null) => {
+  const items: Array<{
+    title: string
+    items: Array<{ name: string; href: string; icon: LucideIcon }>
+  }> = [
+    {
+      title: '',
+      items: [
+        { name: t('vault.vaultHome'), href: '/vault', icon: Command },
+        { name: t('navigation.materials'), href: '/sources', icon: FileText },
+        { name: t('navigation.libraries'), href: '/notebooks', icon: Book },
+        { name: t('navigation.askAndSearch'), href: '/search', icon: Search },
+      ],
+    },
+  ]
+
+  // Teacher dashboard — shown to global_owners, school_owners, and teachers
+  // While role is loading (null) or on error, do NOT show restricted links.
+  if (role === 'global_owner' || role === 'teacher') {
+    items.push({
+      title: '',
+      items: [
+        {
+          name: t('navigation.teacherDashboard'),
+          href: '/teacher',
+          icon: GraduationCap,
+        },
+      ],
+    })
+  }
+
+  // Owner tools — shown only to global_owners (backend also enforces)
+  if (role === 'global_owner') {
+    items.push({
+      title: '',
+      items: [
+        {
+          name: t('navigation.ownerTools'),
+          href: '/owner',
+          icon: Shield,
+        },
+      ],
+    })
+  }
+
+  return items
+}
 
 type CreateTarget = 'source' | 'notebook'
 
 export function AppSidebar() {
   const { t } = useTranslation()
-  const navigation = getNavigation(t)
-  const pathname = usePathname()
   const { logout } = useAuth()
+  const { role, isResolved } = useUserRole()
+  const navigation = getNavigation(t, isResolved ? role : null)
+  const pathname = usePathname()
   const { isCollapsed, toggleCollapse } = useSidebarStore()
   const { openSourceDialog, openNotebookDialog } = useCreateDialogs()
 
@@ -205,7 +254,7 @@ export function AppSidebar() {
           </div>
 
           {navigation.map((section, index) => (
-            <div key={section.title}>
+            <div key={section.title || `nav-section-${index}`}>
               {index > 0 && (
                 <Separator className="my-3" />
               )}

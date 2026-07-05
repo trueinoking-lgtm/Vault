@@ -213,6 +213,8 @@ export const enUS = {
     language: "Toggle language",
     theme: "Theme",
     ask: "Ask",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Libraries",

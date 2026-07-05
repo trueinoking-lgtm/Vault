@@ -213,6 +213,8 @@ export const trTR = {
     language: "Dili değiştir",
     theme: "Tema",
     ask: "Sor",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Defterler",

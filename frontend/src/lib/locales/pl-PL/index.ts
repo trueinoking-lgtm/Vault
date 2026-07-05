@@ -213,6 +213,8 @@ export const plPL = {
     language: "Przełącz język",
     theme: "Motyw",
     ask: "Pytaj",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Notatniki",

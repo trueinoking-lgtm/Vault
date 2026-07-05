@@ -213,6 +213,8 @@ export const bnIN = {
     language: "ভাষা টগল",
     theme: "থিম",
     ask: "জিজ্ঞাসা",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "নোটবুকগুলি",

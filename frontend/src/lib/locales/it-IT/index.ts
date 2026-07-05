@@ -213,6 +213,8 @@ export const itIT = {
     language: "Cambia lingua",
     theme: "Tema",
     ask: "Chiedi",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Quaderni",

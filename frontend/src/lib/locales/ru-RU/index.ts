@@ -213,6 +213,8 @@ export const ruRU = {
     language: "Переключить язык",
     theme: "Тема",
     ask: "Запрос",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Блокноты",

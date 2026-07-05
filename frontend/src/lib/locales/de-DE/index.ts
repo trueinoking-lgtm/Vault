@@ -216,6 +216,8 @@ export const deDE = {
     language: "Sprache wechseln",
     theme: "Design",
     ask: "Fragen",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Notebooks",

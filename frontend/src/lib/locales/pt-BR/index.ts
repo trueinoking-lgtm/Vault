@@ -213,6 +213,8 @@ export const ptBR = {
     language: "Alternar idioma",
     theme: "Tema",
     ask: "Perguntar",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Cadernos",

@@ -213,6 +213,8 @@ export const frFR = {
     language: "Changer de langue",
     theme: "Thème",
     ask: "Demander",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Carnets",

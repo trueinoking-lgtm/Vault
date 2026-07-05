@@ -213,6 +213,8 @@ export const zhCN = {
     language: "切换语言",
     theme: "主题",
     ask: "提问",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "笔记本",

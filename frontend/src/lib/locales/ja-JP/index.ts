@@ -213,6 +213,8 @@ export const jaJP = {
     language: "言語を切り替え",
     theme: "テーマ",
     ask: "質問",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "ノートブック",

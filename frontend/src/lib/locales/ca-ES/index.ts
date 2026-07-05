@@ -213,6 +213,8 @@ export const caES = {
     language: "Canvia l'idioma",
     theme: "Tema",
     ask: "Pregunta",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Quaderns",

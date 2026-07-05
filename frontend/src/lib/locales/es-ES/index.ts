@@ -213,6 +213,8 @@ export const esES = {
     language: "Cambiar idioma",
     theme: "Tema",
     ask: "Preguntar",
+    teacherDashboard: "Teacher Dashboard",
+    ownerTools: "Owner Tools",
   },
   notebooks: {
     title: "Cuadernos",
