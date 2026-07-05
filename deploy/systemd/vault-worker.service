@@ -1,11 +1,7 @@
 # Vault Background Worker — systemd Service Template
 #
-# This is a documented template for running the Vault surreal-commands
-# background worker as a systemd service.  It is NOT auto-installed —
-# copy it into place and adjust paths / env vars for your deployment.
-#
-# The worker processes async jobs: source embedding, note embedding,
-# insight embedding, podcast generation, and other background tasks.
+# Processes async jobs: source embedding, note embedding, insight embedding,
+# podcast generation, and other background tasks.
 # Without this worker, sources stay stuck at "CommandStatus.NEW" forever.
 #
 # Installation:
@@ -22,53 +18,36 @@
 #   sudo journalctl -u vault-worker.service -f
 #
 # See docs/operations/vault_release_runbook.md for full runbook.
-#
-# ⚠️ Paths below assume the repository lives at /root/vault-lms/repo.
-#    Adjust WorkingDirectory and ExecStart if your layout differs.
-# ⚠️ VAULT_OWNER_PASSWORD is set here as an example — use a systemd
-#    EnvironmentFile or a secure credential store in production.
 
 [Unit]
 Description=Vault Background Worker (surreal-commands)
 Documentation=https://github.com/trueinoking-lgtm/Vault
-After=network.target surrealdb.service vault-backend.service
+After=network.target
 Wants=network-online.target
-Requires=surrealdb.service
 
 [Service]
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/root/vault-lms/repo
+WorkingDirectory=/root/vault-open-notebook
+
+# Environment loaded from project .env (contains SurrealDB creds, FIREWORKS_API_KEY, etc.)
+# systemd EnvironmentFile uses KEY=VALUE format — compatible with .env
+EnvironmentFile=/root/vault-open-notebook/.env
 
 # Python runtime via uv — imports commands module for job handlers
-ExecStart=/root/vault-lms/repo/.venv/bin/uv run \
-    --env-file /root/vault-lms/repo/.env \
+ExecStart=/usr/local/lib/hermes-agent/venv/bin/uv run \
+    --env-file /root/vault-open-notebook/.env \
     surreal-commands-worker --import-modules commands
 
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=15
 
-# Environment — adjust per deployment
-Environment=VAULT_OWNER_PASSWORD=change-me
-Environment=VAULT_ENCRYPTION_KEY=change-me-too
-Environment=SURREAL_URL=ws://127.0.0.1:8000/rpc
-Environment=SURREAL_USER=root
-Environment=SURREAL_PASSWORD=root
-Environment=SURREAL_NAMESPACE=vault
-Environment=SURREAL_DATABASE=vault
-
 # Logging — everything goes to journald
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=vault-worker
-
-# Security hardening
-NoNewPrivileges=yes
-ProtectHome=read-only
-ProtectSystem=full
-PrivateTmp=yes
 
 [Install]
 WantedBy=multi-user.target
