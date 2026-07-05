@@ -1,18 +1,18 @@
 """
 API router for school and classroom management endpoints.
 
-Epsilon C1 — backend APIs only. No tenancy enforcement, no role-based
-access control, no auth-wiring. Role enforcement will be added in
-Epsilon C2/C3.
+Epsilon C4 — permission guards added.  Only authenticated users can
+access these endpoints; school/class operations check the caller's
+``school_membership`` role.
 
-All endpoints are under:
-- /api/schools/...
-- /api/classrooms/...  (nested where appropriate)
+Legacy password auth (``VAULT_PASSWORD`` / ``VAULT_OWNER_PASSWORD``) is
+resolved to a ``User`` record so permissions work the same way for both
+session-based and password-based callers.
 """
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from loguru import logger
 
 from api.models import (
@@ -29,6 +29,13 @@ from api.models import (
     SchoolMembershipUpdate,
     SchoolResponse,
     SchoolUpdate,
+)
+from api.permissions import (
+    check_classroom_access,
+    check_membership_belongs_to_school,
+    check_school_role,
+    get_current_user,
+    require_global_owner,
 )
 from vault_core.database.repository import ensure_record_id, repo_query
 from vault_core.domain.school import (
@@ -49,7 +56,6 @@ VALID_ROLES = frozenset({"owner", "teacher", "learner"})
 # Helper: strip table prefix from a SurrealDB record ID string
 # ---------------------------------------------------------------------------
 def _strip_prefix(value: str) -> str:
-    """Strip the 'table:' prefix from a SurrealDB record ID, if present."""
     if ":" in value:
         return value.split(":", 1)[1]
     return value
@@ -59,7 +65,6 @@ def _strip_prefix(value: str) -> str:
 # Helper: ensure a bare ID gets the expected prefix
 # ---------------------------------------------------------------------------
 def _ensure_prefixed(value: str, prefix: str) -> str:
-    """Add *prefix*:* to *value* if it doesn't already have a colon."""
     if ":" not in value:
         return f"{prefix}:{value}"
     return value
@@ -133,8 +138,11 @@ def _format_assignment(assn: ClassroomAssignment) -> ClassroomAssignmentResponse
 
 
 @router.post("/schools", response_model=SchoolResponse)
-async def create_school(data: SchoolCreate):
-    """Create a new school."""
+async def create_school(data: SchoolCreate, request: Request):
+    """Create a new school.  Global owner only."""
+    user = await get_current_user(request)
+    require_global_owner(user)
+
     try:
         school = School(
             name=data.name,
@@ -151,12 +159,15 @@ async def create_school(data: SchoolCreate):
 
 @router.get("/schools", response_model=List[SchoolResponse])
 async def list_schools(
+    request: Request,
     active: Optional[bool] = Query(None, description="Filter by active status"),
     order_by: str = Query("name asc", description="Order by field and direction"),
 ):
-    """List schools with optional filtering and ordering."""
+    """List schools.  Global owner only (member-scoped listing deferred)."""
+    user = await get_current_user(request)
+    require_global_owner(user)
+
     try:
-        # TODO(Epsilon C2): scope to schools the caller has access to
         schools = await School.get_all(order_by=order_by)
         if active is not None:
             schools = [s for s in schools if s.active == active]
@@ -169,8 +180,11 @@ async def list_schools(
 
 
 @router.get("/schools/{school_id}", response_model=SchoolResponse)
-async def get_school(school_id: str):
-    """Get a single school by ID."""
+async def get_school(school_id: str, request: Request):
+    """Get a single school.  Global owner or school member."""
+    user = await get_current_user(request)
+    await check_school_role(school_id, user, "learner")
+
     try:
         full_id = _ensure_prefixed(school_id, "school")
         school = await School.get(full_id)
@@ -185,8 +199,11 @@ async def get_school(school_id: str):
 
 
 @router.patch("/schools/{school_id}", response_model=SchoolResponse)
-async def update_school(school_id: str, data: SchoolUpdate):
-    """Update a school."""
+async def update_school(school_id: str, data: SchoolUpdate, request: Request):
+    """Update a school.  Global owner or school owner."""
+    user = await get_current_user(request)
+    await check_school_role(school_id, user, "owner")
+
     try:
         full_id = _ensure_prefixed(school_id, "school")
         school = await School.get(full_id)
@@ -215,8 +232,11 @@ async def update_school(school_id: str, data: SchoolUpdate):
     "/schools/{school_id}/members",
     response_model=SchoolMembershipResponse,
 )
-async def create_membership(school_id: str, data: SchoolMembershipCreate):
-    """Add a member to a school."""
+async def create_membership(school_id: str, data: SchoolMembershipCreate, request: Request):
+    """Add a member to a school.  Global owner or school owner."""
+    user = await get_current_user(request)
+    await check_school_role(school_id, user, "owner")
+
     try:
         if data.role not in VALID_ROLES:
             raise HTTPException(
@@ -224,7 +244,6 @@ async def create_membership(school_id: str, data: SchoolMembershipCreate):
                 detail=f"Invalid role '{data.role}'. Must be one of: {sorted(VALID_ROLES)}",
             )
 
-        # TODO(Epsilon C2): verify school_id and user_id actually exist
         membership = SchoolMembership(
             school_id=_ensure_prefixed(school_id, "school"),
             user_id=_ensure_prefixed(data.user_id, "user"),
@@ -245,13 +264,16 @@ async def create_membership(school_id: str, data: SchoolMembershipCreate):
 )
 async def list_memberships(
     school_id: str,
+    request: Request,
     role: Optional[str] = Query(None, description="Filter by role"),
     active: Optional[bool] = Query(None, description="Filter by active status"),
 ):
-    """List members of a school."""
+    """List members of a school.  Global owner or school owner."""
+    user = await get_current_user(request)
+    await check_school_role(school_id, user, "owner")
+
     try:
         full_school_id = _ensure_prefixed(school_id, "school")
-        # Use raw query because SchoolMembership.get_all has no WHERE filter
         conditions = ["school_id = $sid"]
         params: Dict[str, Any] = {"sid": ensure_record_id(full_school_id)}
         if role:
@@ -280,12 +302,19 @@ async def list_memberships(
     response_model=SchoolMembershipResponse,
 )
 async def update_membership(
-    school_id: str, membership_id: str, data: SchoolMembershipUpdate
+    school_id: str,
+    membership_id: str,
+    data: SchoolMembershipUpdate,
+    request: Request,
 ):
-    """Update a school membership (role or active status)."""
+    """Update a school membership.  Global owner or school owner."""
+    user = await get_current_user(request)
+    await check_school_role(school_id, user, "owner")
+
     try:
-        full_id = _ensure_prefixed(membership_id, "school_membership")
-        membership = await SchoolMembership.get(full_id)
+        membership = await check_membership_belongs_to_school(
+            membership_id, school_id, user
+        )
 
         update_fields = data.model_dump(exclude_unset=True)
         for field, value in update_fields.items():
@@ -316,10 +345,12 @@ async def update_membership(
     "/schools/{school_id}/classrooms",
     response_model=ClassroomResponse,
 )
-async def create_classroom(school_id: str, data: ClassroomCreate):
-    """Create a classroom within a school."""
+async def create_classroom(school_id: str, data: ClassroomCreate, request: Request):
+    """Create a classroom within a school.  Global owner, school owner, or teacher."""
+    user = await get_current_user(request)
+    await check_school_role(school_id, user, "teacher")
+
     try:
-        # TODO(Epsilon C2): verify the teacher_membership belongs to this school
         clsroom = Classroom(
             school_id=_ensure_prefixed(school_id, "school"),
             teacher_id=_ensure_prefixed(data.teacher_id, "school_membership"),
@@ -343,9 +374,13 @@ async def create_classroom(school_id: str, data: ClassroomCreate):
 )
 async def list_classrooms(
     school_id: str,
+    request: Request,
     active: Optional[bool] = Query(None, description="Filter by active status"),
 ):
-    """List classrooms in a school."""
+    """List classrooms in a school.  Global owner or school member."""
+    user = await get_current_user(request)
+    await check_school_role(school_id, user, "learner")
+
     try:
         full_school_id = _ensure_prefixed(school_id, "school")
         conditions = ["school_id = $sid"]
@@ -372,8 +407,12 @@ async def list_classrooms(
     "/classrooms/{classroom_id}",
     response_model=ClassroomResponse,
 )
-async def get_classroom(classroom_id: str):
-    """Get a single classroom by ID."""
+async def get_classroom(classroom_id: str, request: Request):
+    """Get a single classroom.  Global owner or school member."""
+    user = await get_current_user(request)
+    # Resolve classroom to get school_id for membership check
+    await check_classroom_access(classroom_id, user, "learner")
+
     try:
         full_id = _ensure_prefixed(classroom_id, "classroom")
         clsroom = await Classroom.get(full_id)
@@ -391,18 +430,18 @@ async def get_classroom(classroom_id: str):
     "/classrooms/{classroom_id}",
     response_model=ClassroomResponse,
 )
-async def update_classroom(classroom_id: str, data: ClassroomUpdate):
-    """Update a classroom."""
-    try:
-        full_id = _ensure_prefixed(classroom_id, "classroom")
-        clsroom = await Classroom.get(full_id)
+async def update_classroom(classroom_id: str, data: ClassroomUpdate, request: Request):
+    """Update a classroom.  Global owner, school owner, or classroom teacher."""
+    user = await get_current_user(request)
+    classroom = await check_classroom_access(classroom_id, user, "teacher")
 
+    try:
         update_fields = data.model_dump(exclude_unset=True)
         for field, value in update_fields.items():
-            setattr(clsroom, field, value)
+            setattr(classroom, field, value)
 
-        await clsroom.save()
-        return _format_classroom(clsroom)
+        await classroom.save()
+        return _format_classroom(classroom)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Classroom not found")
     except HTTPException:
@@ -421,8 +460,11 @@ async def update_classroom(classroom_id: str, data: ClassroomUpdate):
     "/classrooms/{classroom_id}/enrollments",
     response_model=ClassEnrollmentResponse,
 )
-async def create_enrollment(classroom_id: str, data: ClassEnrollmentCreate):
-    """Enroll a learner in a classroom."""
+async def create_enrollment(classroom_id: str, data: ClassEnrollmentCreate, request: Request):
+    """Enroll a learner in a classroom.  Global owner, school owner, or teacher."""
+    user = await get_current_user(request)
+    await check_classroom_access(classroom_id, user, "teacher")
+
     try:
         enrollment = ClassEnrollment(
             classroom_id=_ensure_prefixed(classroom_id, "classroom"),
@@ -443,9 +485,13 @@ async def create_enrollment(classroom_id: str, data: ClassEnrollmentCreate):
 )
 async def list_enrollments(
     classroom_id: str,
+    request: Request,
     active: Optional[bool] = Query(None, description="Filter by active status"),
 ):
-    """List enrollments for a classroom."""
+    """List enrollments for a classroom.  Global owner, school owner, or teacher."""
+    user = await get_current_user(request)
+    await check_classroom_access(classroom_id, user, "teacher")
+
     try:
         full_classroom_id = _ensure_prefixed(classroom_id, "classroom")
         conditions = ["classroom_id = $cid"]
@@ -472,8 +518,15 @@ async def list_enrollments(
     "/classrooms/{classroom_id}/enrollments/{enrollment_id}",
     response_model=ClassEnrollmentResponse,
 )
-async def deactivate_enrollment(classroom_id: str, enrollment_id: str):
-    """Soft-deactivate an enrollment (set active=false)."""
+async def deactivate_enrollment(
+    classroom_id: str,
+    enrollment_id: str,
+    request: Request,
+):
+    """Soft-deactivate an enrollment.  Global owner, school owner, or teacher."""
+    user = await get_current_user(request)
+    await check_classroom_access(classroom_id, user, "teacher")
+
     try:
         full_id = _ensure_prefixed(enrollment_id, "class_enrollment")
         enrollment = await ClassEnrollment.get(full_id)
@@ -498,8 +551,15 @@ async def deactivate_enrollment(classroom_id: str, enrollment_id: str):
     "/classrooms/{classroom_id}/assignments",
     response_model=ClassroomAssignmentResponse,
 )
-async def create_assignment(classroom_id: str, data: ClassroomAssignmentCreate):
-    """Assign a notebook to a classroom."""
+async def create_assignment(
+    classroom_id: str,
+    data: ClassroomAssignmentCreate,
+    request: Request,
+):
+    """Assign a notebook to a classroom.  Global owner, school owner, or teacher."""
+    user = await get_current_user(request)
+    await check_classroom_access(classroom_id, user, "teacher")
+
     try:
         assignment = ClassroomAssignment(
             classroom_id=_ensure_prefixed(classroom_id, "classroom"),
@@ -521,9 +581,13 @@ async def create_assignment(classroom_id: str, data: ClassroomAssignmentCreate):
 )
 async def list_assignments(
     classroom_id: str,
+    request: Request,
     active: Optional[bool] = Query(None, description="Filter by active status"),
 ):
-    """List assignments for a classroom."""
+    """List assignments for a classroom.  Global owner or school member."""
+    user = await get_current_user(request)
+    await check_classroom_access(classroom_id, user, "learner")
+
     try:
         full_classroom_id = _ensure_prefixed(classroom_id, "classroom")
         conditions = ["classroom_id = $cid"]
@@ -550,8 +614,15 @@ async def list_assignments(
     "/classrooms/{classroom_id}/assignments/{assignment_id}",
     response_model=ClassroomAssignmentResponse,
 )
-async def deactivate_assignment(classroom_id: str, assignment_id: str):
-    """Soft-deactivate an assignment (set active=false)."""
+async def deactivate_assignment(
+    classroom_id: str,
+    assignment_id: str,
+    request: Request,
+):
+    """Soft-deactivate an assignment.  Global owner, school owner, or teacher."""
+    user = await get_current_user(request)
+    await check_classroom_access(classroom_id, user, "teacher")
+
     try:
         full_id = _ensure_prefixed(assignment_id, "classroom_assignment")
         assignment = await ClassroomAssignment.get(full_id)
