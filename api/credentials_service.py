@@ -61,6 +61,7 @@ PROVIDER_ENV_CONFIG: Dict[str, dict] = {
     },
     "dashscope": {"required": ["DASHSCOPE_API_KEY"]},
     "minimax": {"required": ["MINIMAX_API_KEY"]},
+    "fireworks": {"required": ["FIREWORKS_API_KEY"]},
 }
 
 PROVIDER_MODALITIES: Dict[str, List[str]] = {
@@ -81,6 +82,7 @@ PROVIDER_MODALITIES: Dict[str, List[str]] = {
     "openai_compatible": ["language", "embedding", "speech_to_text", "text_to_speech"],
     "dashscope": ["language"],
     "minimax": ["language"],
+    "fireworks": ["language", "embedding"],
 }
 
 
@@ -301,6 +303,15 @@ def create_credential_from_env(provider: str) -> Credential:
             modalities=modalities,
             api_key=SecretStr(api_key) if api_key else None,
         )
+    elif provider == "fireworks":
+        api_key = os.environ.get("FIREWORKS_API_KEY")
+        return Credential(
+            name=name,
+            provider=provider,
+            modalities=modalities,
+            api_key=SecretStr(api_key) if api_key else None,
+            base_url="https://api.fireworks.ai/inference/v1",
+        )
     else:
         # Simple API key providers
         config = PROVIDER_ENV_CONFIG.get(provider, {})
@@ -398,6 +409,23 @@ async def test_credential(credential_id: str) -> dict:
                 }
             success, message = await _test_openai_compatible_connection(
                 base_url, api_key
+            )
+            return {"provider": provider, "success": success, "message": message}
+
+        if provider == "fireworks":
+            # Fireworks uses OpenAI-compatible API — test via compatible connection
+            fireworks_url = config.get(
+                "base_url", "https://api.fireworks.ai/inference/v1"
+            )
+            api_key = config.get("api_key")
+            if not api_key:
+                return {
+                    "provider": provider,
+                    "success": False,
+                    "message": "No API key configured",
+                }
+            success, message = await _test_openai_compatible_connection(
+                fireworks_url, api_key
             )
             return {"provider": provider, "success": success, "message": message}
 
@@ -602,6 +630,35 @@ async def discover_with_config(provider: str, config: dict) -> List[dict]:
         except Exception as e:
             logger.warning(f"Failed to discover Azure models: {e}")
             return []
+
+    if provider == "fireworks":
+        # Fireworks uses OpenAI-compatible API
+        fireworks_url = base_url or "https://api.fireworks.ai/inference/v1"
+        if not api_key:
+            return []
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{fireworks_url.rstrip('/')}/models",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    timeout=30.0,
+                )
+                response.raise_for_status()
+                data = response.json()
+                return [
+                    {"name": m.get("id", ""), "provider": "fireworks"}
+                    for m in data.get("data", [])
+                    if m.get("id")
+                ]
+        except Exception as e:
+            logger.warning(f"Failed to discover Fireworks models: {e}")
+            # Fall back to curated list
+            return [
+                {"name": "accounts/fireworks/models/deepseek-v4-flash", "provider": "fireworks"},
+                {"name": "accounts/fireworks/models/deepseek-v3-0324", "provider": "fireworks"},
+                {"name": "accounts/fireworks/models/llama-v3p3-70b-instruct", "provider": "fireworks"},
+                {"name": "accounts/fireworks/models/qwen3-embedding-8b", "provider": "fireworks"},
+            ]
 
     if provider == "vertex":
         # Vertex AI requires service-account OAuth2 for model listing.

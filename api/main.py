@@ -149,6 +149,23 @@ async def lifespan(app: FastAPI):
         logger.warning(f"Podcast profile migration encountered errors: {e}")
         # Non-fatal: profiles can be migrated manually via UI
 
+    # Fireworks AI bootstrap — seed defaults if FIREWORKS_API_KEY is set
+    try:
+        from vault_core.ai.fireworks_bootstrap import bootstrap_fireworks
+
+        fireworks_result = await bootstrap_fireworks()
+        if fireworks_result.get("status") == "ok":
+            logger.success(
+                f"Fireworks bootstrap complete: "
+                f"chat={fireworks_result.get('chat_model_id')}, "
+                f"embedding={fireworks_result.get('embedding_model_id')}"
+            )
+        elif fireworks_result.get("status") == "skipped":
+            logger.debug(f"Fireworks bootstrap skipped: {fireworks_result.get('reason')}")
+    except Exception as e:
+        logger.warning(f"Fireworks bootstrap encountered errors: {e}")
+        # Non-fatal: Fireworks can be configured manually via UI
+
     logger.success("API initialization completed successfully")
 
     # Yield control to the application

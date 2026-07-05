@@ -147,6 +147,24 @@ class ModelManager:
         # Normalize provider name: DB stores underscores but Esperanto expects hyphens
         provider = model.provider.replace("_", "-")
 
+        # Fireworks uses OpenAI-compatible API — map to openai_compatible adapter
+        fireworks_mapped = False
+        if provider == "fireworks":
+            from vault_core.ai.key_provider import get_api_key
+
+            fireworks_mapped = True
+            fireworks_key = config.get("api_key") or await get_api_key("fireworks")
+            if fireworks_key:
+                config["api_key"] = fireworks_key
+            config.setdefault(
+                "base_url", "https://api.fireworks.ai/inference/v1"
+            )
+            provider = "openai-compatible"
+            logger.debug(
+                f"Mapped Fireworks provider to openai-compatible adapter "
+                f"(base_url={config.get('base_url')})"
+            )
+
         # Create model based on type (Esperanto will cache the instance)
         if model.type == "language":
             return AIFactory.create_language(

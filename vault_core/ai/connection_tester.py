@@ -34,6 +34,7 @@ TEST_MODELS = {
     "openai_compatible": (None, "language"),  # Dynamic - will use first available model
     "dashscope": ("qwen-plus", "language"),
     "minimax": ("MiniMax-M2.5", "language"),
+    "fireworks": ("accounts/fireworks/models/deepseek-v4-flash", "language"),
 }
 
 

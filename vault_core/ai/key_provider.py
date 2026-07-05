@@ -70,6 +70,9 @@ PROVIDER_CONFIG = {
     "minimax": {
         "env_var": "MINIMAX_API_KEY",
     },
+    "fireworks": {
+        "env_var": "FIREWORKS_API_KEY",
+    },
 }
 
 

@@ -91,6 +91,7 @@ PROVIDER_PRIORITY = [
     "mistral",
     "groq",
     "deepseek",
+    "fireworks",
     "xai",
     "openrouter",
     "ollama",
@@ -107,6 +108,7 @@ MODEL_PREFERENCES = {
     "google": ["gemini-2.0", "gemini-1.5-pro", "gemini-pro"],
     "mistral": ["mistral-large", "mixtral"],
     "groq": ["llama-3.3", "llama-3.1", "mixtral"],
+    "fireworks": ["deepseek-v4-flash", "deepseek-v3"],
     "dashscope": ["qwen-max", "qwen-plus", "qwen-turbo"],
     "minimax": ["MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
 }
@@ -385,6 +387,7 @@ async def get_provider_availability():
             "ollama": "OLLAMA_API_BASE",
             "dashscope": "DASHSCOPE_API_KEY",
             "minimax": "MINIMAX_API_KEY",
+            "fireworks": "FIREWORKS_API_KEY",
         }
 
         provider_status = {}

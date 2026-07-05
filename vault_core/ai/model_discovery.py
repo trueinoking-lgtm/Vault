@@ -153,6 +153,11 @@ MINIMAX_MODEL_TYPES = {
     "language": ["minimax", "abab"],
 }
 
+FIREWORKS_MODEL_TYPES = {
+    "language": ["deepseek", "llama", "qwen", "mixtral", "starcoder"],
+    "embedding": ["embedding", "qwen3"],
+}
+
 
 def classify_model_type(model_name: str, provider: str) -> str:
     """
@@ -175,6 +180,7 @@ def classify_model_type(model_name: str, provider: str) -> str:
         "deepgram": DEEPGRAM_MODEL_TYPES,
         "dashscope": DASHSCOPE_MODEL_TYPES,
         "minimax": MINIMAX_MODEL_TYPES,
+        "fireworks": FIREWORKS_MODEL_TYPES,
     }
 
     mapping = type_mappings.get(provider, {})
@@ -711,6 +717,63 @@ async def discover_openai_compatible_models() -> List[DiscoveredModel]:
     return models
 
 
+async def discover_fireworks_models() -> List[DiscoveredModel]:
+    """Discover available models from Fireworks AI via OpenAI-compatible API.
+
+    Uses the FIREWORKS_API_KEY environment variable and the Fireworks
+    models endpoint. Returns curated model list since Fireworks has a
+    stable model catalog.
+    """
+    api_key = os.environ.get("FIREWORKS_API_KEY")
+    if not api_key:
+        return []
+
+    # Try the Fireworks models endpoint first
+    fireworks_base = "https://api.fireworks.ai/inference/v1"
+    models = []
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{fireworks_base}/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            for model in data.get("data", []):
+                model_id = model.get("id", "")
+                if model_id:
+                    model_type = classify_model_type(model_id, "fireworks")
+                    models.append(
+                        DiscoveredModel(
+                            name=model_id,
+                            provider="fireworks",
+                            model_type=model_type,
+                        )
+                    )
+    except Exception as e:
+        logger.debug(f"Fireworks live discovery failed ({e}), using curated list")
+        # Fall back to curated list of known Fireworks models
+        curated = [
+            ("accounts/fireworks/models/deepseek-v4-flash", "language"),
+            ("accounts/fireworks/models/deepseek-v3-0324", "language"),
+            ("accounts/fireworks/models/llama-v3p3-70b-instruct", "language"),
+            ("accounts/fireworks/models/mixtral-8x22b-instruct", "language"),
+            ("accounts/fireworks/models/qwen3-embedding-8b", "embedding"),
+        ]
+        for name, mtype in curated:
+            models.append(
+                DiscoveredModel(
+                    name=name,
+                    provider="fireworks",
+                    model_type=mtype,
+                )
+            )
+
+    return models
+
+
 # =============================================================================
 # Main Discovery Functions
 # =============================================================================
@@ -732,6 +795,7 @@ PROVIDER_DISCOVERY_FUNCTIONS = {
     "openai_compatible": discover_openai_compatible_models,
     "dashscope": discover_dashscope_models,
     "minimax": discover_minimax_models,
+    "fireworks": discover_fireworks_models,
     "azure": None,  # Azure requires credential-based discovery (different auth)
     "vertex": None,  # Vertex requires credential-based discovery (service account)
 }
