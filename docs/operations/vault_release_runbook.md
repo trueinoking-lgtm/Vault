@@ -3,6 +3,13 @@
 **Target domain:** `https://vault-lms.duckdns.org`  
 **Last updated:** 2026-07-05
 
+> Throughout this runbook, `$REPO_DIR` refers to the repository root.
+> On the production VPS this is `/root/vault-lms/repo` (do not rely on the
+> directory name matching old project naming). Set it once before running commands:
+> ```bash
+> REPO_DIR=/root/vault-lms/repo
+> ```
+
 ---
 
 ## 1. Runtime Layout
@@ -59,7 +66,7 @@ Before any release, confirm:
 ### Step 1 — Pull Latest & Verify Tree
 
 ```bash
-cd /root/vault-open-notebook
+cd "$REPO_DIR"
 git pull
 git status --short          # expect clean
 ```
@@ -117,7 +124,7 @@ kill -TERM "$PID"
 sleep 2
 
 # Restart:
-cd /root/vault-open-notebook
+cd "$REPO_DIR"
 nohup uv run uvicorn api.main:app --host 0.0.0.0 --port 5055 \
   > /var/log/vault-api.log 2>&1 &
 
@@ -177,7 +184,7 @@ curl -s https://vault-lms.duckdns.org/api/auth/status
 
 ```bash
 # 1. Check out the previous commit
-cd /root/vault-open-notebook
+cd "$REPO_DIR"
 git log --oneline -5                  # find the commit to revert to
 git checkout <previous-stable-hash> -- frontend/
 
@@ -214,7 +221,7 @@ git checkout <previous-stable-hash> -- api/ vault_core/
 PID=$(pgrep -f "uvicorn api.main:app")
 kill -TERM "$PID"
 sleep 2
-cd /root/vault-open-notebook
+cd "$REPO_DIR"
 nohup uv run uvicorn api.main:app --host 0.0.0.0 --port 5055 \
   > /var/log/vault-api.log 2>&1 &
 
@@ -300,7 +307,7 @@ tail -50 /var/log/vault-api.log
 # Restart
 kill -TERM $(pgrep -f "uvicorn api.main:app")
 sleep 2
-cd /root/vault-open-notebook
+cd "$REPO_DIR"
 nohup uv run uvicorn api.main:app --host 0.0.0.0 --port 5055 \
   > /var/log/vault-api.log 2>&1 &
 ```
