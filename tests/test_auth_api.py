@@ -349,6 +349,8 @@ class TestSessionTokenHashing:
         assert stored_token_hash == expected_hash
         # The raw token itself should NOT be in the stored data
         assert stored_token_hash != raw_token
+        # user_id is passed as table:id string (compatible with ensure_record_refs)
+        assert call_kwargs.get("user_id") == "user:test1"
 
     def test_resolve_session_hashes_input(self):
         """resolve_session hashes the input token when querying."""

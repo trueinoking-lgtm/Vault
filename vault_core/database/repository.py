@@ -1,4 +1,5 @@
 import os
+import re
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, TypeVar, Union
@@ -59,6 +60,36 @@ def ensure_record_id(value: Union[str, RecordID]) -> RecordID:
     return RecordID.parse(value)
 
 
+# Regex pattern for SurrealDB record ID format: table_name:string_id
+_RECORD_ID_PATTERN = re.compile(r"^[a-z][a-z_]*:[a-zA-Z0-9][a-zA-Z0-9_\-]*$")
+
+
+def ensure_record_refs(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert string record references to RecordID objects for SurrealDB.
+
+    Recursively walks the data dict and converts any string value that
+    matches the ``table:id`` pattern to a ``RecordID`` object. This is
+    necessary because the SurrealDB Python driver expects ``RecordID``
+    objects (not plain strings) for fields typed as ``record<table>``.
+
+    Only converts values whose key ends with ``_id`` to minimise false
+    positives on unrelated colon-containing strings.
+    """
+    result: Dict[str, Any] = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            result[key] = ensure_record_refs(value)
+        elif (
+            isinstance(value, str)
+            and key.endswith("_id")
+            and _RECORD_ID_PATTERN.match(value)
+        ):
+            result[key] = RecordID.parse(value)
+        else:
+            result[key] = value
+    return result
+
+
 @asynccontextmanager
 async def db_connection():
     db = AsyncSurreal(get_database_url())
@@ -101,6 +132,8 @@ async def repo_create(table: str, data: Dict[str, Any]) -> Dict[str, Any]:
     data.pop("id", None)
     data["created"] = datetime.now(timezone.utc)
     data["updated"] = datetime.now(timezone.utc)
+    # Normalize string record references to RecordID objects
+    data = ensure_record_refs(data)
     try:
         async with db_connection() as connection:
             result = parse_record_ids(await connection.insert(table, data))
@@ -183,6 +216,8 @@ async def repo_insert(
     table: str, data: List[Dict[str, Any]], ignore_duplicates: bool = False
 ) -> List[Dict[str, Any]]:
     """Create a new record in the specified table"""
+    # Normalize string record references to RecordID objects
+    data = [ensure_record_refs(item) for item in data]
     try:
         async with db_connection() as connection:
             result = parse_record_ids(await connection.insert(table, data))
