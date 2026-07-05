@@ -280,10 +280,15 @@ class TestSchoolPermissions:
         response = client.get("/api/schools/abc")
         assert response.status_code == 401
 
+    @patch("api.permissions.repo_query")
     @patch("api.routers.schools.get_current_user")
-    def test_non_member_gets_403_get_school(self, mock_get_user, client, non_owner_user):
-        """Authenticated but non-member gets 403."""
+    def test_non_member_gets_403_get_school(self, mock_get_user, mock_query, client, non_owner_user):
+        """Authenticated but non-member gets 403.
+
+        Unit-style permission test — must not reach the database.
+        """
         mock_get_user.return_value = non_owner_user
+        mock_query.return_value = []  # no membership → check_school_role raises 403
         # check_school_role will raise 403 because the user has no membership
         response = client.get("/api/schools/some-school")
         assert response.status_code == 403
@@ -353,10 +358,15 @@ class TestCreateMembership:
         data = response.json()
         assert data["role"] == "teacher"
 
+    @patch("api.permissions.repo_query")
     @patch("api.routers.schools.get_current_user")
-    def test_non_owner_cannot_create(self, mock_get_user, client, non_owner_user):
-        """Non-owner gets 403."""
+    def test_non_owner_cannot_create(self, mock_get_user, mock_query, client, non_owner_user):
+        """Non-owner gets 403.
+
+        Unit-style permission test — must not reach the database.
+        """
         mock_get_user.return_value = non_owner_user
+        mock_query.return_value = []  # no membership → check_school_role raises 403
 
         response = client.post(
             "/api/schools/abc/members",
