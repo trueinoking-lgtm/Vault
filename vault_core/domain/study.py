@@ -276,7 +276,7 @@ class LeafReviewState(ObjectModel):
         """
         from vault_core.database.repository import repo_upsert
 
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        now_dt = datetime.now(timezone.utc)
         needs_review = event_type == "needs_review"
 
         data = {
@@ -284,16 +284,20 @@ class LeafReviewState(ObjectModel):
             "notebook_id": ensure_record_id(notebook_id),
             "needs_review": needs_review,
             "last_event_type": event_type,
-            "last_event_at": now,
-            "updated": now,
+            "last_event_at": now_dt,
+            "updated": now_dt,
         }
 
-        # Use the note_id as the primary identifier for upsert
-        # The table has UNIQUE constraint on note_id
+        # Use the note_id as the primary identifier for upsert.
+        # The ``UPSERT`` target must be a proper record ID within the
+        # leaf_review_state table (``table:record_key``) — a bare string
+        # without a colon is treated as a table name by SurrealDB,
+        # silently writing to the wrong table.
         try:
+            state_key = f"{cls.table_name}:{note_id.replace(':', '_')}"
             result = await repo_upsert(
                 cls.table_name,
-                note_id.replace(":", "_"),  # safe id for upsert
+                state_key,
                 data,
                 add_timestamp=False,
             )

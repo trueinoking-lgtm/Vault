@@ -415,6 +415,204 @@ class TestWeakSpotHeuristic:
         assert label is None
 
 
+# =========================================================================
+# LeafReviewState upsert integration tests (repository-level)
+# =========================================================================
+
+
+class TestLeafReviewStateUpsert:
+    """Validates the actual repo_upsert target and review_count logic.
+
+    Unlike the mocked router tests above, these test the domain model's
+    ``upsert_from_event`` method with mocked ``repo_upsert`` / ``repo_query``
+    to verify the correct SurrealDB UPSERT target is used and that the
+    state record is properly created/updated.
+    """
+
+    # ------------------------------------------------------------------
+    # Helper: build a minimal state dict that can round-trip through .save()
+    # ------------------------------------------------------------------
+
+    def _state_record(
+        self,
+        note_id: str,
+        needs_review: bool,
+        last_event_type: str,
+        review_count: int = 0,
+    ) -> dict:
+        return {
+            "id": f"leaf_review_state:note_{note_id}",
+            "note_id": f"note:{note_id}",
+            "notebook_id": "notebook:test_nb",
+            "needs_review": needs_review,
+            "last_event_type": last_event_type,
+            "review_count": review_count,
+            "created": "2026-07-05T12:00:00Z",
+            "updated": "2026-07-05T12:00:00Z",
+        }
+
+    def _run(self, fn, *args, **kwargs):
+        import asyncio
+        return asyncio.run(fn(*args, **kwargs))
+
+    @patch("vault_core.domain.study.repo_query")
+    @patch("vault_core.database.repository.repo_upsert")
+    def test_upsert_targets_correct_table(self, mock_repo_upsert, mock_repo_query):
+        """UPSERT targets ``leaf_review_state:note_<id>`` not bare ``note_<id>``."""
+        from vault_core.domain.study import LeafReviewState
+
+        mock_repo_upsert.return_value = []
+        mock_repo_query.side_effect = [[], []]  # SELECT then save()
+
+        self._run(
+            LeafReviewState.upsert_from_event,
+            "note:test_note_a",
+            "notebook:test_nb",
+            "needs_review",
+        )
+
+        assert mock_repo_upsert.called, "repo_upsert should have been called"
+        call_table, call_id, call_data = mock_repo_upsert.call_args[0]
+        assert call_table == "leaf_review_state"
+        assert call_id.startswith(
+            "leaf_review_state:"
+        ), f"UPSERT target should include table prefix, got '{call_id}'"
+        assert (
+            "note_test_note_a" in call_id
+        ), f"UPSERT target should include note key, got '{call_id}'"
+        # Verify the old bug pattern is NOT present
+        assert call_id != "note_test_note_a", (
+            f"UPSERT target should NOT be bare 'note_test_note_a' "
+            f"(which SurrealDB treats as a table name)"
+        )
+
+    @patch("vault_core.domain.base.repo_update")
+    @patch("vault_core.domain.study.repo_query")
+    @patch("vault_core.database.repository.repo_upsert")
+    def test_needs_review_sets_needs_review_true(
+        self, mock_repo_upsert, mock_repo_query, mock_repo_update
+    ):
+        """needs_review event creates state with needs_review=True."""
+        from vault_core.domain.study import LeafReviewState
+
+        mock_repo_upsert.return_value = []
+        rec = self._state_record("test_note_b", True, "needs_review")
+        mock_repo_update.return_value = [rec]
+        mock_repo_query.return_value = [rec]
+
+        result = self._run(
+            LeafReviewState.upsert_from_event,
+            "note:test_note_b",
+            "notebook:test_nb",
+            "needs_review",
+        )
+
+        assert result is not None
+        assert result.needs_review is True
+        assert result.last_event_type == "needs_review"
+        call_data = mock_repo_upsert.call_args[0][2]
+        assert call_data.get("needs_review") is True
+
+    @patch("vault_core.domain.base.repo_update")
+    @patch("vault_core.domain.study.repo_query")
+    @patch("vault_core.database.repository.repo_upsert")
+    def test_remembered_sets_needs_review_false(
+        self, mock_repo_upsert, mock_repo_query, mock_repo_update
+    ):
+        """remembered event updates state with needs_review=False."""
+        from vault_core.domain.study import LeafReviewState
+
+        mock_repo_upsert.return_value = []
+        rec = self._state_record("test_note_c", False, "remembered")
+        mock_repo_update.return_value = [rec]
+        mock_repo_query.return_value = [rec]
+
+        result = self._run(
+            LeafReviewState.upsert_from_event,
+            "note:test_note_c",
+            "notebook:test_nb",
+            "remembered",
+        )
+
+        assert result.needs_review is False
+        assert result.last_event_type == "remembered"
+        call_data = mock_repo_upsert.call_args[0][2]
+        assert call_data.get("needs_review") is False
+
+    @patch("vault_core.domain.base.repo_update")
+    @patch("vault_core.domain.study.repo_query")
+    @patch("vault_core.database.repository.repo_upsert")
+    def test_review_count_increments_on_second_event(
+        self, mock_repo_upsert, mock_repo_query, mock_repo_update
+    ):
+        """Second event for same note increments review_count."""
+        from vault_core.domain.study import LeafReviewState
+
+        mock_repo_upsert.return_value = []
+        # Simulate existing review_count=2; after increment should be 3
+        rec = self._state_record("test_note_d", True, "needs_review", review_count=2)
+        mock_repo_update.return_value = [{**rec, "review_count": 3}]
+        mock_repo_query.return_value = [rec]
+
+        result = self._run(
+            LeafReviewState.upsert_from_event,
+            "note:test_note_d",
+            "notebook:test_nb",
+            "needs_review",
+        )
+
+        assert result is not None
+        assert result.review_count == 3  # 2 + 1
+
+    @patch("vault_core.domain.base.repo_update")
+    @patch("vault_core.domain.study.repo_query")
+    @patch("vault_core.database.repository.repo_upsert")
+    def test_same_note_upsert_is_idempotent(
+        self, mock_repo_upsert, mock_repo_query, mock_repo_update
+    ):
+        """Two upserts for the same note target the same record key."""
+        from vault_core.domain.study import LeafReviewState
+
+        mock_repo_upsert.return_value = []
+
+        rec_a = self._state_record("test_note_e", True, "needs_review")
+        rec_b = self._state_record("test_note_e", False, "remembered")
+
+        # First call (needs_review) → SELECT + save()
+        mock_repo_update.return_value = [rec_a]
+        mock_repo_query.return_value = [rec_a]
+        self._run(
+            LeafReviewState.upsert_from_event,
+            "note:test_note_e",
+            "notebook:test_nb",
+            "needs_review",
+        )
+        first_call_id = mock_repo_upsert.call_args[0][1]
+
+        # Second call (remembered) → SELECT + save()
+        mock_repo_update.return_value = [rec_b]
+        mock_repo_query.return_value = [rec_b]
+        self._run(
+            LeafReviewState.upsert_from_event,
+            "note:test_note_e",
+            "notebook:test_nb",
+            "remembered",
+        )
+        second_call_id = mock_repo_upsert.call_args[0][1]
+
+        assert first_call_id == second_call_id, (
+            f"Same note should produce same UPSERT target: "
+            f"first='{first_call_id}', second='{second_call_id}'"
+        )
+
+    @patch("vault_core.database.repository.repo_upsert")
+    def test_empty_assigned_nids_skips_weak_spot_queries(self, mock_repo_upsert):
+        """No callbacks issued when there are no assigned notebooks."""
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        self._run(_compute_weak_spots_for_notebooks, [])
+        mock_repo_upsert.assert_not_called()
+
+
 class TestListStudySessions:
     """GET /api/study/sessions"""
 
