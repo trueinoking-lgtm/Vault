@@ -38,6 +38,7 @@ from api.routers import (
     tts,
 )
 from api.routers import commands as commands_router
+from api.routers import schools as schools_router
 from vault_core.database.async_migrate import AsyncMigrationManager
 from vault_core.exceptions import (
     AuthenticationError,
@@ -314,6 +315,7 @@ app.include_router(source_chat.router, prefix="/api", tags=["source-chat"])
 app.include_router(credentials.router, prefix="/api", tags=["credentials"])
 app.include_router(languages.router, prefix="/api", tags=["languages"])
 app.include_router(tts.router, prefix="/api", tags=["tts"])
+app.include_router(schools_router.router, prefix="/api", tags=["schools"])
 
 
 @app.get("/")

@@ -779,3 +779,146 @@ class StudySessionListResponse(BaseModel):
 
     items: List[StudySessionResponse] = Field(default_factory=list)
     total: int = 0
+
+
+# ============================================================================
+# School / Classroom API Models (Epsilon C1 — dormant, no tenancy enforcement)
+# ============================================================================
+
+
+class SchoolCreate(BaseModel):
+    """Request to create a school."""
+
+    name: str = Field(..., description="School display name")
+    slug: str = Field(
+        ..., description="URL-safe identifier", min_length=2, max_length=32
+    )
+    description: Optional[str] = Field(None, description="Optional description")
+    settings: Optional[Dict[str, Any]] = Field(
+        None, description="Flexible school-level settings"
+    )
+
+
+class SchoolUpdate(BaseModel):
+    """Request to update a school."""
+
+    name: Optional[str] = Field(None, description="School display name")
+    slug: Optional[str] = Field(None, description="URL-safe identifier")
+    description: Optional[str] = Field(None, description="Optional description")
+    settings: Optional[Dict[str, Any]] = Field(
+        None, description="Flexible school-level settings"
+    )
+    active: Optional[bool] = Field(None, description="Soft-deactivate school")
+
+
+class SchoolResponse(BaseModel):
+    """Response for a school."""
+
+    id: str
+    name: str
+    slug: str
+    description: Optional[str] = None
+    active: bool = True
+    created: str
+    updated: str
+
+
+class SchoolMembershipCreate(BaseModel):
+    """Request to add a member to a school."""
+
+    user_id: str = Field(..., description="User ID to add")
+    role: str = Field(
+        ..., description="Role: owner, teacher, or learner", pattern=r"^(owner|teacher|learner)$"
+    )
+
+
+class SchoolMembershipUpdate(BaseModel):
+    """Request to update a school membership."""
+
+    role: Optional[str] = Field(
+        None, description="Role: owner, teacher, or learner",
+        pattern=r"^(owner|teacher|learner)$",
+    )
+    active: Optional[bool] = Field(None, description="Soft-deactivate membership")
+
+
+class SchoolMembershipResponse(BaseModel):
+    """Response for a school membership."""
+
+    id: str
+    school_id: str
+    user_id: str
+    role: str
+    active: bool = True
+    joined_at: Optional[str] = None
+
+
+class ClassroomCreate(BaseModel):
+    """Request to create a classroom."""
+
+    teacher_id: str = Field(..., description="Teacher's school_membership ID")
+    name: str = Field(..., description="Classroom display name")
+    description: Optional[str] = Field(None, description="Optional description")
+    subject: Optional[str] = Field(None, description="Subject area")
+    grade_level: Optional[str] = Field(None, description="Grade or form level")
+
+
+class ClassroomUpdate(BaseModel):
+    """Request to update a classroom."""
+
+    name: Optional[str] = Field(None, description="Classroom display name")
+    description: Optional[str] = Field(None, description="Optional description")
+    subject: Optional[str] = Field(None, description="Subject area")
+    grade_level: Optional[str] = Field(None, description="Grade or form level")
+    active: Optional[bool] = Field(None, description="Soft-deactivate classroom")
+
+
+class ClassroomResponse(BaseModel):
+    """Response for a classroom."""
+
+    id: str
+    school_id: str
+    teacher_id: str
+    name: str
+    description: Optional[str] = None
+    subject: Optional[str] = None
+    grade_level: Optional[str] = None
+    active: bool = True
+    created: str
+    updated: str
+
+
+class ClassEnrollmentCreate(BaseModel):
+    """Request to enroll a learner in a classroom."""
+
+    learner_id: str = Field(..., description="Learner's school_membership ID")
+
+
+class ClassEnrollmentResponse(BaseModel):
+    """Response for a class enrollment."""
+
+    id: str
+    classroom_id: str
+    learner_id: str
+    enrolled_at: Optional[str] = None
+    active: bool = True
+
+
+class ClassroomAssignmentCreate(BaseModel):
+    """Request to assign a notebook to a classroom."""
+
+    notebook_id: str = Field(..., description="Notebook ID to assign")
+    assigned_by: str = Field(
+        ..., description="school_membership ID of the assigner"
+    )
+
+
+class ClassroomAssignmentResponse(BaseModel):
+    """Response for a classroom assignment."""
+
+    id: str
+    classroom_id: str
+    notebook_id: str
+    assigned_by: str
+    assigned_at: Optional[str] = None
+    active: bool = True
