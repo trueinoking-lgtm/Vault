@@ -48,9 +48,9 @@ class SearchResponse(BaseModel):
 
 class AskRequest(BaseModel):
     question: str = Field(..., description="Question to ask the knowledge base")
-    strategy_model: str = Field(..., description="Model ID for query strategy")
-    answer_model: str = Field(..., description="Model ID for individual answers")
-    final_answer_model: str = Field(..., description="Model ID for final answer")
+    strategy_model: Optional[str] = Field(None, description="Model ID for query strategy (resolves to default chat model if omitted)")
+    answer_model: Optional[str] = Field(None, description="Model ID for individual answers (resolves to default chat model if omitted)")
+    final_answer_model: Optional[str] = Field(None, description="Model ID for final answer (resolves to default chat model if omitted)")
 
 
 class AskResponse(BaseModel):

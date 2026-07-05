@@ -14,6 +14,55 @@ from vault_core.graphs.ask import graph as ask_graph
 router = APIRouter()
 
 
+async def _resolve_ask_model(
+    model_id: str | None, model_type: str, label: str
+) -> Model:
+    """Resolve an ask model ID, falling back to the default chat model.
+
+    Args:
+        model_id: Explicit model ID from the request (may be None).
+        model_type: Label used in error messages (e.g. "strategy").
+        label: Human-readable field name for error messages.
+
+    Returns:
+        The resolved Model object.
+
+    Raises:
+        HTTPException 422 if no model can be resolved.
+    """
+    if model_id:
+        model = await Model.get(model_id)
+        if model:
+            return model
+        raise HTTPException(
+            status_code=422,
+            detail=f"{label} model '{model_id}' not found",
+        )
+
+    # Fall back to the default chat model
+    defaults = await model_manager.get_defaults()
+    default_id = defaults.default_chat_model
+    if not default_id:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"No {model_type} model specified and no default chat model "
+                "is configured. Please set a default in Settings → Models "
+                "or pass explicit model IDs."
+            ),
+        )
+    model = await Model.get(default_id)
+    if not model:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"No {model_type} model specified and the configured "
+                f"default chat model '{default_id}' could not be found."
+            ),
+        )
+    return model
+
+
 @router.post("/search", response_model=SearchResponse)
 async def search_knowledge_base(search_request: SearchRequest):
     """Search the knowledge base using text or vector search."""
@@ -114,26 +163,16 @@ async def stream_ask_response(
 async def ask_knowledge_base(ask_request: AskRequest):
     """Ask the knowledge base a question using AI models."""
     try:
-        # Validate models exist
-        strategy_model = await Model.get(ask_request.strategy_model)
-        answer_model = await Model.get(ask_request.answer_model)
-        final_answer_model = await Model.get(ask_request.final_answer_model)
-
-        if not strategy_model:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Strategy model {ask_request.strategy_model} not found",
-            )
-        if not answer_model:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Answer model {ask_request.answer_model} not found",
-            )
-        if not final_answer_model:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Final answer model {ask_request.final_answer_model} not found",
-            )
+        # Resolve models (falls back to default chat model if not specified)
+        strategy_model = await _resolve_ask_model(
+            ask_request.strategy_model, "strategy", "Strategy"
+        )
+        answer_model = await _resolve_ask_model(
+            ask_request.answer_model, "answer", "Answer"
+        )
+        final_answer_model = await _resolve_ask_model(
+            ask_request.final_answer_model, "final answer", "Final answer"
+        )
 
         # Check if embedding model is available
         if not await model_manager.get_embedding_model():
@@ -166,26 +205,16 @@ async def ask_knowledge_base(ask_request: AskRequest):
 async def ask_knowledge_base_simple(ask_request: AskRequest):
     """Ask the knowledge base a question and return a simple response (non-streaming)."""
     try:
-        # Validate models exist
-        strategy_model = await Model.get(ask_request.strategy_model)
-        answer_model = await Model.get(ask_request.answer_model)
-        final_answer_model = await Model.get(ask_request.final_answer_model)
-
-        if not strategy_model:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Strategy model {ask_request.strategy_model} not found",
-            )
-        if not answer_model:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Answer model {ask_request.answer_model} not found",
-            )
-        if not final_answer_model:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Final answer model {ask_request.final_answer_model} not found",
-            )
+        # Resolve models (falls back to default chat model if not specified)
+        strategy_model = await _resolve_ask_model(
+            ask_request.strategy_model, "strategy", "Strategy"
+        )
+        answer_model = await _resolve_ask_model(
+            ask_request.answer_model, "answer", "Answer"
+        )
+        final_answer_model = await _resolve_ask_model(
+            ask_request.final_answer_model, "final answer", "Final answer"
+        )
 
         # Check if embedding model is available
         if not await model_manager.get_embedding_model():
