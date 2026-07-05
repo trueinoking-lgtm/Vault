@@ -418,3 +418,399 @@ class TestTeacherPermissions:
         response = client.get("/api/teacher/classes/other-class")
 
         assert response.status_code == 403
+
+
+# =========================================================================
+# Weak-spot heuristic tests
+# =========================================================================
+
+
+class TestWeakSpotHeuristic:
+    """Unit tests for the Delta weak-spot heuristic (_compute_weak_spots_for_notebooks).
+
+    Verifies that needs_practice counts follow the same semantics as
+    LeafReviewEvent._compute_weak_spot_from_events() — not a simple
+    needs_review alias.
+    """
+
+    # ------------------------------------------------------------------
+    # Helper: call the async function synchronously
+    # ------------------------------------------------------------------
+
+    def _run(self, fn, *args, **kwargs):
+        import asyncio
+        return asyncio.run(fn(*args, **kwargs))
+
+    @patch("api.routers.teacher.repo_query", new_callable=AsyncMock)
+    def test_one_needs_review_not_weak_spot(self, mock_query):
+        """Single needs_review → needs_review count, NOT needs_practice."""
+        mock_query.return_value = [
+            {
+                "id": "leaf_review_event:e1",
+                "session_id": "study_session:s1",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": "2026-07-06T10:00:00Z",
+            },
+        ]
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        result = self._run(_compute_weak_spots_for_notebooks, ["notebook:n1"])
+        assert result == 0, "1 needs_review should NOT be a weak spot"
+
+    @patch("api.routers.teacher.repo_query", new_callable=AsyncMock)
+    def test_two_old_needs_review_is_weak_spot(self, mock_query):
+        """Two old needs_review with no later remembered → weak spot."""
+        from datetime import datetime, timezone, timedelta
+        two_hours_ago = (datetime.now(timezone.utc) - timedelta(hours=2)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        day_ago = (datetime.now(timezone.utc) - timedelta(days=1)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        mock_query.return_value = [
+            {
+                "id": "leaf_review_event:e1",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": day_ago,
+            },
+            {
+                "id": "leaf_review_event:e2",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": two_hours_ago,
+            },
+        ]
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        result = self._run(_compute_weak_spots_for_notebooks, ["notebook:n1"])
+        assert result == 1, "2 old needs_review with no remembered SHOULD be a weak spot"
+
+    @patch("api.routers.teacher.repo_query", new_callable=AsyncMock)
+    def test_remembered_after_needs_review_clears_weak_spot(self, mock_query):
+        """Remembered after the last needs_review → not a weak spot."""
+        mock_query.return_value = [
+            {
+                "id": "leaf_review_event:e1",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": "2026-07-04T10:00:00Z",
+            },
+            {
+                "id": "leaf_review_event:e2",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": "2026-07-05T10:00:00Z",
+            },
+            {
+                "id": "leaf_review_event:e3",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "remembered",
+                "created": "2026-07-06T10:00:00Z",
+            },
+        ]
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        result = self._run(_compute_weak_spots_for_notebooks, ["notebook:n1"])
+        assert result == 0, "remembered after needs_review should clear weak spot"
+
+    @patch("api.routers.teacher.repo_query", new_callable=AsyncMock)
+    def test_multiple_notes_independent_weak_spots(self, mock_query):
+        """Two notes evaluated independently."""
+        from datetime import datetime, timezone, timedelta
+        two_hours_ago = (datetime.now(timezone.utc) - timedelta(hours=2)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        day_ago = (datetime.now(timezone.utc) - timedelta(days=1)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        three_hours_ago = (datetime.now(timezone.utc) - timedelta(hours=3)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        mock_query.return_value = [
+            # Note 1: weak spot (2 needs_review)
+            {
+                "id": "leaf_review_event:e1",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": day_ago,
+            },
+            {
+                "id": "leaf_review_event:e2",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": two_hours_ago,
+            },
+            # Note 2: not a weak spot (only 1 needs_review)
+            {
+                "id": "leaf_review_event:e3",
+                "note_id": "note:n2",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": three_hours_ago,
+            },
+        ]
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        result = self._run(_compute_weak_spots_for_notebooks, ["notebook:n1"])
+        assert result == 1, "only note:n1 is a weak spot"
+
+    @patch("api.routers.teacher.repo_query", new_callable=AsyncMock)
+    def test_recent_needs_review_not_weak_spot_cooldown(self, mock_query):
+        """Needs_review less than 1 hour old — cooldown not met."""
+        from datetime import datetime, timezone, timedelta
+        recent = (datetime.now(timezone.utc) - timedelta(minutes=30)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        older = (datetime.now(timezone.utc) - timedelta(hours=2)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        mock_query.return_value = [
+            {
+                "id": "leaf_review_event:e1",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": older,
+            },
+            {
+                "id": "leaf_review_event:e2",
+                "note_id": "note:n1",
+                "notebook_id": "notebook:n1",
+                "event_type": "needs_review",
+                "created": recent,  # only 30 min ago — within 1h cooldown
+            },
+        ]
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        result = self._run(_compute_weak_spots_for_notebooks, ["notebook:n1"])
+        assert result == 0, "needs_review < 1h old should still be in cooldown"
+
+    @patch("api.routers.teacher.repo_query", new_callable=AsyncMock)
+    def test_empty_notebooks_list_returns_zero(self, mock_query):
+        """Empty notebook list → no queries, result is 0."""
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        result = self._run(_compute_weak_spots_for_notebooks, [])
+        assert result == 0
+        mock_query.assert_not_called()
+
+    @patch("api.routers.teacher.repo_query", new_callable=AsyncMock)
+    def test_user_filter_is_applied(self, mock_query):
+        """When user_id_filter is provided, the query includes a user_id clause."""
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        self._run(_compute_weak_spots_for_notebooks, ["notebook:n1"], "user:u1")
+        # The query should have "AND user_id = $uid"
+        call_args = mock_query.call_args
+        assert call_args is not None, "repo_query should have been called"
+        sql = call_args[0][0]
+        assert "user_id" in sql, "user filter should be included in the query"
+        assert "$uid" in sql, "user_id filter should use $uid param"
+
+    @patch("api.routers.teacher.repo_query", new_callable=AsyncMock)
+    def test_no_user_filter_when_user_id_none(self, mock_query):
+        """When user_id_filter is None, no user_id clause is added."""
+        from api.routers.teacher import _compute_weak_spots_for_notebooks
+        self._run(_compute_weak_spots_for_notebooks, ["notebook:n1"], None)
+        call_args = mock_query.call_args
+        sql = call_args[0][0]
+        assert "AND user_id" not in sql, "no user filter when user_id is None"
+
+
+# =========================================================================
+# Class progress integration with weak-spot endpoint test
+# =========================================================================
+
+
+class TestGetClassWeakSpotIntegration:
+    """Integration-level tests verifying needs_practice flows through the endpoint."""
+
+    @patch("api.routers.teacher.repo_query")
+    @patch("api.routers.teacher.check_classroom_access")
+    @patch("api.routers.teacher.get_current_user")
+    def test_class_summary_distinct_needs_review_and_practice(
+        self, mock_get_user, mock_check, mock_query, client, teacher_user
+    ):
+        """needs_practice and needs_review are distinct values in the response."""
+        from datetime import datetime, timezone, timedelta
+
+        mock_get_user.return_value = teacher_user
+        mock_check.return_value = None
+
+        two_hours_ago = (datetime.now(timezone.utc) - timedelta(hours=2)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        day_ago = (datetime.now(timezone.utc) - timedelta(days=1)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+
+        # 1 assignment with 1 notebook; 2 enrolled learners
+        mock_query.side_effect = [
+            # 1. Classroom lookup
+            [{"id": "classroom:c1", "name": "Math 101",
+              "subject": "Math", "grade_level": "Form 3",
+              "school_id": "school:s1"}],
+            # 2. Enrollments
+            [
+                {"id": "class_enrollment:e1", "learner_id": "school_membership:m1",
+                 "active": True},
+                {"id": "class_enrollment:e2", "learner_id": "school_membership:m2",
+                 "active": True},
+            ],
+            # 3. Assignments
+            [{"notebook_id": "notebook:n1"}],
+            # 4. Study sessions (notebook n1)
+            [{"cnt": 5}],
+            # 5. Needs review state (leaf_review_state needs_review=true)
+            [{"cnt": 3}],  # 3 notes flagged as needs_review
+            # 6. Remembered events (7 days)
+            [{"cnt": 10}],
+            # 7. Last activity
+            [{"created": two_hours_ago}],
+            # 8. Data-status check
+            [{"user_id": "user:u1"}],
+            # 9. Weak-spot events: 3 notes, only 1 meets weak-spot criteria
+            [
+                # Note 1: 2 needs_review, no remembered → WEAK SPOT ✓
+                {"id": "e1", "note_id": "note:n1", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": day_ago},
+                {"id": "e2", "note_id": "note:n1", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": two_hours_ago},
+                # Note 2: 1 needs_review → NOT weak spot
+                {"id": "e3", "note_id": "note:n2", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": two_hours_ago},
+                # Note 3: 2 needs_review but remembered after → NOT weak spot
+                {"id": "e4", "note_id": "note:n3", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": day_ago},
+                {"id": "e5", "note_id": "note:n3", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": two_hours_ago},
+                {"id": "e6", "note_id": "note:n3", "notebook_id": "notebook:n1",
+                 "event_type": "remembered", "created": (datetime.now(timezone.utc) - timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%SZ")},
+            ],
+        ]
+
+        response = client.get("/api/teacher/classes/c1")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["needs_review_leaf_count"] == 3  # from state table
+        assert data["needs_practice_leaf_count"] == 1  # only note:n1 is weak spot
+        # needs_practice < needs_review — the key semantic improvement
+        assert data["needs_practice_leaf_count"] < data["needs_review_leaf_count"]
+
+    @patch("api.routers.teacher.repo_query")
+    @patch("api.routers.teacher.check_classroom_access")
+    @patch("api.routers.teacher.get_current_user")
+    def test_no_weak_spots_when_all_reviewed_recently(
+        self, mock_get_user, mock_check, mock_query, client, teacher_user
+    ):
+        """All needs_review notes have remembered after → zero weak spots."""
+        from datetime import datetime, timezone
+
+        mock_get_user.return_value = teacher_user
+        mock_check.return_value = None
+
+        now = datetime.now(timezone.utc)
+        hour_ago = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        mock_query.side_effect = [
+            # 1. Classroom lookup
+            [{"id": "classroom:c1", "name": "Science 101",
+              "school_id": "school:s1"}],
+            # 2. Enrollments
+            [
+                {"id": "class_enrollment:e1", "learner_id": "school_membership:m1",
+                 "active": True},
+            ],
+            # 3. Assignments
+            [{"notebook_id": "notebook:n1"}],
+            # 4. Study sessions
+            [{"cnt": 2}],
+            # 5. Needs review state
+            [{"cnt": 2}],
+            # 6. Remembered events
+            [{"cnt": 5}],
+            # 7. Last activity
+            [{"created": hour_ago}],
+            # 8. Data-status
+            [{"user_id": "user:u1"}],
+            # 9. Weak-spot: 2 notes, both have remembered after last needs_review
+            [
+                {"id": "e1", "note_id": "note:n1", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": "2026-07-04T10:00:00Z"},
+                {"id": "e2", "note_id": "note:n1", "notebook_id": "notebook:n1",
+                 "event_type": "remembered", "created": "2026-07-05T10:00:00Z"},
+                {"id": "e3", "note_id": "note:n2", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": "2026-07-04T10:00:00Z"},
+                {"id": "e4", "note_id": "note:n2", "notebook_id": "notebook:n1",
+                 "event_type": "remembered", "created": "2026-07-05T10:00:00Z"},
+            ],
+        ]
+
+        response = client.get("/api/teacher/classes/c1")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["needs_review_leaf_count"] == 2
+        assert data["needs_practice_leaf_count"] == 0
+
+    @patch("api.routers.teacher.repo_query")
+    @patch("api.routers.teacher.check_classroom_access")
+    @patch("api.routers.teacher.get_current_user")
+    def test_learner_summary_weak_spot_semantics(
+        self, mock_get_user, mock_check, mock_query, client, teacher_user
+    ):
+        """Per-learner summaries use same weak-spot heuristic as class summary."""
+        from datetime import datetime, timezone, timedelta
+
+        mock_get_user.return_value = teacher_user
+        mock_check.return_value = None
+
+        two_hours_ago = (datetime.now(timezone.utc) - timedelta(hours=2)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        day_ago = (datetime.now(timezone.utc) - timedelta(days=1)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+
+        mock_query.side_effect = [
+            # 1. Enrollments
+            [
+                {"id": "class_enrollment:e1", "classroom_id": "classroom:c1",
+                 "learner_id": "school_membership:m1", "active": True},
+            ],
+            # 2. Membership m1 → user resolution
+            [{"id": "school_membership:m1", "user_id": "user:l1"}],
+            # 3. User l1 display_name
+            [{"display_name": "Alice"}],
+            # 4. Assignments
+            [{"notebook_id": "notebook:n1"}],
+            # 5. Needs review state (notebook n1, user: l1)
+            [{"cnt": 2}],  # 2 notes flagged as needs_review
+            # 6. Remembered count (notebook n1, user: l1)
+            [
+                {"cnt": 1}
+            ],
+            # 7. Last activity (notebook n1, user: l1)
+            [{"created": two_hours_ago}],
+            # 8. Weak-spot events (for _compute_weak_spots_for_notebooks)
+            # Note: only 1 of the 2 notes is a real weak spot
+            [
+                {"id": "e1", "note_id": "note:n1", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": day_ago},
+                {"id": "e2", "note_id": "note:n1", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": two_hours_ago},
+                {"id": "e3", "note_id": "note:n2", "notebook_id": "notebook:n1",
+                 "event_type": "needs_review", "created": two_hours_ago},
+            ],
+        ]
+
+        response = client.get("/api/teacher/classes/c1/learners")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["learner_display_name"] == "Alice"
+        assert data[0]["needs_review_leaf_count"] == 2
+        assert data[0]["needs_practice_leaf_count"] == 1  # only note:n1 is weak
+        assert data[0]["needs_practice_leaf_count"] < data[0]["needs_review_leaf_count"]

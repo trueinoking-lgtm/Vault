@@ -5,6 +5,8 @@ Read-only aggregate views over existing school/class/study/review data.
 No writes, no side effects, no learner reflection text exposure.
 """
 
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -23,6 +25,7 @@ from api.models import (
 )
 from vault_core.database.repository import ensure_record_id, repo_query
 from vault_core.domain.school import Classroom, SchoolMembership
+from vault_core.domain.study import LeafReviewEvent as LeafReviewEventDomain
 from vault_core.domain.user import User
 
 router = APIRouter(tags=["teacher"])
@@ -48,8 +51,71 @@ def _ensure_prefixed(value: str, prefix: str) -> str:
 
 def _now_iso() -> str:
     """Return current UTC time as ISO-8601 string."""
-    from datetime import datetime, timezone
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+async def _compute_weak_spots_for_notebooks(
+    notebook_ids: List[str],
+    user_id_filter: Optional[str] = None,
+) -> int:
+    """Count notes meeting the Delta weak-spot heuristic across notebooks.
+
+    A note is a weak spot when ALL of the following hold:
+    - At least 2 ``needs_review`` events
+    - No ``remembered`` event after the most recent ``needs_review``
+    - The most recent ``needs_review`` is at least 1 hour old
+
+    Reuses ``LeafReviewEvent._compute_weak_spot_from_events()`` to avoid
+    duplicating the heuristic logic.
+    """
+    count = 0
+    for raw_nid in notebook_ids:
+        nid = _strip_prefix(raw_nid)
+        full_nid = _ensure_prefixed(nid, "notebook")
+
+        params: Dict[str, Any] = {
+            "nid": ensure_record_id(full_nid),
+        }
+        user_clause = ""
+        if user_id_filter:
+            user_clause = " AND user_id = $uid"
+            params["uid"] = ensure_record_id(
+                _ensure_prefixed(user_id_filter, "user")
+            )
+
+        rows = await repo_query(
+            f"SELECT * FROM leaf_review_event "
+            f"WHERE notebook_id = $nid{user_clause} "
+            f"ORDER BY created DESC LIMIT 500",
+            params,
+        )
+
+        # Group by note_id
+        note_groups: Dict[str, list] = defaultdict(list)
+        for ev in rows:
+            note_groups[str(ev.get("note_id", ""))].append(ev)
+
+        for note_evs in note_groups.values():
+            try:
+                # Use a lightweight wrapper to avoid Pydantic validation overhead.
+                # Only .created and .event_type are needed by the heuristic.
+                class _EventProxy:
+                    __slots__ = ("created", "event_type")
+
+                    def __init__(self, d):
+                        self.created = d.get("created")
+                        self.event_type = d.get("event_type", "")
+
+                typed = [_EventProxy(e) for e in note_evs]
+                is_weak, _ = LeafReviewEventDomain._compute_weak_spot_from_events(
+                    typed
+                )
+                if is_weak:
+                    count += 1
+            except Exception:
+                continue
+
+    return count
 
 
 async def _get_accessible_classrooms(
@@ -200,11 +266,13 @@ async def _compute_class_summary(
         if sample and not sample[0].get("user_id"):
             data_status = "limited_user_scoping"
 
-    # Needs-practice: leaf_review_state with needs_review + no recent remembered
-    # For v1, report same as needs_review_count (full weak-spot heuristic is per-note)
-    needs_practice_count = needs_review_count
-    # ^ Simplified: per-note weak-spot computation is expensive class-wide.
-    # Future: optimize with a dedicated aggregation query.
+    # Needs-practice: Delta weak-spot heuristic via event history.
+    # Reuses LeafReviewEvent._compute_weak_spot_from_events() for semantic
+    # consistency with ReviewQueue — ≥2 needs_review, no later remembered,
+    # latest needs_review ≥ 1 hour old.
+    needs_practice_count = await _compute_weak_spots_for_notebooks(
+        assigned_notebook_ids
+    )
 
     return {
         "classroom_id": classroom_id,
@@ -401,12 +469,19 @@ async def list_class_learners(classroom_id: str, request: Request):
                 if ts and (last_act is None or ts > last_act):
                     last_act = ts
 
+        # Needs-practice: Delta weak-spot heuristic using event history.
+        # Reuses LeafReviewEvent._compute_weak_spot_from_events() — same
+        # semantics as class-level summary and ReviewQueue.
+        needs_practice = await _compute_weak_spots_for_notebooks(
+            assigned_nids, uid_str if uid_str else None
+        )
+
         results.append(LearnerProgressSummary(
             learner_id=learner_id,
             learner_display_name=display_name,
             enrollment_id=enr_id,
             enrollment_active=enr.get("active", True),
-            needs_practice_leaf_count=needs_review,  # simplified
+            needs_practice_leaf_count=needs_practice,
             needs_review_leaf_count=needs_review,
             remembered_leaf_count=remembered,
             last_activity_at=last_act,
