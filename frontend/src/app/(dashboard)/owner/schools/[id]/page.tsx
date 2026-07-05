@@ -14,6 +14,7 @@ import {
   UserX,
   Check,
   X,
+  ChevronRight,
 } from 'lucide-react'
 
 import {
@@ -549,7 +550,8 @@ export default function OwnerSchoolDetailPage() {
                 {classrooms.map((cls) => (
                   <div
                     key={cls.id}
-                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                    onClick={() => router.push(`/owner/schools/${schoolId}/classrooms/${cls.id}`)}
+                    className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -569,9 +571,12 @@ export default function OwnerSchoolDetailPage() {
                         <span>Teacher: {cls.teacher_id}</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => openEditClassroom(cls)}>
-                      {t('common.edit')}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditClassroom(cls); }}>
+                        {t('common.edit')}
+                      </Button>
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    </div>
                   </div>
                 ))}
               </div>

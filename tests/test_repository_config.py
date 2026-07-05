@@ -152,6 +152,14 @@ def test_ensure_record_refs_underscore_in_table_name():
     assert str(result["membership_id"]) == "school_membership:abc123"
 
 
+def test_ensure_record_refs_by_suffix():
+    """Keys ending in ``_by`` like assigned_by are also converted."""
+    data = {"assigned_by": "school_membership:t1"}
+    result = ensure_record_refs(data)
+    assert isinstance(result["assigned_by"], RecordID)
+    assert str(result["assigned_by"]) == "school_membership:t1"
+
+
 # =========================================================================
 # repo_update — RecordID normalization
 # =========================================================================

@@ -1100,5 +1100,31 @@ export const bnIN = {
     // Rough edges
     userPickerDeferred: "User picker not yet available. Enter the user ID directly.",
     enrollmentUILater: "Enrollment and assignment management coming in a future update.",
+    // Enrollments
+    enrollments: "Enrollments",
+    noEnrollments: "No enrollments yet. Add a learner to get started.",
+    enrollmentLoadError: "Failed to load enrollments. Please try again.",
+    createEnrollment: "Enroll Learner",
+    createEnrollmentDescription: "Enroll a learner in this classroom.",
+    enrollmentCreateSuccess: "Learner enrolled successfully.",
+    enrollmentDeactivateSuccess: "Enrollment deactivated.",
+    learnerId: "Learner Membership ID",
+
+    // Assignments
+    assignments: "Assignments",
+    noAssignments: "No assignments yet. Assign a notebook to get started.",
+    assignmentLoadError: "Failed to load assignments. Please try again.",
+    createAssignment: "Assign Notebook",
+    createAssignmentDescription: "Assign a notebook to this classroom.",
+    assignmentCreateSuccess: "Notebook assigned successfully.",
+    assignmentDeactivateSuccess: "Assignment deactivated.",
+    notebookId: "Notebook ID",
+    assignedBy: "Assigned By (Membership ID)",
+
+    // Classroom detail
+    classroomDetail: "Classroom Detail",
+    backToSchool: "Back to School",
+    libraryPickerDeferred: "Library/notebook picker not yet available. Enter the notebook ID directly.",
+
   },
 }

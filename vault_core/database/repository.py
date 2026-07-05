@@ -72,8 +72,8 @@ def ensure_record_refs(data: Dict[str, Any]) -> Dict[str, Any]:
     necessary because the SurrealDB Python driver expects ``RecordID``
     objects (not plain strings) for fields typed as ``record<table>``.
 
-    Only converts values whose key ends with ``_id`` to minimise false
-    positives on unrelated colon-containing strings.
+    Only converts values whose key ends with ``_id`` or ``_by`` to minimise
+    false positives on unrelated colon-containing strings.
     """
     result: Dict[str, Any] = {}
     for key, value in data.items():
@@ -81,7 +81,7 @@ def ensure_record_refs(data: Dict[str, Any]) -> Dict[str, Any]:
             result[key] = ensure_record_refs(value)
         elif (
             isinstance(value, str)
-            and key.endswith("_id")
+            and (key.endswith("_id") or key.endswith("_by"))
             and _RECORD_ID_PATTERN.match(value)
         ):
             result[key] = RecordID.parse(value)

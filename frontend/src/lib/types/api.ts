@@ -373,3 +373,33 @@ export interface ClassroomUpdate {
   grade_level?: string | null
   active?: boolean
 }
+
+// ── Classroom Enrollment Types (Epsilon D2b) ─────────────────────────
+
+export interface ClassEnrollmentResponse {
+  id: string
+  classroom_id: string
+  learner_id: string
+  enrolled_at?: string | null
+  active: boolean
+}
+
+export interface ClassEnrollmentCreate {
+  learner_id: string
+}
+
+// ── Classroom Assignment Types (Epsilon D2b) ─────────────────────────
+
+export interface ClassroomAssignmentResponse {
+  id: string
+  classroom_id: string
+  notebook_id: string
+  assigned_by: string
+  assigned_at?: string | null
+  active: boolean
+}
+
+export interface ClassroomAssignmentCreate {
+  notebook_id: string
+  assigned_by: string
+}

@@ -12,6 +12,8 @@ import type {
   SchoolMembershipUpdate,
   ClassroomCreate,
   ClassroomUpdate,
+  ClassEnrollmentCreate,
+  ClassroomAssignmentCreate,
 } from '@/lib/types/api'
 
 export function useSchools() {
@@ -186,6 +188,126 @@ export function useUpdateClassroom(schoolId: string) {
       toast({
         title: t('common.success'),
         description: t('schools.classroomUpdateSuccess'),
+      })
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: t('common.error'),
+        description: getApiErrorMessage(error, (key) => t(key), 'common.error'),
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+// ── Classroom Enrollments ──────────────────────────────────────────
+
+export function useClassroomEnrollments(classroomId: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.classroomEnrollments(classroomId),
+    queryFn: () => schoolsApi.listEnrollments(classroomId),
+    enabled: !!classroomId,
+  })
+}
+
+export function useCreateClassEnrollment(classroomId: string) {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const { t } = useTranslation()
+
+  return useMutation({
+    mutationFn: (data: ClassEnrollmentCreate) =>
+      schoolsApi.createEnrollment(classroomId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.classroomEnrollments(classroomId) })
+      toast({
+        title: t('common.success'),
+        description: t('schools.enrollmentCreateSuccess'),
+      })
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: t('common.error'),
+        description: getApiErrorMessage(error, (key) => t(key), 'common.error'),
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+export function useDeleteClassEnrollment(classroomId: string) {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const { t } = useTranslation()
+
+  return useMutation({
+    mutationFn: (enrollmentId: string) =>
+      schoolsApi.deactivateEnrollment(classroomId, enrollmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.classroomEnrollments(classroomId) })
+      toast({
+        title: t('common.success'),
+        description: t('schools.enrollmentDeactivateSuccess'),
+      })
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: t('common.error'),
+        description: getApiErrorMessage(error, (key) => t(key), 'common.error'),
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+// ── Classroom Assignments ──────────────────────────────────────────
+
+export function useClassroomAssignments(classroomId: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.classroomAssignments(classroomId),
+    queryFn: () => schoolsApi.listAssignments(classroomId),
+    enabled: !!classroomId,
+  })
+}
+
+export function useCreateClassroomAssignment(classroomId: string) {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const { t } = useTranslation()
+
+  return useMutation({
+    mutationFn: (data: ClassroomAssignmentCreate) =>
+      schoolsApi.createAssignment(classroomId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.classroomAssignments(classroomId) })
+      toast({
+        title: t('common.success'),
+        description: t('schools.assignmentCreateSuccess'),
+      })
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: t('common.error'),
+        description: getApiErrorMessage(error, (key) => t(key), 'common.error'),
+        variant: 'destructive',
+      })
+    },
+  })
+}
+
+export function useDeleteClassroomAssignment(classroomId: string) {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const { t } = useTranslation()
+
+  return useMutation({
+    mutationFn: (assignmentId: string) =>
+      schoolsApi.deactivateAssignment(classroomId, assignmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.classroomAssignments(classroomId) })
+      toast({
+        title: t('common.success'),
+        description: t('schools.assignmentDeactivateSuccess'),
       })
     },
     onError: (error: unknown) => {

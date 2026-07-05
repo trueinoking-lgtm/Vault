@@ -44,4 +44,7 @@ export const QUERY_KEYS = {
   school: (id: string) => ['schools', id] as const,
   schoolMembers: (schoolId: string) => ['schools', schoolId, 'members'] as const,
   schoolClassrooms: (schoolId: string) => ['schools', schoolId, 'classrooms'] as const,
+  classroom: (id: string) => ['classrooms', id] as const,
+  classroomEnrollments: (classroomId: string) => ['classrooms', classroomId, 'enrollments'] as const,
+  classroomAssignments: (classroomId: string) => ['classrooms', classroomId, 'assignments'] as const,
 }

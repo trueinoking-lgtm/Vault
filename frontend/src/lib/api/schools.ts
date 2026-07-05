@@ -9,6 +9,10 @@ import type {
   ClassroomResponse,
   ClassroomCreate,
   ClassroomUpdate,
+  ClassEnrollmentResponse,
+  ClassEnrollmentCreate,
+  ClassroomAssignmentResponse,
+  ClassroomAssignmentCreate,
 } from '@/lib/types/api'
 
 export const schoolsApi = {
@@ -63,6 +67,40 @@ export const schoolsApi = {
 
   updateClassroom: async (schoolId: string, classroomId: string, data: ClassroomUpdate) => {
     const response = await apiClient.patch<ClassroomResponse>(`/classrooms/${classroomId}`, data)
+    return response.data
+  },
+
+  // ── Classroom Enrollments ─────────────────────────────────────────────
+
+  listEnrollments: async (classroomId: string) => {
+    const response = await apiClient.get<ClassEnrollmentResponse[]>(`/classrooms/${classroomId}/enrollments`)
+    return response.data
+  },
+
+  createEnrollment: async (classroomId: string, data: ClassEnrollmentCreate) => {
+    const response = await apiClient.post<ClassEnrollmentResponse>(`/classrooms/${classroomId}/enrollments`, data)
+    return response.data
+  },
+
+  deactivateEnrollment: async (classroomId: string, enrollmentId: string) => {
+    const response = await apiClient.delete<ClassEnrollmentResponse>(`/classrooms/${classroomId}/enrollments/${enrollmentId}`)
+    return response.data
+  },
+
+  // ── Classroom Assignments ─────────────────────────────────────────────
+
+  listAssignments: async (classroomId: string) => {
+    const response = await apiClient.get<ClassroomAssignmentResponse[]>(`/classrooms/${classroomId}/assignments`)
+    return response.data
+  },
+
+  createAssignment: async (classroomId: string, data: ClassroomAssignmentCreate) => {
+    const response = await apiClient.post<ClassroomAssignmentResponse>(`/classrooms/${classroomId}/assignments`, data)
+    return response.data
+  },
+
+  deactivateAssignment: async (classroomId: string, assignmentId: string) => {
+    const response = await apiClient.delete<ClassroomAssignmentResponse>(`/classrooms/${classroomId}/assignments/${assignmentId}`)
     return response.data
   },
 }
