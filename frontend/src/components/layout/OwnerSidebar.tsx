@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { BrainCircuit, Cpu, ShieldAlert, SlidersHorizontal, Wrench, ArrowLeft } from 'lucide-react'
+import { BrainCircuit, Cpu, ShieldAlert, SlidersHorizontal, Wrench, ArrowLeft, Building2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,7 @@ const ownerNavigation = [
       { name: 'AI Providers', href: '/owner/ai', icon: BrainCircuit },
       { name: 'Processing', href: '/owner/settings', icon: SlidersHorizontal },
       { name: 'Runtime Tools', href: '/owner/runtime', icon: Cpu },
+      { name: 'Schools', href: '/owner/schools', icon: Building2 },
     ],
   },
 ]

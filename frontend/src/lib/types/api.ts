@@ -295,3 +295,29 @@ export interface ReviewQueueResponse {
   items: ReviewQueueItem[]
   total: number
 }
+
+
+// ── School Management Types (Epsilon D1) ─────────────────────────────────
+
+export interface SchoolResponse {
+  id: string
+  name: string
+  slug: string
+  description?: string | null
+  active: boolean
+  created: string
+  updated: string
+}
+
+export interface SchoolCreate {
+  name: string
+  slug: string
+  description?: string | null
+}
+
+export interface SchoolUpdate {
+  name?: string
+  slug?: string
+  description?: string | null
+  active?: boolean
+}

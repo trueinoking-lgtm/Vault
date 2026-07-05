@@ -38,4 +38,7 @@ export const QUERY_KEYS = {
   // Study / review persistence
   studySession: (notebookId: string) => ['study', 'session', notebookId] as const,
   studyReviewQueue: (notebookId?: string) => ['study', 'review-queue', notebookId] as const,
+
+  // Schools
+  schools: ['schools'] as const,
 }
