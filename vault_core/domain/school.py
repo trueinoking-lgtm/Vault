@@ -78,19 +78,53 @@ class ClassEnrollment(ObjectModel):
 
 
 class ClassroomAssignment(ObjectModel):
-    """Links a notebook to a classroom (teacher-assigned material)."""
+    """Links a learning object to a classroom (teacher-assigned material)."""
 
     table_name: ClassVar[str] = "classroom_assignment"
+    nullable_fields: ClassVar[set[str]] = {
+        "notebook_id",
+        "target_type",
+        "target_id",
+        "title",
+        "instructions",
+        "due_at",
+        "archived_at",
+    }
     classroom_id: str
-    notebook_id: str
     assigned_by: str
+    # Legacy notebook link (kept for backward compatibility)
+    notebook_id: Optional[str] = None
+    # New target-based assignment (E2.1)
+    target_type: Optional[str] = None  # "material" | "leaf" | "notebook"
+    target_id: Optional[str] = None
+    title: Optional[str] = None
+    instructions: Optional[str] = None
+    due_at: Optional[datetime] = None
     assigned_at: Optional[datetime] = None
+    archived_at: Optional[datetime] = None
     active: bool = True
 
     def __repr__(self) -> str:
         return (
             f"ClassroomAssignment(id={self.id}, classroom={self.classroom_id}, "
-            f"notebook={self.notebook_id})"
+            f"target_type={self.target_type}, target_id={self.target_id})"
+        )
+
+
+class AssignmentProgress(ObjectModel):
+    """Tracks learner completion status for an assignment."""
+
+    table_name: ClassVar[str] = "assignment_progress"
+    assignment_id: str
+    classroom_id: str
+    learner_id: str  # school_membership ID
+    status: str = "not_started"  # "not_started" | "completed"
+    completed_at: Optional[datetime] = None
+
+    def __repr__(self) -> str:
+        return (
+            f"AssignmentProgress(id={self.id}, assignment={self.assignment_id}, "
+            f"learner={self.learner_id}, status={self.status})"
         )
 
 

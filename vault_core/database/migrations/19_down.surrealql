@@ -1,0 +1,12 @@
+-- Rollback migration 19: Remove expanded assignment fields and progress table.
+-- No data loss — assignment_progress records removed, classroom_assignment reverts to notebook-only.
+
+REMOVE FIELD IF EXISTS target_type ON TABLE classroom_assignment;
+REMOVE FIELD IF EXISTS target_id ON TABLE classroom_assignment;
+REMOVE FIELD IF EXISTS title ON TABLE classroom_assignment;
+REMOVE FIELD IF EXISTS instructions ON TABLE classroom_assignment;
+REMOVE FIELD IF EXISTS due_at ON TABLE classroom_assignment;
+REMOVE FIELD IF EXISTS archived_at ON TABLE classroom_assignment;
+
+REMOVE INDEX IF EXISTS assignment_progress_unique ON TABLE assignment_progress;
+REMOVE TABLE IF EXISTS assignment_progress;

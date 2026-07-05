@@ -1105,14 +1105,32 @@ export const enUS = {
 
     // Assignments
     assignments: "Assignments",
-    noAssignments: "No assignments yet. Assign a notebook to get started.",
+    noAssignments: "No assignments yet. Assign learning material to get started.",
     assignmentLoadError: "Failed to load assignments. Please try again.",
-    createAssignment: "Assign Notebook",
-    createAssignmentDescription: "Assign a notebook to this classroom.",
-    assignmentCreateSuccess: "Notebook assigned successfully.",
+    createAssignment: "Create Assignment",
+    createAssignmentDescription: "Assign learning material to this classroom.",
+    assignmentCreateSuccess: "Assignment created successfully.",
     assignmentDeactivateSuccess: "Assignment deactivated.",
     notebookId: "Notebook ID",
     assignedBy: "Assigned By (Membership ID)",
+
+    // Assignment types (E2.1)
+    material: "Material",
+    leaf: "Leaf",
+    assignmentType: "Type",
+    targetId: "Target ID",
+    targetIdPlaceholder: "e.g., source:abc123 or leaf:def456",
+    assignmentTitle: "Title",
+    assignmentTitlePlaceholder: "e.g., Read Chapter 1",
+    instructions: "Instructions",
+    instructionsPlaceholder: "What should learners do?",
+    dueDate: "Due Date",
+    assignedWork: "Assigned Work",
+    noAssignedWork: "No assigned work yet. Your teacher will assign materials soon.",
+    completed: "Completed",
+    pending: "Pending",
+    markComplete: "Mark Complete",
+    due: "Due",
 
     // Classroom detail
     classroomDetail: "Classroom Detail",

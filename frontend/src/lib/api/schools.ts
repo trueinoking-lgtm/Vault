@@ -13,6 +13,9 @@ import type {
   ClassEnrollmentCreate,
   ClassroomAssignmentResponse,
   ClassroomAssignmentCreate,
+  AssignmentProgressResponse,
+  AssignmentProgressCreate,
+  LearnerAssignmentResponse,
 } from '@/lib/types/api'
 
 export const schoolsApi = {
@@ -101,6 +104,18 @@ export const schoolsApi = {
 
   deactivateAssignment: async (classroomId: string, assignmentId: string) => {
     const response = await apiClient.delete<ClassroomAssignmentResponse>(`/classrooms/${classroomId}/assignments/${assignmentId}`)
+    return response.data
+  },
+
+  // ── Learner Assignment Endpoints (E2.1) ────────────────────────────
+
+  listMyAssignments: async () => {
+    const response = await apiClient.get<LearnerAssignmentResponse[]>('/assignments')
+    return response.data
+  },
+
+  markAssignmentComplete: async (assignmentId: string, data: AssignmentProgressCreate) => {
+    const response = await apiClient.post<AssignmentProgressResponse>(`/assignments/${assignmentId}/complete`, data)
     return response.data
   },
 }

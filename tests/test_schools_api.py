@@ -657,19 +657,25 @@ class TestCreateAssignment:
         mock_assn = AsyncMock()
         mock_assn.id = "classroom_assignment:a1"
         mock_assn.classroom_id = "classroom:c1"
-        mock_assn.notebook_id = "notebook:n1"
+        mock_assn.notebook_id = None
+        mock_assn.target_type = "material"
+        mock_assn.target_id = "source:s1"
+        mock_assn.title = "Read Chapter 1"
+        mock_assn.instructions = None
+        mock_assn.due_at = None
         mock_assn.assigned_by = "school_membership:t1"
         mock_assn.assigned_at = "2026-07-05T12:00:00Z"
+        mock_assn.archived_at = None
         mock_assn.active = True
         mock_assn_cls.return_value = mock_assn
 
         response = client.post(
             "/api/classrooms/c1/assignments",
-            json={"notebook_id": "n1", "assigned_by": "t1"},
+            json={"target_type": "material", "target_id": "source:s1", "title": "Read Chapter 1", "assigned_by": "t1"},
         )
 
         assert response.status_code == 200
-        assert response.json()["notebook_id"] == "n1"
+        assert response.json()["target_type"] == "material"
 
 
 class TestListAssignments:
@@ -685,8 +691,10 @@ class TestListAssignments:
         mock_get_user.return_value = owner_user
         mock_query.return_value = [
             {"id": "classroom_assignment:a1", "classroom_id": "classroom:c1",
-             "notebook_id": "notebook:n1", "assigned_by": "school_membership:t1",
-             "assigned_at": "2026-07-05T12:00:00Z", "active": True}
+             "notebook_id": None, "target_type": "material", "target_id": "source:s1",
+             "title": "Read", "instructions": None, "due_at": None,
+             "assigned_by": "school_membership:t1",
+             "assigned_at": "2026-07-05T12:00:00Z", "archived_at": None, "active": True}
         ]
 
         response = client.get("/api/classrooms/c1/assignments")
@@ -694,7 +702,7 @@ class TestListAssignments:
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
-        assert data[0]["notebook_id"] == "n1"
+        assert data[0]["target_type"] == "material"
 
 
 class TestDeactivateAssignment:
@@ -712,9 +720,15 @@ class TestDeactivateAssignment:
         mock_assn = AsyncMock()
         mock_assn.id = "classroom_assignment:a1"
         mock_assn.classroom_id = "classroom:c1"
-        mock_assn.notebook_id = "notebook:n1"
+        mock_assn.notebook_id = None
+        mock_assn.target_type = "material"
+        mock_assn.target_id = "source:s1"
+        mock_assn.title = "Read"
+        mock_assn.instructions = None
+        mock_assn.due_at = None
         mock_assn.assigned_by = "school_membership:t1"
         mock_assn.assigned_at = "2026-07-05T12:00:00Z"
+        mock_assn.archived_at = None
         mock_assn.active = True
         mock_assn_cls.get = AsyncMock(return_value=mock_assn)
 

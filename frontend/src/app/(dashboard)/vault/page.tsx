@@ -37,6 +37,11 @@ const LearningPanel = dynamic(
   { ssr: false }
 )
 
+const LearnerAssignmentsSection = dynamic(
+  () => import('@/components/learner/LearnerAssignmentsSection').then(m => ({ default: m.LearnerAssignmentsSection })),
+  { ssr: false }
+)
+
 const quickActions = [
   { icon: FileText, titleKey: 'vault.addMaterial', descKey: 'vault.addMaterialDesc', href: '/sources' },
   { icon: BookOpen, titleKey: 'vault.createLeaf', descKey: 'vault.createLeafDesc', href: '/sources' },
@@ -123,6 +128,7 @@ export default function VaultPage() {
             <RecentLeaves />
             <ReviewQueue />
             <LearningPanel />
+            <LearnerAssignmentsSection />
           </>
         )}
       </div>

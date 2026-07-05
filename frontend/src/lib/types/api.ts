@@ -393,15 +393,58 @@ export interface ClassEnrollmentCreate {
 export interface ClassroomAssignmentResponse {
   id: string
   classroom_id: string
-  notebook_id: string
+  notebook_id?: string | null
+  target_type?: string | null
+  target_id?: string | null
+  title?: string | null
+  instructions?: string | null
+  due_at?: string | null
   assigned_by: string
   assigned_at?: string | null
+  archived_at?: string | null
   active: boolean
 }
 
 export interface ClassroomAssignmentCreate {
-  notebook_id: string
+  notebook_id?: string | null
+  target_type?: string | null
+  target_id?: string | null
+  title?: string | null
+  instructions?: string | null
+  due_at?: string | null
   assigned_by: string
+}
+
+export interface AssignmentProgressResponse {
+  id: string
+  assignment_id: string
+  classroom_id: string
+  learner_id: string
+  status: string
+  completed_at?: string | null
+  created?: string | null
+  updated?: string | null
+}
+
+export interface AssignmentProgressCreate {
+  assignment_id: string
+  classroom_id: string
+  learner_id: string
+}
+
+export interface LearnerAssignmentResponse {
+  id: string
+  classroom_id: string
+  classroom_name?: string | null
+  target_type?: string | null
+  target_id?: string | null
+  title?: string | null
+  instructions?: string | null
+  due_at?: string | null
+  assigned_at?: string | null
+  status: string
+  completed_at?: string | null
+  progress_id?: string | null
 }
 
 // ── Teacher Dashboard Types (Epsilon E3) ─────────────────────────────

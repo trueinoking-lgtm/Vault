@@ -249,8 +249,21 @@ class TestClassroomAssignmentModel:
         )
         rep = repr(assignment)
         assert "classroom:abc" in rep
-        assert "notebook:n1" in rep
         assert "ClassroomAssignment(" in rep
+
+    def test_assignment_target_fields(self):
+        """New target-based assignment fields are accessible."""
+        assignment = ClassroomAssignment(
+            classroom_id="classroom:abc",
+            assigned_by="school_membership:t1",
+            target_type="material",
+            target_id="source:s1",
+            title="Read Chapter 1",
+        )
+        assert assignment.target_type == "material"
+        assert assignment.target_id == "source:s1"
+        assert assignment.title == "Read Chapter 1"
+        assert assignment.notebook_id is None
 
 
 class TestAuthSessionModel:

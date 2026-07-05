@@ -130,6 +130,9 @@ class AsyncMigrationManager:
             AsyncMigration.from_file(
                 "vault_core/database/migrations/18.surrealql"
             ),
+            AsyncMigration.from_file(
+                "vault_core/database/migrations/19.surrealql"
+            ),
         ]
         self.down_migrations = [
             AsyncMigration.from_file(
@@ -185,6 +188,9 @@ class AsyncMigrationManager:
             ),
             AsyncMigration.from_file(
                 "vault_core/database/migrations/18_down.surrealql"
+            ),
+            AsyncMigration.from_file(
+                "vault_core/database/migrations/19_down.surrealql"
             ),
         ]
         self.runner = AsyncMigrationRunner(

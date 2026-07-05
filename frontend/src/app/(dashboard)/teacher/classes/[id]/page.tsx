@@ -24,6 +24,7 @@ import {
 } from '@/lib/hooks/use-teacher'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { Button } from '@/components/ui/button'
+import { TeacherAssignmentsSection } from '@/components/teacher/TeacherAssignmentsSection'
 
 function StatCard({
   icon: Icon,
@@ -269,6 +270,14 @@ export default function TeacherClassOverviewPage() {
               </table>
             </div>
           )}
+        </div>
+
+        {/* ================================================================ */}
+        {/* Assignments Section                                              */}
+        {/* ================================================================ */}
+
+        <div className="mb-8">
+          <TeacherAssignmentsSection classroomId={classroomId} />
         </div>
 
         {/* ================================================================ */}

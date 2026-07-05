@@ -905,9 +905,16 @@ class ClassEnrollmentResponse(BaseModel):
 
 
 class ClassroomAssignmentCreate(BaseModel):
-    """Request to assign a notebook to a classroom."""
+    """Request to assign a learning object to a classroom."""
 
-    notebook_id: str = Field(..., description="Notebook ID to assign")
+    notebook_id: Optional[str] = Field(None, description="Legacy notebook ID (optional)")
+    target_type: Optional[str] = Field(
+        None, description="Target type: material, leaf, or notebook"
+    )
+    target_id: Optional[str] = Field(None, description="Target record ID")
+    title: Optional[str] = Field(None, description="Assignment title")
+    instructions: Optional[str] = Field(None, description="Instructions for learners")
+    due_at: Optional[str] = Field(None, description="Due date (ISO 8601)")
     assigned_by: str = Field(
         ..., description="school_membership ID of the assigner"
     )
@@ -918,10 +925,61 @@ class ClassroomAssignmentResponse(BaseModel):
 
     id: str
     classroom_id: str
-    notebook_id: str
+    notebook_id: Optional[str] = None
+    target_type: Optional[str] = None
+    target_id: Optional[str] = None
+    title: Optional[str] = None
+    instructions: Optional[str] = None
+    due_at: Optional[str] = None
     assigned_by: str
     assigned_at: Optional[str] = None
+    archived_at: Optional[str] = None
     active: bool = True
+
+
+class AssignmentProgressCreate(BaseModel):
+    """Request to mark an assignment as completed."""
+
+    assignment_id: str = Field(..., description="Assignment ID")
+    classroom_id: str = Field(..., description="Classroom ID")
+    learner_id: str = Field(..., description="school_membership ID of the learner")
+
+
+class AssignmentProgressResponse(BaseModel):
+    """Response for assignment progress."""
+
+    id: str
+    assignment_id: str
+    classroom_id: str
+    learner_id: str
+    status: str
+    completed_at: Optional[str] = None
+    created: Optional[str] = None
+    updated: Optional[str] = None
+
+
+class LearnerAssignmentResponse(BaseModel):
+    """Learner-facing assignment view with progress."""
+
+    id: str
+    classroom_id: str
+    classroom_name: Optional[str] = None
+    target_type: Optional[str] = None
+    target_id: Optional[str] = None
+    title: Optional[str] = None
+    instructions: Optional[str] = None
+    due_at: Optional[str] = None
+    assigned_at: Optional[str] = None
+    status: str = "not_started"
+    completed_at: Optional[str] = None
+    progress_id: Optional[str] = None
+
+
+class ClassroomAssignmentListResponse(BaseModel):
+    """Teacher-facing assignment list with completion stats."""
+
+    assignments: list
+    total: int
 
 
 # ============================================================================

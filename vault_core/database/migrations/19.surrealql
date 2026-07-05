@@ -1,0 +1,30 @@
+-- Migration 19: Expand classroom assignments and add progress tracking.
+--
+-- E2.1 — Classroom Assignment Foundation
+-- Adds target_type/target_id, title, instructions, due_at to classroom_assignment.
+-- Creates assignment_progress table for learner completion tracking.
+-- Backward compatible: existing notebook_id assignments remain valid.
+
+-- 1. Expand classroom_assignment with new fields
+DEFINE FIELD IF NOT EXISTS target_type ON TABLE classroom_assignment TYPE option<string>
+  ASSERT $value INSIDE ["material", "leaf", "notebook"];
+DEFINE FIELD IF NOT EXISTS target_id ON TABLE classroom_assignment TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS title ON TABLE classroom_assignment TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS instructions ON TABLE classroom_assignment TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS due_at ON TABLE classroom_assignment TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS archived_at ON TABLE classroom_assignment TYPE option<datetime>;
+
+-- 2. Assignment progress — tracks learner completion per assignment
+DEFINE TABLE IF NOT EXISTS assignment_progress SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS assignment_id ON TABLE assignment_progress TYPE record<classroom_assignment>;
+DEFINE FIELD IF NOT EXISTS classroom_id ON TABLE assignment_progress TYPE record<classroom>;
+DEFINE FIELD IF NOT EXISTS learner_id ON TABLE assignment_progress TYPE record<school_membership>;
+DEFINE FIELD IF NOT EXISTS status ON TABLE assignment_progress TYPE string
+  ASSERT $value INSIDE ["not_started", "completed"];
+DEFINE FIELD IF NOT EXISTS completed_at ON TABLE assignment_progress TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS created ON TABLE assignment_progress TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE assignment_progress TYPE datetime DEFAULT time::now();
+
+-- 3. Index for fast lookup by assignment + learner
+DEFINE INDEX IF NOT EXISTS assignment_progress_unique ON TABLE assignment_progress
+  FIELDS assignment_id, learner_id UNIQUE;

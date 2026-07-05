@@ -16,6 +16,8 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from loguru import logger
 
 from api.models import (
+    AssignmentProgressCreate,
+    AssignmentProgressResponse,
     ClassEnrollmentCreate,
     ClassEnrollmentResponse,
     ClassroomAssignmentCreate,
@@ -23,6 +25,7 @@ from api.models import (
     ClassroomCreate,
     ClassroomResponse,
     ClassroomUpdate,
+    LearnerAssignmentResponse,
     SchoolCreate,
     SchoolMembershipCreate,
     SchoolMembershipResponse,
@@ -39,6 +42,7 @@ from api.permissions import (
 )
 from vault_core.database.repository import ensure_record_id, repo_query
 from vault_core.domain.school import (
+    AssignmentProgress,
     ClassEnrollment,
     Classroom,
     ClassroomAssignment,
@@ -125,10 +129,29 @@ def _format_assignment(assn: ClassroomAssignment) -> ClassroomAssignmentResponse
     return ClassroomAssignmentResponse(
         id=_strip_prefix(str(assn.id or "")),
         classroom_id=_strip_prefix(str(assn.classroom_id)),
-        notebook_id=_strip_prefix(str(assn.notebook_id)),
+        notebook_id=_strip_prefix(str(assn.notebook_id)) if assn.notebook_id else None,
+        target_type=assn.target_type,
+        target_id=_strip_prefix(str(assn.target_id)) if assn.target_id else None,
+        title=assn.title,
+        instructions=assn.instructions,
+        due_at=str(assn.due_at) if assn.due_at else None,
         assigned_by=_strip_prefix(str(assn.assigned_by)),
         assigned_at=str(assn.assigned_at) if assn.assigned_at else None,
+        archived_at=str(assn.archived_at) if assn.archived_at else None,
         active=assn.active,
+    )
+
+
+def _format_progress(prog: AssignmentProgress) -> AssignmentProgressResponse:
+    return AssignmentProgressResponse(
+        id=_strip_prefix(str(prog.id or "")),
+        assignment_id=_strip_prefix(str(prog.assignment_id)),
+        classroom_id=_strip_prefix(str(prog.classroom_id)),
+        learner_id=_strip_prefix(str(prog.learner_id)),
+        status=prog.status,
+        completed_at=str(prog.completed_at) if prog.completed_at else None,
+        created=str(prog.created) if prog.created else None,
+        updated=str(prog.updated) if prog.updated else None,
     )
 
 
@@ -556,16 +579,34 @@ async def create_assignment(
     data: ClassroomAssignmentCreate,
     request: Request,
 ):
-    """Assign a notebook to a classroom.  Global owner, school owner, or teacher."""
+    """Assign a learning object to a classroom. Global owner, school owner, or teacher."""
     user = await get_current_user(request)
     await check_classroom_access(classroom_id, user, "teacher")
 
     try:
-        assignment = ClassroomAssignment(
-            classroom_id=_ensure_prefixed(classroom_id, "classroom"),
-            notebook_id=_ensure_prefixed(data.notebook_id, "notebook"),
-            assigned_by=_ensure_prefixed(data.assigned_by, "school_membership"),
-        )
+        # Build assignment fields
+        kwargs: Dict[str, Any] = {
+            "classroom_id": _ensure_prefixed(classroom_id, "classroom"),
+            "assigned_by": _ensure_prefixed(data.assigned_by, "school_membership"),
+        }
+        # Legacy notebook support
+        if data.notebook_id:
+            kwargs["notebook_id"] = _ensure_prefixed(data.notebook_id, "notebook")
+        # New target-based assignment
+        if data.target_type:
+            kwargs["target_type"] = data.target_type
+        if data.target_id:
+            kwargs["target_id"] = data.target_id
+        if data.title:
+            kwargs["title"] = data.title
+        if data.instructions:
+            kwargs["instructions"] = data.instructions
+        if data.due_at:
+            from datetime import datetime as _dt, timezone
+
+            kwargs["due_at"] = _dt.fromisoformat(data.due_at.replace("Z", "+00:00"))
+
+        assignment = ClassroomAssignment(**kwargs)
         await assignment.save()
         return _format_assignment(assignment)
     except HTTPException:
@@ -619,7 +660,7 @@ async def deactivate_assignment(
     assignment_id: str,
     request: Request,
 ):
-    """Soft-deactivate an assignment.  Global owner, school owner, or teacher."""
+    """Soft-deactivate an assignment. Global owner, school owner, or teacher."""
     user = await get_current_user(request)
     await check_classroom_access(classroom_id, user, "teacher")
 
@@ -635,4 +676,211 @@ async def deactivate_assignment(
         raise
     except Exception as e:
         logger.error(f"Error deactivating assignment {assignment_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================================================================
+# Learner Assignment Endpoints (E2.1)
+# =========================================================================
+
+
+@router.get(
+    "/assignments",
+    response_model=List[LearnerAssignmentResponse],
+)
+async def list_my_assignments(request: Request):
+    """List assignments for the current learner across all enrolled classrooms."""
+    user = await get_current_user(request)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    try:
+        user_id_str = _ensure_prefixed(str(user.id), "user")
+
+        # Find all classroom_ids where this user is an enrolled learner
+        enrollments = await repo_query(
+            "SELECT classroom_id FROM class_enrollment "
+            "WHERE learner_id IN "
+            "(SELECT id FROM school_membership WHERE user_id = $uid AND active = true) "
+            "AND active = true",
+            {"uid": ensure_record_id(user_id_str)},
+        )
+
+        if not enrollments:
+            return []
+
+        classroom_ids = [
+            ensure_record_id(_ensure_prefixed(str(e["classroom_id"]), "classroom"))
+            for e in enrollments
+        ]
+
+        # Fetch active assignments for those classrooms
+        placeholders = ", ".join(f"$cid{i}" for i in range(len(classroom_ids)))
+        params: Dict[str, Any] = {
+            f"cid{i}": cid for i, cid in enumerate(classroom_ids)
+        }
+        assignments = await repo_query(
+            f"SELECT * FROM classroom_assignment "
+            f"WHERE classroom_id IN [{placeholders}] AND active = true "
+            f"ORDER BY assigned_at DESC",
+            params,
+        )
+
+        # Fetch progress records for this learner
+        learner_memberships = await repo_query(
+            "SELECT id FROM school_membership "
+            "WHERE user_id = $uid AND active = true",
+            {"uid": ensure_record_id(user_id_str)},
+        )
+        membership_ids = [
+            _strip_prefix(str(m["id"])) for m in learner_memberships
+        ]
+
+        progress_map: Dict[str, Any] = {}
+        if membership_ids and assignments:
+            prog_placeholders = ", ".join(f"$lid{i}" for i in range(len(membership_ids)))
+            prog_params: Dict[str, Any] = {
+                f"lid{i}": ensure_record_id(_ensure_prefixed(mid, "school_membership"))
+                for i, mid in enumerate(membership_ids)
+            }
+            assignment_ids = [
+                ensure_record_id(_ensure_prefixed(str(a["id"]), "classroom_assignment"))
+                for a in assignments
+            ]
+            assign_placeholders = ", ".join(f"$aid{i}" for i in range(len(assignment_ids)))
+            prog_params.update({
+                f"aid{i}": aid for i, aid in enumerate(assignment_ids)
+            })
+            progress_records = await repo_query(
+                f"SELECT * FROM assignment_progress "
+                f"WHERE learner_id IN [{prog_placeholders}] "
+                f"AND assignment_id IN [{assign_placeholders}]",
+                prog_params,
+            )
+            for p in progress_records:
+                aid = _strip_prefix(str(p.get("assignment_id", "")))
+                progress_map[aid] = p
+
+        # Build learner-facing response (no private learner text, no AI diagnosis)
+        result: List[LearnerAssignmentResponse] = []
+        for a in assignments:
+            a_id = _strip_prefix(str(a.get("id", "")))
+            prog = progress_map.get(a_id)
+            result.append(LearnerAssignmentResponse(
+                id=a_id,
+                classroom_id=_strip_prefix(str(a.get("classroom_id", ""))),
+                target_type=a.get("target_type"),
+                target_id=a.get("target_id"),
+                title=a.get("title"),
+                instructions=a.get("instructions"),
+                due_at=str(a["due_at"]) if a.get("due_at") else None,
+                assigned_at=str(a["assigned_at"]) if a.get("assigned_at") else None,
+                status=prog.get("status", "not_started") if prog else "not_started",
+                completed_at=str(prog["completed_at"]) if prog and prog.get("completed_at") else None,
+                progress_id=_strip_prefix(str(prog["id"])) if prog else None,
+            ))
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing learner assignments: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/assignments/{assignment_id}/complete",
+    response_model=AssignmentProgressResponse,
+)
+async def mark_assignment_complete(
+    assignment_id: str,
+    data: AssignmentProgressCreate,
+    request: Request,
+):
+    """Mark an assignment as completed. Learner can only mark their own work."""
+    user = await get_current_user(request)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    try:
+        # Verify the assignment exists
+        full_assignment_id = _ensure_prefixed(assignment_id, "classroom_assignment")
+        assignment = await ClassroomAssignment.get(full_assignment_id)
+
+        # Verify the learner is enrolled in this classroom
+        user_id_str = _ensure_prefixed(str(user.id), "user")
+        enrollments = await repo_query(
+            "SELECT id FROM class_enrollment "
+            "WHERE classroom_id = $cid AND active = true "
+            "AND learner_id IN "
+            "(SELECT id FROM school_membership WHERE user_id = $uid AND active = true)",
+            {
+                "cid": ensure_record_id(
+                    _ensure_prefixed(str(assignment.classroom_id), "classroom")
+                ),
+                "uid": ensure_record_id(user_id_str),
+            },
+        )
+        if not enrollments:
+            raise HTTPException(
+                status_code=403, detail="Not enrolled in this classroom"
+            )
+
+        # Find the learner's school_membership ID
+        learner_memberships = await repo_query(
+            "SELECT id FROM school_membership "
+            "WHERE user_id = $uid AND active = true",
+            {"uid": ensure_record_id(user_id_str)},
+        )
+        if not learner_memberships:
+            raise HTTPException(
+                status_code=403, detail="No school membership found"
+            )
+        learner_mem_id = _strip_prefix(str(learner_memberships[0]["id"]))
+
+        # Check if progress already exists
+        existing = await repo_query(
+            "SELECT * FROM assignment_progress "
+            "WHERE assignment_id = $aid AND learner_id = $lid LIMIT 1",
+            {
+                "aid": ensure_record_id(full_assignment_id),
+                "lid": ensure_record_id(
+                    _ensure_prefixed(learner_mem_id, "school_membership")
+                ),
+            },
+        )
+
+        if existing:
+            # Update existing progress
+            prog_id = _strip_prefix(str(existing[0]["id"]))
+            prog = await AssignmentProgress.get(
+                _ensure_prefixed(prog_id, "assignment_progress")
+            )
+            prog.status = "completed"
+            from datetime import datetime as _dt, timezone
+
+            prog.completed_at = _dt.now(tz=timezone.utc)
+            await prog.save()
+        else:
+            # Create new progress record
+            prog = AssignmentProgress(
+                assignment_id=full_assignment_id,
+                classroom_id=_ensure_prefixed(
+                    str(assignment.classroom_id), "classroom"
+                ),
+                learner_id=_ensure_prefixed(learner_mem_id, "school_membership"),
+                status="completed",
+            )
+            from datetime import datetime as _dt, timezone
+
+            prog.completed_at = _dt.now(tz=timezone.utc)
+            await prog.save()
+
+        return _format_progress(prog)
+    except HTTPException:
+        raise
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    except Exception as e:
+        logger.error(f"Error marking assignment complete: {e}")
         raise HTTPException(status_code=500, detail=str(e))
