@@ -11,6 +11,7 @@ import { AlertCircle, ShieldAlert } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { isOwnerProtectedPath } from '@/lib/auth/owner-access'
+import { authApi } from '@/lib/api/auth'
 
 interface OwnerAccessStatus {
   enabled: boolean
@@ -236,6 +237,34 @@ export function LoginForm() {
     try {
       const success = await login(password)
       if (success) {
+        // Phase F4 — owner-cookie auto bridge.
+        // After a successful login, check if the user is a global owner.
+        // If so, automatically set the vault-owner-access cookie so they
+        // don't need to enter the password again when visiting /owner.
+        // This is best-effort and non-blocking: failures log a warning
+        // and the existing owner gate will handle missing cookies.
+        //
+        // nav visibility is UX, not authorization — backend guards remain
+        // the real security boundary (#F3b).
+        let shouldBridgeOwner = false
+        try {
+          const meResponse = await authApi.me()
+          shouldBridgeOwner = meResponse.owner_access || meResponse.user?.is_global_owner === true
+          if (shouldBridgeOwner) {
+            const ownerResp = await fetch('/api/owner-access', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password }),
+            })
+            if (!ownerResp.ok) {
+              console.warn('Owner-access bridge returned non-OK:', ownerResp.status)
+            }
+          }
+        } catch (bridgeErr) {
+          // Non-blocking — don't break login if owner bridge fails
+          console.warn('Owner-access bridge failed (non-blocking):', bridgeErr)
+        }
+
         const storedRedirect = typeof window !== 'undefined'
           ? sessionStorage.getItem('redirectAfterLogin')
           : null
