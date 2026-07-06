@@ -152,3 +152,110 @@ This document consolidates all content from the getting-started documentation fo
 - Index files (`index.md`) are automatically excluded
 - Files are sorted alphabetically for consistent output
 - The script handles subdirectories only (ignores files in the root `docs/` folder)
+
+---
+
+## seed_impact_demo.py
+
+Creates realistic sample data for demonstrating the Impact Intelligence module.
+
+### What It Does
+
+1. Creates a pilot school (Pilot School, Harare South)
+2. Creates a class (Form 1A)
+3. Creates Mathematics subject with 5 topics
+4. Creates 30 learners (L001-L030)
+5. Creates an assessment (Term 1 Diagnostic Test)
+6. Creates 8 questions mapped to topics
+7. Generates realistic marks with mixed performance levels
+
+### Expected Results
+
+- Overall pass rate: ~35-50%
+- Weak topics: Fractions, Ratios, Word Problems
+- At-risk learners: ~10-15
+- Critical interventions: 1-2
+
+### Usage
+
+```bash
+# Basic usage:
+python scripts/seed_impact_demo.py
+
+# Or with uv:
+uv run python scripts/seed_impact_demo.py
+```
+
+### Requirements
+
+- SurrealDB must be running
+- Environment variables must be set (SURREAL_URL, etc.)
+
+### Demo Data Structure
+
+```
+Pilot School (Harare South, Harare)
+└── Form 1A (Grade 1, 2026)
+    ├── 30 Learners (L001-L030)
+    └── Term 1 Diagnostic Test (100 marks, pass mark: 50)
+        ├── Q1: Fractions (10 marks, knowledge, easy)
+        ├── Q2: Fractions (10 marks, comprehension, medium)
+        ├── Q3: Ratios (10 marks, knowledge, easy)
+        ├── Q4: Ratios (10 marks, application, medium)
+        ├── Q5: Percentages (15 marks, knowledge, easy)
+        ├── Q6: Percentages (15 marks, application, hard)
+        ├── Q7: Graphs (15 marks, application, hard)
+        └── Q8: Word Problems (15 marks, analysis, hard)
+```
+
+### Learner Performance Levels
+
+- **Top 30%** (L001-L009): Good performers (60-90%)
+- **Middle 40%** (L010-L021): Average performers (40-70%)
+- **Bottom 30%** (L022-L030): Struggling learners (20-50%)
+
+---
+
+## reset_impact_demo.py
+
+Removes all Impact Intelligence demo data from the database.
+
+### What It Does
+
+1. Removes all impact_intervention records
+2. Removes all impact_mark_entry records
+3. Removes all impact_assessment_question records
+4. Removes all impact_assessment records
+5. Removes all impact_topic records
+6. Removes all impact_learner records
+7. Removes all impact_class_group records
+8. Removes all impact_subject records
+9. Removes all impact_school records
+
+### Usage
+
+```bash
+# Basic usage:
+python scripts/reset_impact_demo.py
+
+# Or with uv:
+uv run python scripts/reset_impact_demo.py
+```
+
+### Requirements
+
+- SurrealDB must be running
+- Environment variables must be set (SURREAL_URL, etc.)
+
+### Typical Workflow
+
+```bash
+# 1. Reset demo data
+python scripts/reset_impact_demo.py
+
+# 2. Seed fresh demo data
+python scripts/seed_impact_demo.py
+
+# 3. Navigate to Impact Intelligence
+# http://localhost:3000/impact
+```
