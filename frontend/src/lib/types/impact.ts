@@ -503,3 +503,27 @@ export interface SchoolReport {
   total_learners_assessed: number
   overall_pass_rate: number
 }
+
+// =========================================================================
+// AI Summary Types
+// =========================================================================
+
+export interface TeacherSummary {
+  summary: string
+  revision_sequence: string
+  source: 'ai-generated' | 'fallback'
+  error?: string
+}
+
+export interface InterventionPlan {
+  plan: string
+  source: 'ai-generated' | 'fallback'
+  error?: string
+}
+
+export interface RemedialLesson {
+  outline: string
+  mini_test_idea: string
+  source: 'ai-generated' | 'fallback'
+  error?: string
+}

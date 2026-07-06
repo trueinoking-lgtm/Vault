@@ -6,6 +6,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { QuestionMapBuilder } from '@/components/impact/QuestionMapBuilder'
 import { MarkEntryGrid } from '@/components/impact/MarkEntryGrid'
 import { InterventionPanel } from '@/components/impact/InterventionPanel'
+import { AISummaryPanel } from '@/components/impact/AISummaryPanel'
 import {
   useImpactAssessment,
   useAssessmentAnalytics,
@@ -195,6 +196,7 @@ export default function AssessmentDetailPage({
             <ResultsTab
               isLoading={analyticsLoading}
               analytics={analytics}
+              assessmentId={id}
             />
           )}
 
@@ -314,9 +316,11 @@ function MarksTab({
 function ResultsTab({
   isLoading,
   analytics,
+  assessmentId,
 }: {
   isLoading: boolean
   analytics: any
+  assessmentId: string
 }) {
   if (isLoading) {
     return <LoadingSpinner />
@@ -472,6 +476,9 @@ function ResultsTab({
           </div>
         </div>
       )}
+
+      {/* AI Summary Panel */}
+      <AISummaryPanel assessmentId={assessmentId} />
     </div>
   )
 }

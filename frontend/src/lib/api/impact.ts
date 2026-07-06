@@ -47,6 +47,9 @@ import type {
   MinistryDashboard,
   AssessmentReport,
   SchoolReport,
+  TeacherSummary,
+  InterventionPlan,
+  RemedialLesson,
 } from '@/lib/types/impact'
 
 // =========================================================================
@@ -387,6 +390,27 @@ export const impactReportsApi = {
     const response = await apiClient.get(`/impact/schools/${schoolId}/export/report`, {
       responseType: 'blob',
     })
+    return response.data
+  },
+
+  generateTeacherSummary: async (assessmentId: string) => {
+    const response = await apiClient.get<TeacherSummary>(
+      `/impact/assessments/${assessmentId}/ai/teacher-summary`
+    )
+    return response.data
+  },
+
+  generateInterventionPlan: async (assessmentId: string) => {
+    const response = await apiClient.get<InterventionPlan>(
+      `/impact/assessments/${assessmentId}/ai/intervention-plan`
+    )
+    return response.data
+  },
+
+  generateRemedialLesson: async (assessmentId: string) => {
+    const response = await apiClient.get<RemedialLesson>(
+      `/impact/assessments/${assessmentId}/ai/remedial-lesson`
+    )
     return response.data
   },
 }

@@ -2309,3 +2309,120 @@ async def export_school_report_csv(school_id: str) -> StreamingResponse:
             "Content-Disposition": f'attachment; filename="school_report_{school.name.replace(" ", "_")}.csv"'
         },
     )
+
+
+# =========================================================================
+# AI Summary Endpoints
+# =========================================================================
+
+
+@router.get("/assessments/{assessment_id}/ai/teacher-summary")
+async def generate_teacher_summary(assessment_id: str) -> Dict[str, Any]:
+    """Generate AI-powered teacher summary for an assessment."""
+    from vault_core.analytics.impact import ImpactAnalyticsEngine
+    from vault_core.analytics.impact_ai import ImpactAISummaryService
+
+    try:
+        # Get analytics
+        analytics = await ImpactAnalyticsEngine.calculate_analytics(assessment_id)
+
+        # Generate summary
+        summary = await ImpactAISummaryService.generate_teacher_summary(analytics)
+
+        return {
+            "summary": summary.summary,
+            "revision_sequence": summary.revision_sequence,
+            "source": summary.source,
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate teacher summary: {e}")
+        # Return graceful fallback
+        return {
+            "summary": "AI summary unavailable. Please check the analytics data above.",
+            "revision_sequence": "",
+            "source": "fallback",
+            "error": str(e),
+        }
+
+
+@router.get("/assessments/{assessment_id}/ai/intervention-plan")
+async def generate_intervention_plan(assessment_id: str) -> Dict[str, Any]:
+    """Generate AI-powered intervention plan for an assessment."""
+    from vault_core.analytics.impact import ImpactAnalyticsEngine
+    from vault_core.analytics.impact_ai import ImpactAISummaryService
+
+    try:
+        # Get analytics
+        analytics = await ImpactAnalyticsEngine.calculate_analytics(assessment_id)
+
+        # Generate plan
+        plan = await ImpactAISummaryService.generate_intervention_plan(analytics)
+
+        return {
+            "plan": plan.plan,
+            "source": plan.source,
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate intervention plan: {e}")
+        # Return graceful fallback
+        return {
+            "plan": "AI intervention plan unavailable. Please review the interventions above.",
+            "source": "fallback",
+            "error": str(e),
+        }
+
+
+@router.get("/assessments/{assessment_id}/ai/remedial-lesson")
+async def generate_remedial_lesson(assessment_id: str) -> Dict[str, Any]:
+    """Generate AI-powered remedial lesson outline for an assessment."""
+    from vault_core.analytics.impact import ImpactAnalyticsEngine
+    from vault_core.analytics.impact_ai import ImpactAISummaryService
+
+    try:
+        # Get assessment details for subject/class names
+        assessment_result = await repo_query(
+            f"SELECT * FROM impact_assessment WHERE id = '{assessment_id}'"
+        )
+        if not assessment_result:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+
+        assessment = ImpactAssessment(**assessment_result[0])
+
+        # Get class name
+        class_result = await repo_query(
+            f"SELECT * FROM impact_class_group WHERE id = '{assessment.class_group_id}'"
+        )
+        class_name = class_result[0].get("name", "Class") if class_result else "Class"
+
+        # Get subject name
+        subject_result = await repo_query(
+            f"SELECT * FROM impact_subject WHERE id = '{assessment.subject_id}'"
+        )
+        subject_name = subject_result[0].get("name", "Subject") if subject_result else "Subject"
+
+        # Get analytics
+        analytics = await ImpactAnalyticsEngine.calculate_analytics(assessment_id)
+
+        # Generate lesson
+        lesson = await ImpactAISummaryService.generate_remedial_lesson(
+            analytics,
+            subject_name=subject_name,
+            class_name=class_name,
+        )
+
+        return {
+            "outline": lesson.outline,
+            "mini_test_idea": lesson.mini_test_idea,
+            "source": lesson.source,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate remedial lesson: {e}")
+        # Return graceful fallback
+        return {
+            "outline": "AI remedial lesson unavailable. Please review the weak topics above.",
+            "mini_test_idea": "",
+            "source": "fallback",
+            "error": str(e),
+        }
