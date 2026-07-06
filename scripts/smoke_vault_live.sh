@@ -11,10 +11,15 @@
 #
 # Default base URL: https://vault-lms.duckdns.org
 #
+# Environment:
+#   VAULT_STALE_ASSET_CHECK=1   Also check known stale chunk URLs and report
+#                                whether they are still served (diagnostic only,
+#                                does not fail normal smoke).
+#
 # Examples:
 #   bash scripts/smoke_vault_live.sh
 #   bash scripts/smoke_vault_live.sh http://localhost:3003
-#   bash scripts/smoke_vault_live.sh https://staging.example.com
+#   VAULT_STALE_ASSET_CHECK=1 bash scripts/smoke_vault_live.sh
 #
 # Exit code: 0 if all checks pass, 1 if any check fails.
 # =============================================================================
@@ -22,6 +27,7 @@
 set -euo pipefail
 
 BASE_URL="${1:-https://vault-lms.duckdns.org}"
+STALE_CHECK="${VAULT_STALE_ASSET_CHECK:-0}"
 errors=0
 
 # ---- Colors ------------------------------------------------------------------
@@ -42,9 +48,13 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     echo ""
     echo "  base_url    Base URL to test (default: https://vault-lms.duckdns.org)"
     echo ""
+    echo "Environment variables:"
+    echo "  VAULT_STALE_ASSET_CHECK=1   Also check known stale chunk URLs (diagnostic)"
+    echo ""
     echo "Examples:"
     echo "  $(basename "$0")"
     echo "  $(basename "$0") http://localhost:3003"
+    echo "  VAULT_STALE_ASSET_CHECK=1 $(basename "$0")"
     exit 0
 fi
 
@@ -171,6 +181,38 @@ if [[ -n "$VAULT_CHUNKS" ]]; then
     info "  ✅ /vault chunks checked: $vault_chunks_ok/$vault_chunks_total passed"
 else
     warn "  ⚠️  No chunks found in /vault HTML"
+fi
+
+# ---- 6. Stale asset diagnostic (optional) ----------------------------------
+if [[ "$STALE_CHECK" == "1" ]]; then
+    echo "  ── Stale asset diagnostic (VAULT_STALE_ASSET_CHECK=1) ──"
+    
+    # Known stale chunk URLs from previous builds
+    STALE_URLS=(
+        "/_next/static/chunks/0xlom6.~a6t4v.js"
+        "/_next/static/chunks/0iv91htxp8-ti.js"
+        "/_next/static/chunks/12zjoa9otwrth.js"
+        "/_next/static/chunks/0h431e3jkuhjk.js"
+        "/_next/static/chunks/12prz70y1fyr5.css"
+    )
+    
+    stale_served=0
+    stale_missing=0
+    for stale_url in "${STALE_URLS[@]}"; do
+        stale_code=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}${stale_url}" 2>/dev/null || echo '000')
+        if [[ "$stale_code" == "200" ]]; then
+            stale_served=$((stale_served + 1))
+        elif [[ "$stale_code" == "404" || "$stale_code" == "500" ]]; then
+            stale_missing=$((stale_missing + 1))
+        fi
+    done
+    
+    info "  Stale assets: $stale_served served (200), $stale_missing missing ($stale_missing returned 404/500)"
+    if [[ "$stale_served" -gt 0 ]]; then
+        info "  ✅ Old chunks preserved — stale browser sessions will not crash"
+    else
+        warn "  ⚠️  No old chunks preserved — stale browsers may see ChunkLoadError"
+    fi
 fi
 
 # ---- Summary ----------------------------------------------------------------

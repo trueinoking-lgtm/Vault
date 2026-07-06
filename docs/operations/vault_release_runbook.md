@@ -1,7 +1,7 @@
 # Vault Release / Deployment Runbook
 
 **Target domain:** `https://vault-lms.duckdns.org`  
-**Last updated:** 2026-07-06
+**Last updated:** 2026-07-07
 
 > Throughout this runbook, `$REPO_DIR` refers to the repository root.
 > On the production VPS this is `/root/vault-lms/repo` (do not rely on the
@@ -113,14 +113,19 @@ bash scripts/deploy_vault_frontend_standalone.sh --restart --smoke
 The deploy helper:
 
 1. Installs dependencies with `npm ci`
-2. Runs `npm run build` (Next.js standalone output)
-3. **Removes stale** `.next/standalone/.next/static/` if it exists
-4. Copies `.next/static/` → `.next/standalone/.next/static/` (critical — Next.js does not do this automatically)
-5. **Verifies** at least one static file was copied (fails deployment if empty)
-6. Copies `public/` → `.next/standalone/public/`
-7. Verifies `.next/standalone/server.js` exists
-8. (If `--restart`) Stops old process, starts new one via `nohup` (uses `ss` not `lsof` for PID detection)
-9. (If `--smoke`) Runs HTTP route smoke tests
+2. **Preserves** existing standalone static assets into `frontend/.vault-static-cache/` (so old browser sessions don't crash)
+3. Runs `npm run build` (Next.js standalone output)
+4. **Removes stale** `.next/standalone/.next/static/` if it exists
+5. Copies `.next/static/` → `.next/standalone/.next/static/` (critical — Next.js does not do this automatically)
+6. **Verifies** at least one static file was copied (fails deployment if empty)
+7. **Restores** cached old static assets into standalone (no overwrite — keeps old chunks available for stale browsers)
+8. **Prunes** cached files older than 14 days
+9. Copies `public/` → `.next/standalone/public/`
+10. Verifies `.next/standalone/server.js` exists
+11. (If `--restart`) Stops old process, starts new one via `nohup` (uses `ss` not `lsof` for PID detection)
+12. (If `--smoke`) Runs HTTP route smoke tests
+
+Summary prints: new static file count, restored cached file count, final standalone static file count.
 
 ### Step 6 — Restart Backend (if changed)
 
@@ -362,6 +367,8 @@ find .next/standalone/.next/static/ -type f | wc -l
 
 **Root cause:** The browser has cached an older build's HTML which references chunks that no longer exist in the current build. Each `npm run build` generates new chunk names, so old chunk references become invalid.
 
+**Prevention:** The deploy helper now preserves recent old static assets in `frontend/.vault-static-cache/` and merges them back into standalone after the build. This means old chunk names remain available for stale browser sessions.
+
 **Diagnosis:**
 ```bash
 # 1. Check what chunks the current HTML references:
@@ -370,26 +377,27 @@ curl -s https://vault-lms.duckdns.org/vault | grep -oP '/_next/static/chunks/[^"
 # 2. Check if those chunks exist in standalone:
 ls frontend/.next/standalone/.next/static/chunks/ | head -10
 
-# 3. If HTML references chunks not in standalone → rebuild needed
+# 3. Check stale asset preservation:
+ls frontend/.vault-static-cache/chunks/ | head -10
+
+# 4. Run stale-asset diagnostic:
+VAULT_STALE_ASSET_CHECK=1 bash scripts/smoke_vault_live.sh
 ```
 
 **Fix path:**
 ```bash
-# 1. Rebuild frontend
-cd frontend && npm run build
+# 1. Run the hardened deploy helper (preserves old static + copies new):
+bash scripts/deploy_vault_frontend_standalone.sh --restart --smoke
 
-# 2. Copy static assets to standalone
-rm -rf .next/standalone/.next/static
-cp -r .next/static .next/standalone/.next/static
+# 2. If browser still fails, clear site data:
+#    - Chrome: DevTools → Application → Clear site data
+#    - Firefox: DevTools → Storage → Clear storage
+#    - Or hard refresh: Ctrl+Shift+R / Cmd+Shift+R
 
-# 3. Restart frontend server
-pkill -f "node .next/standalone/server.js"
-cd frontend && PORT=3003 HOSTNAME=0.0.0.0 node .next/standalone/server.js &
-
-# 4. Clear browser site data / service worker if browser still shows old chunks
+# 3. Test in incognito/private window to confirm build is correct
 ```
 
-**Why this happens:** Next.js generates unique chunk names per build. If the frontend server is not restarted after a rebuild, it serves the old HTML which references stale chunk names. The browser then requests chunks that don't exist in the new build.
+**Why this happens:** Next.js generates unique chunk names per build. If the frontend server is not restarted after a rebuild, it serves the old HTML which references stale chunk names. The browser then requests chunks that don't exist in the new build. The deploy helper now preserves recent old chunks to minimize this window.
 
 ### Static Assets Returning 404
 
@@ -609,6 +617,7 @@ The script checks:
 - Verifies all CSS/JS assets return 200
 - Specifically checks /vault route chunks
 - Media/font failures are warnings only; CSS/JS failures fail the smoke
+- Optional stale-asset diagnostic: `VAULT_STALE_ASSET_CHECK=1` checks known old chunk URLs
 
 Exit code is `0` on success, `1` on failure.
 

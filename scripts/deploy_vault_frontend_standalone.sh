@@ -6,6 +6,13 @@
 # assets into the standalone output, and optionally restarts the server and/or
 # runs smoke tests.
 #
+# Static preservation strategy:
+#   Before deleting the standalone static directory, cached old static assets
+#   are preserved in frontend/.vault-static-cache/. After the new build, old
+#   cached assets are merged back into the standalone output (without overwriting
+#   new files). This ensures stale browser sessions referencing old chunk names
+#   do not immediately crash after deploy.
+#
 # Usage:
 #   ./scripts/deploy_vault_frontend_standalone.sh [--restart] [--restart-systemd] [--smoke]
 #
@@ -28,6 +35,8 @@ VAULT_BASE_URL="${VAULT_BASE_URL:-https://vault-lms.duckdns.org}"
 VAULT_FRONTEND_DIR="frontend"
 VAULT_PORT="${VAULT_PORT:-3003}"
 VAULT_HOSTNAME="${VAULT_HOSTNAME:-0.0.0.0}"
+STATIC_CACHE_DIR=".vault-static-cache"
+CACHE_MAX_AGE_DAYS=14
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -124,39 +133,99 @@ info "Installing dependencies with npm ci (reproducible install)…"
 npm ci
 info "Dependencies installed."
 
-# ---- Step 3: Build ----------------------------------------------------------
+# ---- Step 3: Preserve old static assets before build ------------------------
+# The build may wipe .next/standalone, so cache existing static first.
+STANDALONE_STATIC=".next/standalone/.next/static"
+CACHE_PATH="$STATIC_CACHE_DIR"
+
+OLD_STATIC_COUNT=0
+if [[ -d "$STANDALONE_STATIC" ]]; then
+    OLD_STATIC_COUNT=$(find "$STANDALONE_STATIC" -type f 2>/dev/null | wc -l)
+    if [[ "$OLD_STATIC_COUNT" -gt 0 ]]; then
+        info "Preserving $OLD_STATIC_COUNT old static files into $CACHE_PATH/ …"
+        mkdir -p "$CACHE_PATH"
+        # Copy without overwriting existing cache files (keep newest)
+        cp -rn "$STANDALONE_STATIC/." "$CACHE_PATH/" 2>/dev/null || true
+        info "Old static cached."
+    fi
+fi
+
+# Also check if there's a stale cache from a previous interrupted deploy
+if [[ -d "$CACHE_PATH" ]]; then
+    CACHE_COUNT=$(find "$CACHE_PATH" -type f 2>/dev/null | wc -l)
+    info "Static cache contains $CACHE_COUNT files."
+fi
+
+# ---- Step 4: Build ----------------------------------------------------------
 info "Building Vault frontend (npm run build — output: standalone)…"
 npm run build
 BUILD_ID="$(cat .next/BUILD_ID 2>/dev/null || echo 'unknown')"
 info "Build complete. Build ID: $BUILD_ID"
 
-# ---- Step 4: Remove stale standalone static directory if needed --------------
-STANDALONE_STATIC=".next/standalone/.next/static"
+# ---- Step 5: Remove stale standalone static directory -----------------------
+# (build recreates .next/standalone from scratch)
 if [[ -d "$STANDALONE_STATIC" ]]; then
     info "Removing stale standalone static directory…"
     rm -rf "$STANDALONE_STATIC"
 fi
 
-# ---- Step 5: Copy static files into standalone output -----------------------
+# ---- Step 6: Copy new static files into standalone output -------------------
 info "Copying .next/static → .next/standalone/.next/static/ …"
 if [[ ! -d ".next/static" ]]; then
     error ".next/static not found — build may have failed or output format changed."
     exit 1
 fi
-mkdir -p ".next/standalone/.next/static"
-cp -r ".next/static/." ".next/standalone/.next/static/"
+mkdir -p "$STANDALONE_STATIC"
+cp -r ".next/static/." "$STANDALONE_STATIC/"
 
-# ---- Step 6: Verify static copy is not empty --------------------------------
-STATIC_FILE_COUNT="$(find "$STANDALONE_STATIC" -type f 2>/dev/null | wc -l)"
-if [[ "$STATIC_FILE_COUNT" -lt 1 ]]; then
+# ---- Step 7: Verify new static copy is not empty ---------------------------
+NEW_STATIC_COUNT="$(find "$STANDALONE_STATIC" -type f 2>/dev/null | wc -l)"
+if [[ "$NEW_STATIC_COUNT" -lt 1 ]]; then
     error "Static copy verification FAILED — $STANDALONE_STATIC is empty."
     error "This means static assets will return 500 in production."
     error "Check that .next/static/ was populated by the build step."
     exit 1
 fi
-info "Static copy verified: $STATIC_FILE_COUNT files in $STANDALONE_STATIC"
+info "New static files copied: $NEW_STATIC_COUNT files"
 
-# ---- Step 7: Copy public assets into standalone output ----------------------
+# ---- Step 8: Restore cached old static assets (merge, don't overwrite) ------
+RESTORED_COUNT=0
+if [[ -d "$CACHE_PATH" ]] && [[ -n "$(ls -A "$CACHE_PATH" 2>/dev/null)" ]]; then
+    info "Restoring cached old static assets into standalone (no overwrite)…"
+    # cp -n = no-clobber: only copy if destination doesn't exist
+    # -r = recursive
+    # This ensures current build assets are untouched, but old chunks remain
+    # available for stale browser sessions.
+    find "$CACHE_PATH" -type f | while read -r cached_file; do
+        rel_path="${cached_file#"$CACHE_PATH/"}"
+        dest="$STANDALONE_STATIC/$rel_path"
+        if [[ ! -f "$dest" ]]; then
+            mkdir -p "$(dirname "$dest")"
+            cp "$cached_file" "$dest"
+            RESTORED_COUNT=$((RESTORED_COUNT + 1))
+        fi
+    done
+    # recount for accurate reporting
+    RESTORED_COUNT=$(find "$STANDALONE_STATIC" -type f -newer "$CACHE_PATH" 2>/dev/null | wc -l || echo 0)
+    FINAL_STATIC_COUNT=$(find "$STANDALONE_STATIC" -type f 2>/dev/null | wc -l)
+    info "Cached old assets restored. Final standalone static: $FINAL_STATIC_COUNT files"
+else
+    info "No cached old static to restore."
+fi
+
+# ---- Step 9: Prune old cache (remove files older than CACHE_MAX_AGE_DAYS) ---
+if [[ -d "$CACHE_PATH" ]]; then
+    PRUNED=$(find "$CACHE_PATH" -type f -mtime +${CACHE_MAX_AGE_DAYS} -delete -print 2>/dev/null | wc -l)
+    # Remove empty directories left behind
+    find "$CACHE_PATH" -type d -empty -delete 2>/dev/null || true
+    if [[ "$PRUNED" -gt 0 ]]; then
+        info "Pruned $PRUNED stale cache files older than ${CACHE_MAX_AGE_DAYS} days."
+    fi
+    REMAINING=$(find "$CACHE_PATH" -type f 2>/dev/null | wc -l)
+    info "Static cache now has $REMAINING files."
+fi
+
+# ---- Step 10: Copy public assets into standalone output ---------------------
 if [[ -d "public" ]] && [[ -n "$(ls -A public 2>/dev/null)" ]]; then
     info "Copying public assets → .next/standalone/public/ …"
     mkdir -p ".next/standalone/public"
@@ -164,7 +233,7 @@ if [[ -d "public" ]] && [[ -n "$(ls -A public 2>/dev/null)" ]]; then
     info "Public assets copied."
 fi
 
-# ---- Step 8: Verify standalone server entry point exists --------------------
+# ---- Step 11: Verify standalone server entry point exists -------------------
 if [[ ! -f ".next/standalone/server.js" ]]; then
     error ".next/standalone/server.js not found — standalone build incomplete."
     error "Check that next.config.ts has output: 'standalone'."
@@ -174,7 +243,7 @@ info "Standalone server entry point: .next/standalone/server.js"
 
 cd "$REPO_ROOT"
 
-# ---- Step 9a: Optional restart via systemd ----------------------------------
+# ---- Step 12a: Optional restart via systemd ---------------------------------
 if [[ "$RESTART_SYSTEMD" == true ]]; then
     info "systemd restart flag set — restarting via systemctl…"
 
@@ -217,7 +286,7 @@ if [[ "$RESTART_SYSTEMD" == true ]]; then
     fi
 fi
 
-# ---- Step 9b: Optional restart via nohup (original behavior) ----------------
+# ---- Step 12b: Optional restart via nohup (original behavior) ---------------
 if [[ "$RESTART" == true ]]; then
     info "Restart flag set — restarting Vault frontend (port $VAULT_PORT) via nohup…"
 
@@ -259,7 +328,7 @@ if [[ "$RESTART" == true ]]; then
     fi
 fi
 
-# ---- Step 10: Optional smoke test -------------------------------------------
+# ---- Step 13: Optional smoke test -------------------------------------------
 if [[ "$SMOKE" == true ]]; then
     echo ""
     info "Smoke flag set — running smoke tests against $VAULT_BASE_URL…"
@@ -320,12 +389,15 @@ if [[ "$SMOKE" == true ]]; then
 fi
 
 # ---- Summary ----------------------------------------------------------------
+FINAL_STATIC_COUNT=$(find "$VAULT_FRONTEND_DIR/$STANDALONE_STATIC" -type f 2>/dev/null | wc -l)
 echo ""
 info "═══════════════════════════════════════════════════════════════"
 info "  Vault Frontend Deploy Helper — Complete"
-info "  Build ID:     $BUILD_ID"
-info "  Build output: $VAULT_FRONTEND_DIR/.next/standalone/"
-info "  Static files: $STATIC_FILE_COUNT files in $STANDALONE_STATIC"
+info "  Build ID:              $BUILD_ID"
+info "  Build output:          $VAULT_FRONTEND_DIR/.next/standalone/"
+info "  New static files:      $NEW_STATIC_COUNT"
+info "  Restored cached files: $RESTORED_COUNT"
+info "  Final standalone static: $FINAL_STATIC_COUNT files"
 info ""
 info "  Next steps:"
 if [[ "$RESTART_SYSTEMD" != true && "$RESTART" != true ]]; then
