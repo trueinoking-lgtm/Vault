@@ -1,0 +1,121 @@
+-- Migration 20: Impact Intelligence — assessment analytics and interventions.
+--
+-- Phase 1 — adds backend primitives for assessment intelligence:
+-- impact_school, impact_class_group, impact_learner, impact_subject,
+-- impact_topic, impact_assessment, impact_assessment_question,
+-- impact_mark_entry, impact_intervention.
+
+-- 1. impact_school — schools for Impact Intelligence
+DEFINE TABLE IF NOT EXISTS impact_school SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS name ON TABLE impact_school TYPE string;
+DEFINE FIELD IF NOT EXISTS district ON TABLE impact_school TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS province ON TABLE impact_school TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS school_type ON TABLE impact_school TYPE option<string>
+  ASSERT $value INSIDE ["primary", "secondary", "tertiary"];
+DEFINE FIELD IF NOT EXISTS active ON TABLE impact_school TYPE bool DEFAULT true;
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_school TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_school TYPE datetime DEFAULT time::now();
+
+-- 2. impact_class_group — teaching groups within a school
+DEFINE TABLE IF NOT EXISTS impact_class_group SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE impact_class_group TYPE record<impact_school>;
+DEFINE FIELD IF NOT EXISTS name ON TABLE impact_class_group TYPE string;
+DEFINE FIELD IF NOT EXISTS grade_level ON TABLE impact_class_group TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS academic_year ON TABLE impact_class_group TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS teacher_name ON TABLE impact_class_group TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS active ON TABLE impact_class_group TYPE bool DEFAULT true;
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_class_group TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_class_group TYPE datetime DEFAULT time::now();
+
+-- 3. impact_learner — learners enrolled in class groups
+DEFINE TABLE IF NOT EXISTS impact_learner SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE impact_learner TYPE record<impact_school>;
+DEFINE FIELD IF NOT EXISTS class_group_id ON TABLE impact_learner TYPE record<impact_class_group>;
+DEFINE FIELD IF NOT EXISTS learner_code ON TABLE impact_learner TYPE string;
+DEFINE FIELD IF NOT EXISTS display_name ON TABLE impact_learner TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS status ON TABLE impact_learner TYPE string DEFAULT "active"
+  ASSERT $value INSIDE ["active", "inactive", "transferred"];
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_learner TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_learner TYPE datetime DEFAULT time::now();
+
+-- 4. impact_subject — subjects offered in the curriculum
+DEFINE TABLE IF NOT EXISTS impact_subject SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS name ON TABLE impact_subject TYPE string;
+DEFINE FIELD IF NOT EXISTS level ON TABLE impact_subject TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS curriculum ON TABLE impact_subject TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_subject TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_subject TYPE datetime DEFAULT time::now();
+
+-- 5. impact_topic — topics within a subject
+DEFINE TABLE IF NOT EXISTS impact_topic SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS subject_id ON TABLE impact_topic TYPE record<impact_subject>;
+DEFINE FIELD IF NOT EXISTS name ON TABLE impact_topic TYPE string;
+DEFINE FIELD IF NOT EXISTS strand ON TABLE impact_topic TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS syllabus_code ON TABLE impact_topic TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_topic TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_topic TYPE datetime DEFAULT time::now();
+
+-- 6. impact_assessment — assessments (tests, exams, quizzes)
+DEFINE TABLE IF NOT EXISTS impact_assessment SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS school_id ON TABLE impact_assessment TYPE record<impact_school>;
+DEFINE FIELD IF NOT EXISTS class_group_id ON TABLE impact_assessment TYPE record<impact_class_group>;
+DEFINE FIELD IF NOT EXISTS subject_id ON TABLE impact_assessment TYPE record<impact_subject>;
+DEFINE FIELD IF NOT EXISTS title ON TABLE impact_assessment TYPE string;
+DEFINE FIELD IF NOT EXISTS assessment_type ON TABLE impact_assessment TYPE string
+  ASSERT $value INSIDE ["test", "exam", "quiz", "assignment"];
+DEFINE FIELD IF NOT EXISTS term ON TABLE impact_assessment TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS date_written ON TABLE impact_assessment TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS total_marks ON TABLE impact_assessment TYPE int;
+DEFINE FIELD IF NOT EXISTS pass_mark ON TABLE impact_assessment TYPE option<int>;
+DEFINE FIELD IF NOT EXISTS status ON TABLE impact_assessment TYPE string DEFAULT "draft"
+  ASSERT $value INSIDE ["draft", "published", "graded"];
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_assessment TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_assessment TYPE datetime DEFAULT time::now();
+
+-- 7. impact_assessment_question — questions within an assessment
+DEFINE TABLE IF NOT EXISTS impact_assessment_question SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS assessment_id ON TABLE impact_assessment_question TYPE record<impact_assessment>;
+DEFINE FIELD IF NOT EXISTS question_number ON TABLE impact_assessment_question TYPE int;
+DEFINE FIELD IF NOT EXISTS label ON TABLE impact_assessment_question TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS max_marks ON TABLE impact_assessment_question TYPE int;
+DEFINE FIELD IF NOT EXISTS topic_id ON TABLE impact_assessment_question TYPE option<record<impact_topic>>;
+DEFINE FIELD IF NOT EXISTS skill_type ON TABLE impact_assessment_question TYPE string
+  ASSERT $value INSIDE ["knowledge", "comprehension", "application", "analysis"];
+DEFINE FIELD IF NOT EXISTS difficulty ON TABLE impact_assessment_question TYPE option<string>
+  ASSERT $value INSIDE ["easy", "medium", "hard"];
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_assessment_question TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_assessment_question TYPE datetime DEFAULT time::now();
+
+-- 8. impact_mark_entry — mark entries for learners on questions
+DEFINE TABLE IF NOT EXISTS impact_mark_entry SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS assessment_id ON TABLE impact_mark_entry TYPE record<impact_assessment>;
+DEFINE FIELD IF NOT EXISTS question_id ON TABLE impact_mark_entry TYPE record<impact_assessment_question>;
+DEFINE FIELD IF NOT EXISTS learner_id ON TABLE impact_mark_entry TYPE record<impact_learner>;
+DEFINE FIELD IF NOT EXISTS score ON TABLE impact_mark_entry TYPE float;
+DEFINE FIELD IF NOT EXISTS max_score ON TABLE impact_mark_entry TYPE float;
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_mark_entry TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_mark_entry TYPE datetime DEFAULT time::now();
+
+-- 9. impact_intervention — recommended interventions
+DEFINE TABLE IF NOT EXISTS impact_intervention SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS assessment_id ON TABLE impact_intervention TYPE record<impact_assessment>;
+DEFINE FIELD IF NOT EXISTS class_group_id ON TABLE impact_intervention TYPE record<impact_class_group>;
+DEFINE FIELD IF NOT EXISTS topic_id ON TABLE impact_intervention TYPE record<impact_topic>;
+DEFINE FIELD IF NOT EXISTS severity ON TABLE impact_intervention TYPE string
+  ASSERT $value INSIDE ["low", "medium", "high", "critical"];
+DEFINE FIELD IF NOT EXISTS recommendation ON TABLE impact_intervention TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS status ON TABLE impact_intervention TYPE string DEFAULT "pending"
+  ASSERT $value INSIDE ["pending", "in_progress", "completed", "dismissed"];
+DEFINE FIELD IF NOT EXISTS created ON TABLE impact_intervention TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE impact_intervention TYPE datetime DEFAULT time::now();
+
+-- 10. Indexes for fast lookups
+DEFINE INDEX IF NOT EXISTS impact_class_group_school ON TABLE impact_class_group FIELDS school_id;
+DEFINE INDEX IF NOT EXISTS impact_learner_class ON TABLE impact_learner FIELDS class_group_id;
+DEFINE INDEX IF NOT EXISTS impact_topic_subject ON TABLE impact_topic FIELDS subject_id;
+DEFINE INDEX IF NOT EXISTS impact_assessment_class ON TABLE impact_assessment FIELDS class_group_id;
+DEFINE INDEX IF NOT EXISTS impact_assessment_subject ON TABLE impact_assessment FIELDS subject_id;
+DEFINE INDEX IF NOT EXISTS impact_question_assessment ON TABLE impact_assessment_question FIELDS assessment_id;
+DEFINE INDEX IF NOT EXISTS impact_mark_learner ON TABLE impact_mark_entry FIELDS learner_id;
+DEFINE INDEX IF NOT EXISTS impact_mark_question ON TABLE impact_mark_entry FIELDS question_id;
+DEFINE INDEX IF NOT EXISTS impact_intervention_class ON TABLE impact_intervention FIELDS class_group_id;

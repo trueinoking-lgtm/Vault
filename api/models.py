@@ -1108,3 +1108,421 @@ class ClassActivityEntry(BaseModel):
     note_id: str
     event_type: str
     event_time: str
+
+
+# =========================================================================
+# Impact Intelligence — Assessment Analytics
+# =========================================================================
+
+
+class ImpactSchoolCreate(BaseModel):
+    """Request to create an Impact School."""
+
+    name: str = Field(..., description="School display name")
+    district: Optional[str] = Field(None, description="District name")
+    province: Optional[str] = Field(None, description="Province name")
+    school_type: Optional[str] = Field(
+        None, description="School type: primary, secondary, or tertiary",
+        pattern=r"^(primary|secondary|tertiary)$"
+    )
+
+
+class ImpactSchoolUpdate(BaseModel):
+    """Request to update an Impact School."""
+
+    name: Optional[str] = Field(None, description="School display name")
+    district: Optional[str] = Field(None, description="District name")
+    province: Optional[str] = Field(None, description="Province name")
+    school_type: Optional[str] = Field(
+        None, description="School type: primary, secondary, or tertiary",
+        pattern=r"^(primary|secondary|tertiary)$"
+    )
+    active: Optional[bool] = Field(None, description="Soft-deactivate school")
+
+
+class ImpactSchoolResponse(BaseModel):
+    """Response for an Impact School."""
+
+    id: str
+    name: str
+    district: Optional[str] = None
+    province: Optional[str] = None
+    school_type: Optional[str] = None
+    active: bool = True
+    created: str
+    updated: str
+
+
+class ImpactClassGroupCreate(BaseModel):
+    """Request to create an Impact Class Group."""
+
+    school_id: str = Field(..., description="School ID")
+    name: str = Field(..., description="Class group name")
+    grade_level: Optional[str] = Field(None, description="Grade level")
+    academic_year: Optional[str] = Field(None, description="Academic year (e.g. 2026)")
+    teacher_name: Optional[str] = Field(None, description="Teacher name")
+
+
+class ImpactClassGroupUpdate(BaseModel):
+    """Request to update an Impact Class Group."""
+
+    name: Optional[str] = Field(None, description="Class group name")
+    grade_level: Optional[str] = Field(None, description="Grade level")
+    academic_year: Optional[str] = Field(None, description="Academic year")
+    teacher_name: Optional[str] = Field(None, description="Teacher name")
+    active: Optional[bool] = Field(None, description="Soft-deactivate class group")
+
+
+class ImpactClassGroupResponse(BaseModel):
+    """Response for an Impact Class Group."""
+
+    id: str
+    school_id: str
+    name: str
+    grade_level: Optional[str] = None
+    academic_year: Optional[str] = None
+    teacher_name: Optional[str] = None
+    active: bool = True
+    created: str
+    updated: str
+
+
+class ImpactLearnerCreate(BaseModel):
+    """Request to create an Impact Learner."""
+
+    school_id: str = Field(..., description="School ID")
+    class_group_id: str = Field(..., description="Class Group ID")
+    learner_code: str = Field(..., description="School-assigned learner code")
+    display_name: Optional[str] = Field(None, description="Display name")
+    status: str = Field(
+        "active", description="Learner status: active, inactive, or transferred",
+        pattern=r"^(active|inactive|transferred)$"
+    )
+
+
+class ImpactLearnerUpdate(BaseModel):
+    """Request to update an Impact Learner."""
+
+    display_name: Optional[str] = Field(None, description="Display name")
+    status: Optional[str] = Field(
+        None, description="Learner status: active, inactive, or transferred",
+        pattern=r"^(active|inactive|transferred)$"
+    )
+
+
+class ImpactLearnerResponse(BaseModel):
+    """Response for an Impact Learner."""
+
+    id: str
+    school_id: str
+    class_group_id: str
+    learner_code: str
+    display_name: Optional[str] = None
+    status: str = "active"
+    created: str
+    updated: str
+
+
+class ImpactSubjectCreate(BaseModel):
+    """Request to create an Impact Subject."""
+
+    name: str = Field(..., description="Subject name")
+    level: Optional[str] = Field(None, description="Level (e.g. O-Level, A-Level)")
+    curriculum: Optional[str] = Field(None, description="Curriculum (e.g. ZIMSEC, Cambridge)")
+
+
+class ImpactSubjectUpdate(BaseModel):
+    """Request to update an Impact Subject."""
+
+    name: Optional[str] = Field(None, description="Subject name")
+    level: Optional[str] = Field(None, description="Level")
+    curriculum: Optional[str] = Field(None, description="Curriculum")
+
+
+class ImpactSubjectResponse(BaseModel):
+    """Response for an Impact Subject."""
+
+    id: str
+    name: str
+    level: Optional[str] = None
+    curriculum: Optional[str] = None
+    created: str
+    updated: str
+
+
+class ImpactTopicCreate(BaseModel):
+    """Request to create an Impact Topic."""
+
+    subject_id: str = Field(..., description="Subject ID")
+    name: str = Field(..., description="Topic name")
+    strand: Optional[str] = Field(None, description="Strand")
+    syllabus_code: Optional[str] = Field(None, description="Syllabus code")
+
+
+class ImpactTopicUpdate(BaseModel):
+    """Request to update an Impact Topic."""
+
+    name: Optional[str] = Field(None, description="Topic name")
+    strand: Optional[str] = Field(None, description="Strand")
+    syllabus_code: Optional[str] = Field(None, description="Syllabus code")
+
+
+class ImpactTopicResponse(BaseModel):
+    """Response for an Impact Topic."""
+
+    id: str
+    subject_id: str
+    name: str
+    strand: Optional[str] = None
+    syllabus_code: Optional[str] = None
+    created: str
+    updated: str
+
+
+class ImpactAssessmentCreate(BaseModel):
+    """Request to create an Impact Assessment."""
+
+    school_id: str = Field(..., description="School ID")
+    class_group_id: str = Field(..., description="Class Group ID")
+    subject_id: str = Field(..., description="Subject ID")
+    title: str = Field(..., description="Assessment title")
+    assessment_type: str = Field(
+        ..., description="Type: test, exam, quiz, or assignment",
+        pattern=r"^(test|exam|quiz|assignment)$"
+    )
+    term: Optional[str] = Field(None, description="Term (e.g. Term 1)")
+    date_written: Optional[str] = Field(None, description="Date written (ISO format)")
+    total_marks: int = Field(..., description="Total marks", gt=0)
+    pass_mark: Optional[int] = Field(None, description="Pass mark", gt=0)
+    status: str = Field(
+        "draft", description="Status: draft, published, or graded",
+        pattern=r"^(draft|published|graded)$"
+    )
+
+
+class ImpactAssessmentUpdate(BaseModel):
+    """Request to update an Impact Assessment."""
+
+    title: Optional[str] = Field(None, description="Assessment title")
+    assessment_type: Optional[str] = Field(
+        None, description="Type: test, exam, quiz, or assignment",
+        pattern=r"^(test|exam|quiz|assignment)$"
+    )
+    term: Optional[str] = Field(None, description="Term")
+    date_written: Optional[str] = Field(None, description="Date written (ISO format)")
+    total_marks: Optional[int] = Field(None, description="Total marks", gt=0)
+    pass_mark: Optional[int] = Field(None, description="Pass mark", gt=0)
+    status: Optional[str] = Field(
+        None, description="Status: draft, published, or graded",
+        pattern=r"^(draft|published|graded)$"
+    )
+
+
+class ImpactAssessmentResponse(BaseModel):
+    """Response for an Impact Assessment."""
+
+    id: str
+    school_id: str
+    class_group_id: str
+    subject_id: str
+    title: str
+    assessment_type: str
+    term: Optional[str] = None
+    date_written: Optional[str] = None
+    total_marks: int
+    pass_mark: Optional[int] = None
+    status: str = "draft"
+    created: str
+    updated: str
+
+
+class ImpactAssessmentQuestionCreate(BaseModel):
+    """Request to create an Impact Assessment Question."""
+
+    assessment_id: str = Field(..., description="Assessment ID")
+    question_number: int = Field(..., description="Question number", gt=0)
+    label: Optional[str] = Field(None, description="Question label (e.g. Q1)")
+    max_marks: int = Field(..., description="Maximum marks", gt=0)
+    topic_id: Optional[str] = Field(None, description="Topic ID")
+    skill_type: str = Field(
+        ..., description="Skill type: knowledge, comprehension, application, or analysis",
+        pattern=r"^(knowledge|comprehension|application|analysis)$"
+    )
+    difficulty: Optional[str] = Field(
+        None, description="Difficulty: easy, medium, or hard",
+        pattern=r"^(easy|medium|hard)$"
+    )
+
+
+class ImpactAssessmentQuestionUpdate(BaseModel):
+    """Request to update an Impact Assessment Question."""
+
+    question_number: Optional[int] = Field(None, description="Question number", gt=0)
+    label: Optional[str] = Field(None, description="Question label")
+    max_marks: Optional[int] = Field(None, description="Maximum marks", gt=0)
+    topic_id: Optional[str] = Field(None, description="Topic ID")
+    skill_type: Optional[str] = Field(
+        None, description="Skill type",
+        pattern=r"^(knowledge|comprehension|application|analysis)$"
+    )
+    difficulty: Optional[str] = Field(
+        None, description="Difficulty",
+        pattern=r"^(easy|medium|hard)$"
+    )
+
+
+class ImpactAssessmentQuestionResponse(BaseModel):
+    """Response for an Impact Assessment Question."""
+
+    id: str
+    assessment_id: str
+    question_number: int
+    label: Optional[str] = None
+    max_marks: int
+    topic_id: Optional[str] = None
+    skill_type: str
+    difficulty: Optional[str] = None
+    created: str
+    updated: str
+
+
+class ImpactMarkEntryCreate(BaseModel):
+    """Request to create an Impact Mark Entry."""
+
+    assessment_id: str = Field(..., description="Assessment ID")
+    question_id: str = Field(..., description="Question ID")
+    learner_id: str = Field(..., description="Learner ID")
+    score: float = Field(..., description="Score achieved", ge=0)
+    max_score: float = Field(..., description="Maximum score", gt=0)
+
+
+class ImpactMarkEntryUpdate(BaseModel):
+    """Request to update an Impact Mark Entry."""
+
+    score: Optional[float] = Field(None, description="Score achieved", ge=0)
+
+
+class ImpactMarkEntryResponse(BaseModel):
+    """Response for an Impact Mark Entry."""
+
+    id: str
+    assessment_id: str
+    question_id: str
+    learner_id: str
+    score: float
+    max_score: float
+    created: str
+    updated: str
+
+
+class ImpactInterventionCreate(BaseModel):
+    """Request to create an Impact Intervention."""
+
+    assessment_id: str = Field(..., description="Assessment ID")
+    class_group_id: str = Field(..., description="Class Group ID")
+    topic_id: str = Field(..., description="Topic ID")
+    severity: str = Field(
+        ..., description="Severity: low, medium, high, or critical",
+        pattern=r"^(low|medium|high|critical)$"
+    )
+    recommendation: Optional[str] = Field(None, description="Recommendation text")
+    status: str = Field(
+        "pending", description="Status: pending, in_progress, completed, or dismissed",
+        pattern=r"^(pending|in_progress|completed|dismissed)$"
+    )
+
+
+class ImpactInterventionUpdate(BaseModel):
+    """Request to update an Impact Intervention."""
+
+    severity: Optional[str] = Field(
+        None, description="Severity",
+        pattern=r"^(low|medium|high|critical)$"
+    )
+    recommendation: Optional[str] = Field(None, description="Recommendation text")
+    status: Optional[str] = Field(
+        None, description="Status",
+        pattern=r"^(pending|in_progress|completed|dismissed)$"
+    )
+
+
+class ImpactInterventionResponse(BaseModel):
+    """Response for an Impact Intervention."""
+
+    id: str
+    assessment_id: str
+    class_group_id: str
+    topic_id: str
+    severity: str
+    recommendation: Optional[str] = None
+    status: str = "pending"
+    created: str
+    updated: str
+
+
+# =========================================================================
+# Impact Intelligence — List Responses
+# =========================================================================
+
+
+class ImpactSchoolListResponse(BaseModel):
+    """List response for Impact Schools."""
+
+    schools: List[ImpactSchoolResponse]
+    total: int
+
+
+class ImpactClassGroupListResponse(BaseModel):
+    """List response for Impact Class Groups."""
+
+    class_groups: List[ImpactClassGroupResponse]
+    total: int
+
+
+class ImpactLearnerListResponse(BaseModel):
+    """List response for Impact Learners."""
+
+    learners: List[ImpactLearnerResponse]
+    total: int
+
+
+class ImpactSubjectListResponse(BaseModel):
+    """List response for Impact Subjects."""
+
+    subjects: List[ImpactSubjectResponse]
+    total: int
+
+
+class ImpactTopicListResponse(BaseModel):
+    """List response for Impact Topics."""
+
+    topics: List[ImpactTopicResponse]
+    total: int
+
+
+class ImpactAssessmentListResponse(BaseModel):
+    """List response for Impact Assessments."""
+
+    assessments: List[ImpactAssessmentResponse]
+    total: int
+
+
+class ImpactAssessmentQuestionListResponse(BaseModel):
+    """List response for Impact Assessment Questions."""
+
+    questions: List[ImpactAssessmentQuestionResponse]
+    total: int
+
+
+class ImpactMarkEntryListResponse(BaseModel):
+    """List response for Impact Mark Entries."""
+
+    mark_entries: List[ImpactMarkEntryResponse]
+    total: int
+
+
+class ImpactInterventionListResponse(BaseModel):
+    """List response for Impact Interventions."""
+
+    interventions: List[ImpactInterventionResponse]
+    total: int

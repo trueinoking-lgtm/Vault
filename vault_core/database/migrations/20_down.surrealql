@@ -1,0 +1,23 @@
+-- Migration 20 down: Remove Impact Intelligence tables.
+
+-- Remove indexes first
+REMOVE INDEX IF EXISTS impact_intervention_class ON TABLE impact_intervention;
+REMOVE INDEX IF EXISTS impact_mark_question ON TABLE impact_mark_entry;
+REMOVE INDEX IF EXISTS impact_mark_learner ON TABLE impact_mark_entry;
+REMOVE INDEX IF EXISTS impact_question_assessment ON TABLE impact_assessment_question;
+REMOVE INDEX IF EXISTS impact_assessment_subject ON TABLE impact_assessment;
+REMOVE INDEX IF EXISTS impact_assessment_class ON TABLE impact_assessment;
+REMOVE INDEX IF EXISTS impact_topic_subject ON TABLE impact_topic;
+REMOVE INDEX IF EXISTS impact_learner_class ON TABLE impact_learner;
+REMOVE INDEX IF EXISTS impact_class_group_school ON TABLE impact_class_group;
+
+-- Remove tables in reverse dependency order
+REMOVE TABLE IF EXISTS impact_intervention;
+REMOVE TABLE IF EXISTS impact_mark_entry;
+REMOVE TABLE IF EXISTS impact_assessment_question;
+REMOVE TABLE IF EXISTS impact_assessment;
+REMOVE TABLE IF EXISTS impact_topic;
+REMOVE TABLE IF EXISTS impact_learner;
+REMOVE TABLE IF EXISTS impact_class_group;
+REMOVE TABLE IF EXISTS impact_subject;
+REMOVE TABLE IF EXISTS impact_school;
