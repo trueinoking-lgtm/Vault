@@ -6,6 +6,11 @@
 # assets into the standalone output, and optionally restarts the server and/or
 # runs smoke tests.
 #
+# CRITICAL: The old frontend process MUST be killed BEFORE npm run build,
+# because the build deletes .next/standalone/ entirely. If the process is
+# still running when the directory is deleted, its CWD becomes "(deleted)"
+# and it can no longer serve static assets (all return 500).
+#
 # Static preservation strategy:
 #   Before deleting the standalone static directory, cached old static assets
 #   are preserved in frontend/.vault-static-cache/. After the new build, old
@@ -17,7 +22,7 @@
 #   ./scripts/deploy_vault_frontend_standalone.sh [--restart] [--restart-systemd] [--smoke]
 #
 # Flags:
-#   --restart          After building, restart Vault frontend via nohup
+#   --restart          After building, restart Vault frontend via nohup (default)
 #   --restart-systemd  After building, restart Vault frontend via systemctl
 #   --smoke            After building (and optionally restarting), run smoke tests
 #   -h, --help         Show this help message
@@ -61,7 +66,7 @@ Usage: $(basename "$0") [OPTIONS]
 Build and prepare the Vault frontend standalone deployment.
 
 Options:
-  --restart          After building, restart the Vault frontend via nohup
+  --restart          After building, restart the Vault frontend via nohup (default)
   --restart-systemd  After building, restart the Vault frontend via systemctl
   --smoke            After building (and optionally restarting), run smoke tests
   -h, --help         Show this help message
@@ -156,20 +161,40 @@ if [[ -d "$CACHE_PATH" ]]; then
     info "Static cache contains $CACHE_COUNT files."
 fi
 
-# ---- Step 4: Build ----------------------------------------------------------
+# ---- Step 4: Stop old frontend process BEFORE build -------------------------
+# CRITICAL: npm run build deletes .next/standalone/ entirely. If the process
+# is still running, its CWD becomes "(deleted)" and static serving breaks.
+info "Stopping old frontend process (if any) before build…"
+OLD_PID="$(ss -tlnp | grep ":${VAULT_PORT} " | grep -oP 'pid=\K[0-9]+' | head -1 || true)"
+if [[ -n "$OLD_PID" ]]; then
+    info "Found existing process (PID: $OLD_PID) on port $VAULT_PORT — stopping…"
+    kill -TERM "$OLD_PID" 2>/dev/null || true
+    sleep 2
+    # Force kill if still alive after graceful stop
+    if kill -0 "$OLD_PID" 2>/dev/null; then
+        warn "Process still running after SIGTERM — sending SIGKILL…"
+        kill -KILL "$OLD_PID" 2>/dev/null || true
+        sleep 1
+    fi
+    info "Old process stopped."
+else
+    info "No existing process found on port $VAULT_PORT."
+fi
+
+# ---- Step 5: Build ----------------------------------------------------------
 info "Building Vault frontend (npm run build — output: standalone)…"
 npm run build
 BUILD_ID="$(cat .next/BUILD_ID 2>/dev/null || echo 'unknown')"
 info "Build complete. Build ID: $BUILD_ID"
 
-# ---- Step 5: Remove stale standalone static directory -----------------------
+# ---- Step 6: Remove stale standalone static directory -----------------------
 # (build recreates .next/standalone from scratch)
 if [[ -d "$STANDALONE_STATIC" ]]; then
     info "Removing stale standalone static directory…"
     rm -rf "$STANDALONE_STATIC"
 fi
 
-# ---- Step 6: Copy new static files into standalone output -------------------
+# ---- Step 7: Copy new static files into standalone output -------------------
 info "Copying .next/static → .next/standalone/.next/static/ …"
 if [[ ! -d ".next/static" ]]; then
     error ".next/static not found — build may have failed or output format changed."
@@ -178,7 +203,7 @@ fi
 mkdir -p "$STANDALONE_STATIC"
 cp -r ".next/static/." "$STANDALONE_STATIC/"
 
-# ---- Step 7: Verify new static copy is not empty ---------------------------
+# ---- Step 8: Verify new static copy is not empty ---------------------------
 NEW_STATIC_COUNT="$(find "$STANDALONE_STATIC" -type f 2>/dev/null | wc -l)"
 if [[ "$NEW_STATIC_COUNT" -lt 1 ]]; then
     error "Static copy verification FAILED — $STANDALONE_STATIC is empty."
@@ -188,7 +213,23 @@ if [[ "$NEW_STATIC_COUNT" -lt 1 ]]; then
 fi
 info "New static files copied: $NEW_STATIC_COUNT files"
 
-# ---- Step 8: Restore cached old static assets (merge, don't overwrite) ------
+# ---- Step 9: Hard validation — chunks and media directories must exist ------
+CHUNKS_COUNT="$(find "$STANDALONE_STATIC/chunks" -type f 2>/dev/null | wc -l)"
+if [[ "$CHUNKS_COUNT" -lt 1 ]]; then
+    error "CRITICAL: $STANDALONE_STATIC/chunks/ is empty or missing."
+    error "This means all JS/CSS chunk requests will return 500."
+    exit 1
+fi
+info "Chunks directory validated: $CHUNKS_COUNT files"
+
+MEDIA_COUNT="$(find "$STANDALONE_STATIC/media" -type f 2>/dev/null | wc -l || echo 0)"
+if [[ "$MEDIA_COUNT" -lt 1 ]]; then
+    warn "No media files found in $STANDALONE_STATIC/media/ (fonts may be missing)."
+else
+    info "Media directory validated: $MEDIA_COUNT files"
+fi
+
+# ---- Step 10: Restore cached old static assets (merge, don't overwrite) -----
 RESTORED_COUNT=0
 if [[ -d "$CACHE_PATH" ]] && [[ -n "$(ls -A "$CACHE_PATH" 2>/dev/null)" ]]; then
     info "Restoring cached old static assets into standalone (no overwrite)…"
@@ -213,7 +254,7 @@ else
     info "No cached old static to restore."
 fi
 
-# ---- Step 9: Prune old cache (remove files older than CACHE_MAX_AGE_DAYS) ---
+# ---- Step 11: Prune old cache (remove files older than CACHE_MAX_AGE_DAYS) --
 if [[ -d "$CACHE_PATH" ]]; then
     PRUNED=$(find "$CACHE_PATH" -type f -mtime +${CACHE_MAX_AGE_DAYS} -delete -print 2>/dev/null | wc -l)
     # Remove empty directories left behind
@@ -225,7 +266,7 @@ if [[ -d "$CACHE_PATH" ]]; then
     info "Static cache now has $REMAINING files."
 fi
 
-# ---- Step 10: Copy public assets into standalone output ---------------------
+# ---- Step 12: Copy public assets into standalone output ---------------------
 if [[ -d "public" ]] && [[ -n "$(ls -A public 2>/dev/null)" ]]; then
     info "Copying public assets → .next/standalone/public/ …"
     mkdir -p ".next/standalone/public"
@@ -233,7 +274,7 @@ if [[ -d "public" ]] && [[ -n "$(ls -A public 2>/dev/null)" ]]; then
     info "Public assets copied."
 fi
 
-# ---- Step 11: Verify standalone server entry point exists -------------------
+# ---- Step 13: Verify standalone server entry point exists -------------------
 if [[ ! -f ".next/standalone/server.js" ]]; then
     error ".next/standalone/server.js not found — standalone build incomplete."
     error "Check that next.config.ts has output: 'standalone'."
@@ -243,7 +284,7 @@ info "Standalone server entry point: .next/standalone/server.js"
 
 cd "$REPO_ROOT"
 
-# ---- Step 12a: Optional restart via systemd ---------------------------------
+# ---- Step 14a: Optional restart via systemd --------------------------------
 if [[ "$RESTART_SYSTEMD" == true ]]; then
     info "systemd restart flag set — restarting via systemctl…"
 
@@ -286,23 +327,9 @@ if [[ "$RESTART_SYSTEMD" == true ]]; then
     fi
 fi
 
-# ---- Step 12b: Optional restart via nohup (original behavior) ---------------
+# ---- Step 14b: Optional restart via nohup ----------------------------------
 if [[ "$RESTART" == true ]]; then
-    info "Restart flag set — restarting Vault frontend (port $VAULT_PORT) via nohup…"
-
-    # Find and stop existing process on the port (use ss, not lsof)
-    OLD_PID="$(ss -tlnp | grep ":${VAULT_PORT} " | grep -oP 'pid=\K[0-9]+' | head -1 || true)"
-    if [[ -n "$OLD_PID" ]]; then
-        info "Stopping existing process (PID: $OLD_PID)…"
-        kill -TERM "$OLD_PID" 2>/dev/null || true
-        sleep 2
-        # Force kill if still alive after graceful stop
-        if kill -0 "$OLD_PID" 2>/dev/null; then
-            warn "Process still running after SIGTERM — sending SIGKILL…"
-            kill -KILL "$OLD_PID" 2>/dev/null || true
-            sleep 1
-        fi
-    fi
+    info "Restart flag set — starting Vault frontend (port $VAULT_PORT) via nohup…"
 
     # Start new process
     cd "$VAULT_FRONTEND_DIR"
@@ -314,7 +341,7 @@ if [[ "$RESTART" == true ]]; then
 
     echo ""
     info "═══════════════════════════════════════════════════════════════"
-    info "  Vault frontend restarted (PID: $NEW_PID)"
+    info "  Vault frontend started (PID: $NEW_PID)"
     info "  Listening on http://$VAULT_HOSTNAME:$VAULT_PORT"
     info "  Log file: /var/log/vault-frontend.log"
     info "═══════════════════════════════════════════════════════════════"
@@ -328,7 +355,7 @@ if [[ "$RESTART" == true ]]; then
     fi
 fi
 
-# ---- Step 13: Optional smoke test -------------------------------------------
+# ---- Step 15: Optional smoke test -------------------------------------------
 if [[ "$SMOKE" == true ]]; then
     echo ""
     info "Smoke flag set — running smoke tests against $VAULT_BASE_URL…"

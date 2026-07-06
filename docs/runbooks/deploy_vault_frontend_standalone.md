@@ -36,12 +36,17 @@
 1. **Validates location** — confirms `frontend/package.json` exists in the repo root
 2. **Validates lockfile** — confirms `package-lock.json` exists so `npm ci` works
 3. **`npm ci`** — fast, reproducible dependency install from lockfile
-4. **`npm run build`** — Next.js production build (`output: standalone`)
-5. **Copies static assets** — `.next/static/` → `.next/standalone/.next/static/` (Next.js standalone does not do this automatically)
-6. **Copies public assets** — `public/` → `.next/standalone/public/`
-7. **Verifies server entry** — confirms `.next/standalone/server.js` exists
-8. **`--restart`:** gracefully stops the old process (SIGTERM → SIGKILL if needed), starts new one via `nohup`
-9. **`--smoke`:** runs HTTP smoke tests against the deployed URL
+4. **Preserves old static assets** — caches existing standalone static into `frontend/.vault-static-cache/` for stale browser compatibility
+5. **Stops old frontend process BEFORE build** — `npm run build` deletes `.next/standalone/` entirely; if the process is still running, its CWD becomes `(deleted)` and static serving breaks (all return 500)
+6. **`npm run build`** — Next.js production build (`output: standalone`)
+7. **Copies static assets** — `.next/static/` → `.next/standalone/.next/static/` (Next.js standalone does not do this automatically)
+8. **Validates** `chunks/` and `media/` directories exist (hard check — fails if empty)
+9. **Restores cached old static** — merges old chunks back (no overwrite) for stale browser compatibility
+10. **Prunes** cached files older than 14 days
+11. **Copies public assets** — `public/` → `.next/standalone/public/`
+12. **Verifies server entry** — confirms `.next/standalone/server.js` exists
+13. **`--restart` or `--restart-systemd`:** starts new process
+14. **`--smoke`:** runs HTTP smoke tests against the deployed URL
 
 ## Smoke Test Checks
 
@@ -68,7 +73,7 @@ Use `npm install` manually only when intentionally updating dependencies, then c
 ## Caveats
 
 - **Static copy is required.** Next.js `output: 'standalone'` does not copy `.next/static/` into the standalone output. Without this step, the server serves HTML but all `/_next/static/*` assets return 404. The script handles this automatically.
-- **Restart is opt-in** via `--restart`. The script never touches running processes without this flag.
+- **Process is always stopped before build** to prevent orphaned CWD. The `--restart`/`--restart-systemd` flags control whether a NEW process is started after the build.
 - **AetherLink is never touched.** The script operates only inside `frontend/` and only on port `3003`. AetherLink runs on port `3002` and is not affected.
-- **PIDs are not hardcoded.** Process discovery uses `lsof -ti :<port>`.
+- **PIDs are not hardcoded.** Process discovery uses `ss -tlnp` (more reliable than lsof).
 - **No secrets.** The script reads no credentials, secrets, or env files with sensitive data.

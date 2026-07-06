@@ -114,18 +114,29 @@ The deploy helper:
 
 1. Installs dependencies with `npm ci`
 2. **Preserves** existing standalone static assets into `frontend/.vault-static-cache/` (so old browser sessions don't crash)
-3. Runs `npm run build` (Next.js standalone output)
-4. **Removes stale** `.next/standalone/.next/static/` if it exists
-5. Copies `.next/static/` → `.next/standalone/.next/static/` (critical — Next.js does not do this automatically)
-6. **Verifies** at least one static file was copied (fails deployment if empty)
-7. **Restores** cached old static assets into standalone (no overwrite — keeps old chunks available for stale browsers)
-8. **Prunes** cached files older than 14 days
-9. Copies `public/` → `.next/standalone/public/`
-10. Verifies `.next/standalone/server.js` exists
-11. (If `--restart`) Stops old process, starts new one via `nohup` (uses `ss` not `lsof` for PID detection)
-12. (If `--smoke`) Runs HTTP route smoke tests
+3. **Stops old frontend process BEFORE build** — `npm run build` deletes `.next/standalone/` entirely; if the process is still running, its CWD becomes `(deleted)` and static serving breaks (all return 500)
+4. Runs `npm run build` (Next.js standalone output)
+5. **Removes stale** `.next/standalone/.next/static/` if it exists
+6. Copies `.next/static/` → `.next/standalone/.next/static/` (critical — Next.js does not do this automatically)
+7. **Verifies** at least one static file was copied (fails deployment if empty)
+8. **Validates** `chunks/` and `media/` directories exist in standalone (hard check — fails if empty)
+9. **Restores** cached old static assets into standalone (no overwrite — keeps old chunks available for stale browsers)
+10. **Prunes** cached files older than 14 days
+11. Copies `public/` → `.next/standalone/public/`
+12. Verifies `.next/standalone/server.js` exists
+13. (If `--restart` or `--restart-systemd`) Starts new process
+14. (If `--smoke`) Runs HTTP route smoke tests
 
 Summary prints: new static file count, restored cached file count, final standalone static file count.
+
+### Critical: Process Must Be Killed Before Build
+
+`npm run build` deletes `.next/standalone/` entirely and recreates it. If the running
+server process has its CWD in that directory, the CWD becomes `(deleted)` and the process
+can no longer serve static assets — all `/_next/static/*` requests return 500.
+
+The deploy helper now kills the old process BEFORE the build step (Step 3), not after.
+This ensures no orphaned process is left with a deleted CWD.
 
 ### Step 6 — Restart Backend (if changed)
 
@@ -367,7 +378,7 @@ find .next/standalone/.next/static/ -type f | wc -l
 
 **Root cause:** The browser has cached an older build's HTML which references chunks that no longer exist in the current build. Each `npm run build` generates new chunk names, so old chunk references become invalid.
 
-**Prevention:** The deploy helper now preserves recent old static assets in `frontend/.vault-static-cache/` and merges them back into standalone after the build. This means old chunk names remain available for stale browser sessions.
+**Prevention:** The deploy helper now preserves recent old static assets in `frontend/.vault-static-cache/` and merges them back into standalone after the build. This means old chunk names remain available for stale browser sessions. The deploy helper also kills the old process BEFORE the build to prevent orphaned CWD issues.
 
 **Diagnosis:**
 ```bash
@@ -613,11 +624,12 @@ bash scripts/smoke_vault_live.sh http://localhost:3003
 
 The script checks:
 - All routes in §8
-- Extracts static asset URLs from **multiple routes** (/, /vault, /sources, /notebooks, /teacher)
-- Verifies all CSS/JS assets return 200
-- Specifically checks /vault route chunks
+- Extracts CSS/JS asset URLs from **multiple routes** (/, /vault, /sources, /notebooks, /teacher)
+- Verifies all assets via **GET** (not HEAD — matches browser behavior)
+- Specifically checks /vault route chunks via GET
 - Media/font failures are warnings only; CSS/JS failures fail the smoke
 - Optional stale-asset diagnostic: `VAULT_STALE_ASSET_CHECK=1` checks known old chunk URLs
+- Optional local check: `VAULT_LOCAL_CHECK=1` checks localhost:3003 directly and compares with public
 
 Exit code is `0` on success, `1` on failure.
 
