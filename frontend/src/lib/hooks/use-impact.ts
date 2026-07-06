@@ -535,3 +535,22 @@ export function useDeleteImpactIntervention() {
     },
   })
 }
+
+// =========================================================================
+// Dashboard Hooks
+// =========================================================================
+
+export function useSchoolDashboard(schoolId: string) {
+  return useQuery({
+    queryKey: [...impactKeys.all, 'dashboard', 'school', schoolId],
+    queryFn: () => impactDashboardsApi.getSchoolDashboard(schoolId),
+    enabled: !!schoolId,
+  })
+}
+
+export function useMinistryDashboard() {
+  return useQuery({
+    queryKey: [...impactKeys.all, 'dashboard', 'ministry'],
+    queryFn: () => impactDashboardsApi.getMinistryDashboard(),
+  })
+}

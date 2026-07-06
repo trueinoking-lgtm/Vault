@@ -1345,3 +1345,382 @@ async def delete_intervention(intervention_id: str) -> Dict[str, str]:
     await intervention.delete()
     logger.info(f"Deleted Impact Intervention: {intervention_id}")
     return {"message": f"Intervention {intervention_id} deleted"}
+
+
+# =========================================================================
+# Dashboard Endpoints
+# =========================================================================
+
+
+@router.get("/dashboards/school/{school_id}")
+async def get_school_dashboard(school_id: str) -> Dict[str, Any]:
+    """
+    Get aggregated school dashboard data.
+
+    Returns:
+    - total classes
+    - total learners assessed
+    - total assessments
+    - overall pass rate
+    - pass rate by subject
+    - pass rate by class
+    - weakest topics across school
+    - classes needing support
+    - recent interventions
+    """
+    school_id = _ensure_prefixed(school_id, "impact_school")
+
+    # Fetch school data
+    school = await ImpactSchool.get(school_id)
+    if not school:
+        raise NotFoundError(f"School {school_id} not found")
+
+    # Fetch classes
+    classes_result = await repo_query(
+        "SELECT * FROM impact_class_group WHERE school_id = $school_id",
+        {"school_id": school_id},
+    )
+    classes = [ImpactClassGroup(**r) for r in classes_result]
+    class_ids = [c.id for c in classes if c.id]
+
+    # Fetch learners
+    learners_result = await repo_query(
+        "SELECT * FROM impact_learner WHERE school_id = $school_id",
+        {"school_id": school_id},
+    )
+    learners = [ImpactLearner(**r) for r in learners_result]
+
+    # Fetch assessments
+    assessments_result = await repo_query(
+        "SELECT * FROM impact_assessment WHERE school_id = $school_id",
+        {"school_id": school_id},
+    )
+    assessments = [ImpactAssessment(**r) for r in assessments_result]
+    assessment_ids = [a.id for a in assessments if a.id]
+
+    # Fetch all marks for this school's assessments
+    marks_result = await repo_query(
+        "SELECT * FROM impact_mark_entry WHERE assessment_id INSIDE $assessment_ids",
+        {"assessment_ids": assessment_ids},
+    )
+    marks = [ImpactMarkEntry(**r) for r in marks_result]
+
+    # Calculate pass rates
+    total_learners_assessed = len(set(m.learner_id for m in marks))
+    passed_count = 0
+    for assessment in assessments:
+        assessment_marks = [m for m in marks if m.assessment_id == assessment.id]
+        learner_totals: Dict[str, float] = {}
+        for mark in assessment_marks:
+            if mark.learner_id not in learner_totals:
+                learner_totals[mark.learner_id] = 0
+            learner_totals[mark.learner_id] += mark.score
+
+        for learner_id, total in learner_totals.items():
+            if assessment.pass_mark and total >= assessment.pass_mark:
+                passed_count += 1
+            elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                passed_count += 1
+
+    overall_pass_rate = (passed_count / total_learners_assessed * 100) if total_learners_assessed > 0 else 0
+
+    # Pass rate by subject
+    subject_result = await repo_query(
+        "SELECT * FROM impact_subject WHERE id IN $subject_ids",
+        {"subject_ids": list(set(a.subject_id for a in assessments if a.subject_id))},
+    )
+    subjects = [ImpactSubject(**r) for r in subject_result]
+
+    pass_rate_by_subject = []
+    for subject in subjects:
+        subject_assessments = [a for a in assessments if a.subject_id == subject.id]
+        subject_marks = [m for m in marks if m.assessment_id in [a.id for a in subject_assessments]]
+        subject_learners = len(set(m.learner_id for m in subject_marks))
+        subject_passed = 0
+        for assessment in subject_assessments:
+            assessment_marks = [m for m in subject_marks if m.assessment_id == assessment.id]
+            learner_totals: Dict[str, float] = {}
+            for mark in assessment_marks:
+                if mark.learner_id not in learner_totals:
+                    learner_totals[mark.learner_id] = 0
+                learner_totals[mark.learner_id] += mark.score
+            for total in learner_totals.values():
+                if assessment.pass_mark and total >= assessment.pass_mark:
+                    subject_passed += 1
+                elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                    subject_passed += 1
+
+        pass_rate_by_subject.append({
+            "subject_id": _strip_prefix(str(subject.id or "")),
+            "subject_name": subject.name,
+            "total_learners": subject_learners,
+            "pass_rate": round((subject_passed / subject_learners * 100) if subject_learners > 0 else 0, 2),
+        })
+
+    # Pass rate by class
+    pass_rate_by_class = []
+    for cls in classes:
+        class_learners = [l for l in learners if l.class_group_id == cls.id]
+        class_marks = [m for m in marks if m.learner_id in [l.id for l in class_learners]]
+        class_learners_assessed = len(set(m.learner_id for m in class_marks))
+        class_passed = 0
+        for assessment in assessments:
+            if assessment.class_group_id == cls.id:
+                assessment_marks = [m for m in class_marks if m.assessment_id == assessment.id]
+                learner_totals: Dict[str, float] = {}
+                for mark in assessment_marks:
+                    if mark.learner_id not in learner_totals:
+                        learner_totals[mark.learner_id] = 0
+                    learner_totals[mark.learner_id] += mark.score
+                for total in learner_totals.values():
+                    if assessment.pass_mark and total >= assessment.pass_mark:
+                        class_passed += 1
+                    elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                        class_passed += 1
+
+        pass_rate_by_class.append({
+            "class_id": _strip_prefix(str(cls.id or "")),
+            "class_name": cls.name,
+            "total_learners": class_learners_assessed,
+            "pass_rate": round((class_passed / class_learners_assessed * 100) if class_learners_assessed > 0 else 0, 2),
+        })
+
+    # Weakest topics across school
+    topics_result = await repo_query(
+        "SELECT * FROM impact_topic WHERE subject_id IN $subject_ids",
+        {"subject_ids": list(set(a.subject_id for a in assessments if a.subject_id))},
+    )
+    topics = [ImpactTopic(**r) for r in topics_result]
+
+    weakest_topics = []
+    for topic in topics:
+        topic_questions_result = await repo_query(
+            "SELECT * FROM impact_assessment_question WHERE topic_id = $topic_id",
+            {"topic_id": topic.id},
+        )
+        topic_questions = [ImpactAssessmentQuestion(**r) for r in topic_questions_result]
+        topic_question_ids = [q.id for q in topic_questions]
+
+        if not topic_question_ids:
+            continue
+
+        topic_marks = [m for m in marks if m.question_id in topic_question_ids]
+        total_score = sum(m.score for m in topic_marks)
+        total_max = sum(m.max_score for m in topic_marks)
+        percentage = (total_score / total_max * 100) if total_max > 0 else 0
+
+        if percentage < 55:  # Weak or critical
+            weakest_topics.append({
+                "topic_id": _strip_prefix(str(topic.id or "")),
+                "topic_name": topic.name,
+                "percentage": round(percentage, 2),
+                "is_critical": percentage < 40,
+                "num_questions": len(topic_questions),
+            })
+
+    weakest_topics.sort(key=lambda x: x["percentage"])
+
+    # Classes needing support (pass rate < 50%)
+    classes_needing_support = [
+        c for c in pass_rate_by_class if c["pass_rate"] < 50 and c["total_learners"] > 0
+    ]
+
+    # Recent interventions
+    interventions_result = await repo_query(
+        "SELECT * FROM impact_intervention WHERE assessment_id IN $assessment_ids ORDER BY created DESC LIMIT 5",
+        {"assessment_ids": assessment_ids},
+    )
+    recent_interventions = [ImpactIntervention(**r) for r in interventions_result]
+
+    return {
+        "school_id": _strip_prefix(str(school.id or "")),
+        "school_name": school.name,
+        "total_classes": len(classes),
+        "total_learners": len(learners),
+        "total_learners_assessed": total_learners_assessed,
+        "total_assessments": len(assessments),
+        "overall_pass_rate": round(overall_pass_rate, 2),
+        "pass_rate_by_subject": pass_rate_by_subject,
+        "pass_rate_by_class": pass_rate_by_class,
+        "weakest_topics": weakest_topics,
+        "classes_needing_support": classes_needing_support,
+        "recent_interventions": [
+            {
+                "id": _strip_prefix(str(i.id or "")),
+                "severity": i.severity,
+                "recommendation": i.recommendation,
+                "status": i.status,
+                "created": str(i.created) if i.created else "",
+            }
+            for i in recent_interventions
+        ],
+    }
+
+
+@router.get("/dashboards/ministry")
+async def get_ministry_dashboard() -> Dict[str, Any]:
+    """
+    Get ministry-style aggregate dashboard data.
+
+    Returns:
+    - schools registered
+    - learners assessed
+    - assessments captured
+    - average pass rate
+    - weak topics by subject
+    - schools/classes needing support
+
+    Privacy: No learner names, aggregate data only.
+    """
+    # Fetch all schools
+    schools_result = await repo_query("SELECT * FROM impact_school")
+    schools = [ImpactSchool(**r) for r in schools_result]
+
+    # Fetch all learners
+    learners_result = await repo_query("SELECT * FROM impact_learner")
+    learners = [ImpactLearner(**r) for r in learners_result]
+
+    # Fetch all assessments
+    assessments_result = await repo_query("SELECT * FROM impact_assessment")
+    assessments = [ImpactAssessment(**r) for r in assessments_result]
+
+    # Fetch all marks
+    marks_result = await repo_query("SELECT * FROM impact_mark_entry")
+    marks = [ImpactMarkEntry(**r) for r in marks_result]
+
+    # Calculate aggregate statistics
+    total_learners_assessed = len(set(m.learner_id for m in marks))
+    passed_count = 0
+    for assessment in assessments:
+        assessment_marks = [m for m in marks if m.assessment_id == assessment.id]
+        learner_totals: Dict[str, float] = {}
+        for mark in assessment_marks:
+            if mark.learner_id not in learner_totals:
+                learner_totals[mark.learner_id] = 0
+            learner_totals[mark.learner_id] += mark.score
+
+        for total in learner_totals.values():
+            if assessment.pass_mark and total >= assessment.pass_mark:
+                passed_count += 1
+            elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                passed_count += 1
+
+    average_pass_rate = (passed_count / total_learners_assessed * 100) if total_learners_assessed > 0 else 0
+
+    # Weak topics by subject
+    subjects_result = await repo_query("SELECT * FROM impact_subject")
+    subjects = [ImpactSubject(**r) for r in subjects_result]
+
+    topics_result = await repo_query("SELECT * FROM impact_topic")
+    topics = [ImpactTopic(**r) for r in topics_result]
+
+    weak_topics_by_subject = []
+    for subject in subjects:
+        subject_topics = [t for t in topics if t.subject_id == subject.id]
+        subject_weak_topics = []
+
+        for topic in subject_topics:
+            topic_questions_result = await repo_query(
+                "SELECT * FROM impact_assessment_question WHERE topic_id = $topic_id",
+                {"topic_id": topic.id},
+            )
+            topic_questions = [ImpactAssessmentQuestion(**r) for r in topic_questions_result]
+            topic_question_ids = [q.id for q in topic_questions]
+
+            if not topic_question_ids:
+                continue
+
+            topic_marks = [m for m in marks if m.question_id in topic_question_ids]
+            total_score = sum(m.score for m in topic_marks)
+            total_max = sum(m.max_score for m in topic_marks)
+            percentage = (total_score / total_max * 100) if total_max > 0 else 0
+
+            if percentage < 55:  # Weak or critical
+                subject_weak_topics.append({
+                    "topic_name": topic.name,
+                    "percentage": round(percentage, 2),
+                    "is_critical": percentage < 40,
+                })
+
+        if subject_weak_topics:
+            weak_topics_by_subject.append({
+                "subject_id": _strip_prefix(str(subject.id or "")),
+                "subject_name": subject.name,
+                "weak_topics": sorted(subject_weak_topics, key=lambda x: x["percentage"]),
+            })
+
+    # Schools needing support (average pass rate < 50%)
+    schools_needing_support = []
+    for school in schools:
+        school_assessments = [a for a in assessments if a.school_id == school.id]
+        school_marks = [m for m in marks if m.assessment_id in [a.id for a in school_assessments]]
+        school_learners_assessed = len(set(m.learner_id for m in school_marks))
+        school_passed = 0
+        for assessment in school_assessments:
+            assessment_marks = [m for m in school_marks if m.assessment_id == assessment.id]
+            learner_totals: Dict[str, float] = {}
+            for mark in assessment_marks:
+                if mark.learner_id not in learner_totals:
+                    learner_totals[mark.learner_id] = 0
+                learner_totals[mark.learner_id] += mark.score
+            for total in learner_totals.values():
+                if assessment.pass_mark and total >= assessment.pass_mark:
+                    school_passed += 1
+                elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                    school_passed += 1
+
+        school_pass_rate = (school_passed / school_learners_assessed * 100) if school_learners_assessed > 0 else 0
+
+        if school_pass_rate < 50 and school_learners_assessed > 0:
+            schools_needing_support.append({
+                "school_id": _strip_prefix(str(school.id or "")),
+                "school_name": school.name,
+                "pass_rate": round(school_pass_rate, 2),
+                "total_assessments": len(school_assessments),
+            })
+
+    # Classes needing support
+    classes_result = await repo_query("SELECT * FROM impact_class_group")
+    classes = [ImpactClassGroup(**r) for r in classes_result]
+
+    classes_needing_support = []
+    for cls in classes:
+        class_learners = [l for l in learners if l.class_group_id == cls.id]
+        class_assessments = [a for a in assessments if a.class_group_id == cls.id]
+        class_marks = [m for m in marks if m.learner_id in [l.id for l in class_learners]]
+        class_learners_assessed = len(set(m.learner_id for m in class_marks))
+        class_passed = 0
+        for assessment in class_assessments:
+            assessment_marks = [m for m in class_marks if m.assessment_id == assessment.id]
+            learner_totals: Dict[str, float] = {}
+            for mark in assessment_marks:
+                if mark.learner_id not in learner_totals:
+                    learner_totals[mark.learner_id] = 0
+                learner_totals[mark.learner_id] += mark.score
+            for total in learner_totals.values():
+                if assessment.pass_mark and total >= assessment.pass_mark:
+                    class_passed += 1
+                elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                    class_passed += 1
+
+        class_pass_rate = (class_passed / class_learners_assessed * 100) if class_learners_assessed > 0 else 0
+
+        if class_pass_rate < 50 and class_learners_assessed > 0:
+            classes_needing_support.append({
+                "class_id": _strip_prefix(str(cls.id or "")),
+                "class_name": cls.name,
+                "school_id": _strip_prefix(str(cls.school_id)),
+                "pass_rate": round(class_pass_rate, 2),
+                "total_learners": class_learners_assessed,
+            })
+
+    return {
+        "total_schools": len(schools),
+        "total_learners": len(learners),
+        "total_learners_assessed": total_learners_assessed,
+        "total_assessments": len(assessments),
+        "average_pass_rate": round(average_pass_rate, 2),
+        "weak_topics_by_subject": weak_topics_by_subject,
+        "schools_needing_support": schools_needing_support,
+        "classes_needing_support": classes_needing_support[:10],  # Limit to 10 for ministry view
+    }

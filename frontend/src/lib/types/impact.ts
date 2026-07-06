@@ -384,3 +384,97 @@ export interface AssessmentAnalytics {
   at_risk_learners: LearnerPerformance[]
   interventions: InterventionRecommendation[]
 }
+
+// =========================================================================
+// Dashboard Types
+// =========================================================================
+
+export interface SchoolDashboard {
+  school_id: string
+  school_name: string
+  total_classes: number
+  total_learners: number
+  total_learners_assessed: number
+  total_assessments: number
+  overall_pass_rate: number
+  pass_rate_by_subject: SubjectPassRate[]
+  pass_rate_by_class: ClassPassRate[]
+  weakest_topics: WeakTopic[]
+  classes_needing_support: ClassNeedingSupport[]
+  recent_interventions: RecentIntervention[]
+}
+
+export interface SubjectPassRate {
+  subject_id: string
+  subject_name: string
+  total_learners: number
+  pass_rate: number
+}
+
+export interface ClassPassRate {
+  class_id: string
+  class_name: string
+  total_learners: number
+  pass_rate: number
+}
+
+export interface WeakTopic {
+  topic_id: string
+  topic_name: string
+  percentage: number
+  is_critical: boolean
+  num_questions: number
+}
+
+export interface ClassNeedingSupport {
+  class_id: string
+  class_name: string
+  pass_rate: number
+  total_learners: number
+}
+
+export interface RecentIntervention {
+  id: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  recommendation?: string
+  status: 'pending' | 'in_progress' | 'completed' | 'dismissed'
+  created: string
+}
+
+export interface MinistryDashboard {
+  total_schools: number
+  total_learners: number
+  total_learners_assessed: number
+  total_assessments: number
+  average_pass_rate: number
+  weak_topics_by_subject: SubjectWeakTopics[]
+  schools_needing_support: SchoolNeedingSupport[]
+  classes_needing_support: ClassNeedingSupportMinistry[]
+}
+
+export interface SubjectWeakTopics {
+  subject_id: string
+  subject_name: string
+  weak_topics: WeakTopicMinistry[]
+}
+
+export interface WeakTopicMinistry {
+  topic_name: string
+  percentage: number
+  is_critical: boolean
+}
+
+export interface SchoolNeedingSupport {
+  school_id: string
+  school_name: string
+  pass_rate: number
+  total_assessments: number
+}
+
+export interface ClassNeedingSupportMinistry {
+  class_id: string
+  class_name: string
+  school_id: string
+  pass_rate: number
+  total_learners: number
+}

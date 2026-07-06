@@ -333,3 +333,19 @@ export const impactInterventionsApi = {
     return response.data
   },
 }
+
+// =========================================================================
+// Dashboard API
+// =========================================================================
+
+export const impactDashboardsApi = {
+  getSchoolDashboard: async (schoolId: string) => {
+    const response = await apiClient.get<SchoolDashboard>(`/impact/dashboards/school/${schoolId}`)
+    return response.data
+  },
+
+  getMinistryDashboard: async () => {
+    const response = await apiClient.get<MinistryDashboard>('/impact/dashboards/ministry')
+    return response.data
+  },
+}
