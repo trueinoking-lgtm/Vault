@@ -127,6 +127,12 @@ check_http "$BASE_URL/notebooks" 200 "Notebooks list (/notebooks)"
 check_http "$BASE_URL/login" 200 "Login page (/login)"
 check_http "$BASE_URL/teacher" 200 "Teacher dashboard (/teacher)"
 
+# Impact Intelligence routes
+check_http "$BASE_URL/impact" 200 "Impact landing (/impact)"
+check_http "$BASE_URL/impact/assessments" 200 "Impact assessments (/impact/assessments)"
+check_http "$BASE_URL/impact/school-dashboard" 200 "Impact school dashboard (/impact/school-dashboard)"
+check_http "$BASE_URL/impact/ministry-demo" 200 "Impact ministry demo (/impact/ministry-demo)"
+
 # Owner gate — no cookie should redirect to /login?owner=1
 echo "  ── Owner gate check ──"
 owner_redirect="$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE_URL/owner" 2>/dev/null || true)"

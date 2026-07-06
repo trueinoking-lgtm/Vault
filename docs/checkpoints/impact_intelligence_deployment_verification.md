@@ -156,6 +156,43 @@ cd frontend && npm test
 
 ---
 
+## Post-Deployment Incident: Static Chunk 500s (2026-07-06)
+
+### Symptom
+Browser console showed `_next/static/chunks/*.css 500` and `_next/static/chunks/*.js 500` on the live site (`vault-lms.duckdns.org`).
+
+### Root Cause
+The Next.js standalone server's working directory had become stale. Specifically:
+
+1. The process serving port 3003 (`pid=2087276`) had its CWD pointing to `/root/vault-open-notebook/frontend/.next/standalone **(deleted)**` — the directory had been replaced by a subsequent build while the process was still running.
+2. The newly built `standalone/.next/static/chunks/` directory was **empty** — the `npm run build` creates `.next/static/` in the `frontend/` directory, but this must be **manually copied** into `standalone/.next/static/` for the standalone server to serve them.
+3. When Nginx proxies `/_next/static/...` to the Next standalone server on port 3003, the server cannot find the chunk files in its standalone directory tree and returns 500.
+4. Additionally, because the old process's CWD was a deleted directory, even if files existed, the resolved base path would be wrong.
+
+### The Fix
+The existing script `scripts/deploy_vault_frontend_standalone.sh` handles this correctly but wasn't being used for the initial deploy. The script:
+
+1. **Stops the old process BEFORE `npm run build`** — the build deletes `.next/standalone/` entirely, which poisons the running process's CWD.
+2. **Copies `.next/static/` → `.next/standalone/.next/static/** — the standalone output does NOT include static files; they must be copied separately.
+3. **Preserves old static assets** in `.vault-static-cache/` and merges them back after the new build, so stale browser sessions don't crash on old chunk URLs.
+4. **Copies `public/` → `standalone/public/** — for other static assets.
+5. **Validates** the chunks directory exists and has files before declaring success.
+
+### Verification After Fix
+| Check | Result |
+|-------|--------|
+| All 4 impact routes (`/impact`, `/impact/assessments`, `/impact/school-dashboard`, `/impact/ministry-demo`) | ✅ HTTP 200 |
+| All extracted CSS/JS chunk URLs from impact pages | ✅ 20/20 HTTP 200 |
+| Previously-broken chunks (`047-cys6mtmnu.js`, `03d83vww3ht45.js`, etc.) | ✅ HTTP 200 |
+| Standard smoke tests (routes, API, auth, owner gate, static) | ✅ All passed |
+| Chunks in standalone directory | ✅ 86 files |
+| Process CWD is valid | ✅ `/root/vault-open-notebook/frontend/.next/standalone` (not deleted) |
+
+### Recommendation
+Always use `scripts/deploy_vault_frontend_standalone.sh --restart` when redeploying the frontend. Never manually restart a standalone server after a rebuild without also copying the new `.next/static` assets.
+
+---
+
 ## Signed Off
 
 All 19 backend endpoints return HTTP 200.
@@ -165,3 +202,4 @@ All 108 frontend tests pass.
 Frontend build produces 31 routes with no errors.
 AI summaries are manual-only and gracefully degrade.
 CSV exports produce valid files.
+All static chunks return HTTP 200 (regression fixed).
