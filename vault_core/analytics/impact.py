@@ -236,38 +236,54 @@ class ImpactAnalyticsEngine:
         )
 
     @classmethod
+    def _split_record_id(cls, record_id: str) -> tuple:
+        """Split a RecordId into table and ID parts.
+        
+        SurrealDB stores foreign keys as RecordId types (e.g. 'impact_school:abc123').
+        String comparisons don't work — must use type::thing() for proper comparison.
+        """
+        if ":" in record_id:
+            table, _, rid = record_id.partition(":")
+            return table, rid
+        return "", record_id
+
+    @classmethod
     async def _fetch_questions(cls, assessment_id: str) -> List[ImpactAssessmentQuestion]:
         """Fetch all questions for an assessment."""
+        table, rid = cls._split_record_id(assessment_id)
         result = await repo_query(
-            "SELECT * FROM impact_assessment_question WHERE assessment_id = $assessment_id ORDER BY question_number",
-            {"assessment_id": assessment_id},
+            "SELECT * FROM impact_assessment_question WHERE assessment_id = type::thing($table, $id) ORDER BY question_number",
+            {"table": table, "id": rid},
         )
         return [ImpactAssessmentQuestion(**r) for r in result]
 
     @classmethod
     async def _fetch_marks(cls, assessment_id: str) -> List[ImpactMarkEntry]:
         """Fetch all mark entries for an assessment."""
+        table, rid = cls._split_record_id(assessment_id)
         result = await repo_query(
-            "SELECT * FROM impact_mark_entry WHERE assessment_id = $assessment_id",
-            {"assessment_id": assessment_id},
+            "SELECT * FROM impact_mark_entry WHERE assessment_id = type::thing($table, $id)",
+            {"table": table, "id": rid},
         )
         return [ImpactMarkEntry(**r) for r in result]
 
     @classmethod
     async def _fetch_learners(cls, school_id: str) -> List[ImpactLearner]:
         """Fetch all learners in a school."""
+        table, rid = cls._split_record_id(school_id)
         result = await repo_query(
-            "SELECT * FROM impact_learner WHERE school_id = $school_id",
-            {"school_id": school_id},
+            "SELECT * FROM impact_learner WHERE school_id = type::thing($table, $id)",
+            {"table": table, "id": rid},
         )
         return [ImpactLearner(**r) for r in result]
 
     @classmethod
     async def _fetch_topics(cls, subject_id: str) -> List[ImpactTopic]:
         """Fetch all topics for a subject."""
+        table, rid = cls._split_record_id(subject_id)
         result = await repo_query(
-            "SELECT * FROM impact_topic WHERE subject_id = $subject_id",
-            {"subject_id": subject_id},
+            "SELECT * FROM impact_topic WHERE subject_id = type::thing($table, $id)",
+            {"table": table, "id": rid},
         )
         return [ImpactTopic(**r) for r in result]
 

@@ -1737,38 +1737,39 @@ async def get_ministry_dashboard() -> Dict[str, Any]:
 @router.get("/reports/assessment/{assessment_id}")
 async def get_assessment_report(assessment_id: str) -> Dict[str, Any]:
     """Get comprehensive assessment report data."""
-    # Get assessment
-    assessment_result = await repo_query(
-        f"SELECT * FROM impact_assessment WHERE id = '{assessment_id}'"
-    )
-    if not assessment_result:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    # Normalize ID prefix
+    assessment_id_full = _ensure_prefixed(assessment_id, "impact_assessment")
 
-    assessment = ImpactAssessment(**assessment_result[0])
+    # Get assessment
+    assessment = await ImpactAssessment.get(assessment_id_full)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
 
     # Get questions
     questions_result = await repo_query(
-        f"SELECT * FROM impact_assessment_question WHERE assessment_id = '{assessment_id}' ORDER BY question_number"
+        "SELECT * FROM impact_assessment_question WHERE assessment_id = $assessment_id ORDER BY question_number",
+        {"assessment_id": assessment_id_full},
     )
     questions = [ImpactAssessmentQuestion(**r) for r in questions_result]
 
     # Get learners
     learners_result = await repo_query(
-        f"SELECT * FROM impact_learner WHERE class_group_id = '{assessment.class_group_id}'"
+        "SELECT * FROM impact_learner WHERE class_group_id = $class_group_id",
+        {"class_group_id": assessment.class_group_id},
     )
     learners = [ImpactLearner(**r) for r in learners_result]
 
     # Get marks
     marks_result = await repo_query(
-        f"SELECT * FROM impact_mark_entry WHERE assessment_id = '{assessment_id}'"
+        "SELECT * FROM impact_mark_entry WHERE assessment_id = $assessment_id",
+        {"assessment_id": assessment_id_full},
     )
     marks = [ImpactMarkEntry(**r) for r in marks_result]
 
-    # Get analytics
-    engine = ImpactAnalyticsEngine()
-    analytics = await engine.calculate_analytics(assessment, questions, learners, marks)
+    # Get analytics (use assessment_id_full so the engine can normalize)
+    analytics = await ImpactAnalyticsEngine.calculate_analytics(assessment_id_full)
 
-    # Get school, class, subject
+    # Get school, class, subject (IDs may already be prefixed)
     school_result = await repo_query(
         f"SELECT * FROM impact_school WHERE id = '{assessment.school_id}'"
     )
@@ -1841,14 +1842,13 @@ async def get_assessment_report(assessment_id: str) -> Dict[str, Any]:
 @router.get("/reports/school/{school_id}")
 async def get_school_report(school_id: str) -> Dict[str, Any]:
     """Get comprehensive school report data."""
-    # Get school
-    school_result = await repo_query(
-        f"SELECT * FROM impact_school WHERE id = '{school_id}'"
-    )
-    if not school_result:
-        raise HTTPException(status_code=404, detail="School not found")
+    # Normalize ID prefix
+    school_id_full = _ensure_prefixed(school_id, "impact_school")
 
-    school = ImpactSchool(**school_result[0])
+    # Get school
+    school = await ImpactSchool.get(school_id_full)
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
 
     # Get classes
     classes_result = await repo_query(
@@ -1981,30 +1981,32 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
 @router.get("/assessments/{assessment_id}/export/marks")
 async def export_assessment_marks_csv(assessment_id: str) -> StreamingResponse:
     """Export assessment marks as CSV."""
-    # Get assessment details
-    assessment_result = await repo_query(
-        f"SELECT * FROM impact_assessment WHERE id = '{assessment_id}'"
-    )
-    if not assessment_result:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    # Normalize ID prefix
+    assessment_id_full = _ensure_prefixed(assessment_id, "impact_assessment")
 
-    assessment = ImpactAssessment(**assessment_result[0])
+    # Get assessment (use domain model get for RecordId handling)
+    assessment = await ImpactAssessment.get(assessment_id_full)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
 
     # Get questions
     questions_result = await repo_query(
-        f"SELECT * FROM impact_assessment_question WHERE assessment_id = '{assessment_id}' ORDER BY question_number"
+        "SELECT * FROM impact_assessment_question WHERE assessment_id = $assessment_id ORDER BY question_number",
+        {"assessment_id": assessment_id_full},
     )
     questions = [ImpactAssessmentQuestion(**r) for r in questions_result]
 
     # Get learners in the class
     learners_result = await repo_query(
-        f"SELECT * FROM impact_learner WHERE class_group_id = '{assessment.class_group_id}'"
+        "SELECT * FROM impact_learner WHERE class_group_id = $class_group_id",
+        {"class_group_id": assessment.class_group_id},
     )
     learners = [ImpactLearner(**r) for r in learners_result]
 
     # Get mark entries
     marks_result = await repo_query(
-        f"SELECT * FROM impact_mark_entry WHERE assessment_id = '{assessment_id}'"
+        "SELECT * FROM impact_mark_entry WHERE assessment_id = $assessment_id",
+        {"assessment_id": assessment_id_full},
     )
     marks = [ImpactMarkEntry(**r) for r in marks_result]
 
@@ -2060,24 +2062,25 @@ async def export_assessment_marks_csv(assessment_id: str) -> StreamingResponse:
 @router.get("/assessments/{assessment_id}/export/analytics")
 async def export_assessment_analytics_csv(assessment_id: str) -> StreamingResponse:
     """Export assessment analytics as CSV."""
-    # Get analytics data
-    assessment_result = await repo_query(
-        f"SELECT * FROM impact_assessment WHERE id = '{assessment_id}'"
-    )
-    if not assessment_result:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    # Normalize ID prefix
+    assessment_id_full = _ensure_prefixed(assessment_id, "impact_assessment")
 
-    assessment = ImpactAssessment(**assessment_result[0])
+    # Get assessment (use domain model get for RecordId handling)
+    assessment = await ImpactAssessment.get(assessment_id_full)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
 
     # Get questions
     questions_result = await repo_query(
-        f"SELECT * FROM impact_assessment_question WHERE assessment_id = '{assessment_id}' ORDER BY question_number"
+        "SELECT * FROM impact_assessment_question WHERE assessment_id = $assessment_id ORDER BY question_number",
+        {"assessment_id": assessment_id_full},
     )
     questions = [ImpactAssessmentQuestion(**r) for r in questions_result]
 
     # Get marks
     marks_result = await repo_query(
-        f"SELECT * FROM impact_mark_entry WHERE assessment_id = '{assessment_id}'"
+        "SELECT * FROM impact_mark_entry WHERE assessment_id = $assessment_id",
+        {"assessment_id": assessment_id_full},
     )
     marks = [ImpactMarkEntry(**r) for r in marks_result]
 
@@ -2199,24 +2202,25 @@ async def export_assessment_analytics_csv(assessment_id: str) -> StreamingRespon
 @router.get("/schools/{school_id}/export/report")
 async def export_school_report_csv(school_id: str) -> StreamingResponse:
     """Export school impact report as CSV."""
-    # Get school details
-    school_result = await repo_query(
-        f"SELECT * FROM impact_school WHERE id = '{school_id}'"
-    )
-    if not school_result:
-        raise HTTPException(status_code=404, detail="School not found")
+    # Normalize ID prefix
+    school_id_full = _ensure_prefixed(school_id, "impact_school")
 
-    school = ImpactSchool(**school_result[0])
+    # Get school (use domain model get for RecordId handling)
+    school = await ImpactSchool.get(school_id_full)
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
 
     # Get classes
     classes_result = await repo_query(
-        f"SELECT * FROM impact_class_group WHERE school_id = '{school_id}'"
+        "SELECT * FROM impact_class_group WHERE school_id = $school_id",
+        {"school_id": school_id_full},
     )
     classes = [ImpactClassGroup(**r) for r in classes_result]
 
     # Get all assessments for this school
     assessments_result = await repo_query(
-        f"SELECT * FROM impact_assessment WHERE school_id = '{school_id}'"
+        "SELECT * FROM impact_assessment WHERE school_id = $school_id",
+        {"school_id": school_id_full},
     )
     assessments = [ImpactAssessment(**a) for a in assessments_result]
 
