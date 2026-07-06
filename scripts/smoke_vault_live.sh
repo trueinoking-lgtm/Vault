@@ -3,8 +3,8 @@
 # Vault Live Smoke Test
 # =============================================================================
 # Standalone smoke test for the Vault production frontend.  Checks key routes,
-# the API status endpoint, and at least one current static asset extracted from
-# the HTML.  Requires no secrets and does not touch AetherLink.
+# the API status endpoint, and static assets from multiple routes.  Requires no
+# secrets and does not touch AetherLink.
 #
 # Usage:
 #   bash scripts/smoke_vault_live.sh [base_url]
@@ -114,52 +114,63 @@ check_json_field "$BASE_URL/api/health" "vault-api" "Backend API health (/api/he
 echo "  ── Auth status check ──"
 check_json_field "$BASE_URL/api/auth/status" "auth_enabled" "API auth status (/api/auth/status)"
 
-# ---- 4. Static asset check --------------------------------------------------
-echo "  ── Static asset check ──"
+# ---- 4. Static asset check from multiple routes ----------------------------
+echo "  ── Static asset check (multi-route) ──"
 
-# Extract static asset URLs from the root HTML — try multiple in case one is malformed
-# Pattern matches /_next/static/... up to a quote, apostrophe, or whitespace
-STATIC_URLS="$(curl -s "$BASE_URL/" 2>/dev/null \
-    | grep -oP '/_next/static/[^"'"'"' ><]+' \
-    | head -5 || true)"
+# Check a sample of JS assets from each route
+ROUTES=("/" "/vault" "/sources" "/notebooks" "/teacher")
+total_checked=0
+total_ok=0
 
-if [[ -z "$STATIC_URLS" ]]; then
-    warn "  ⚠️  Could not extract any static asset URL from HTML — skipping static check"
-else
-    static_checked=false
-    static_ok=false
-    while IFS= read -r static_url; do
-        [[ -z "$static_url" ]] && continue
-        # Skip malformed URLs (e.g. very short paths)
-        if [[ ${#static_url} -lt 20 ]]; then
-            continue
-        fi
-        static_checked=true
-        static_code="$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}${static_url}" 2>/dev/null || echo '000')"
-        if [[ "$static_code" == "200" ]]; then
-            info "  ✅ Static asset load — HTTP 200 ($static_url)"
-            static_ok=true
-            break
-        else
-            warn "  ⚠️  Static asset $static_url returned HTTP $static_code — trying next…"
-        fi
-    done <<< "$STATIC_URLS"
-
-    if [[ "$static_checked" == false ]]; then
-        warn "  ⚠️  No valid static asset URLs found — skipping static check"
-    elif [[ "$static_ok" == false ]]; then
-        # All extracted URLs failed — provide diagnostic guidance
-        failed_url="$(echo "$STATIC_URLS" | head -1)"
-        error "  ❌ All static assets returned non-200 status"
-        error "     First URL checked: $failed_url"
-        error ""
-        error "     Common cause: .next/standalone/.next/static/ is missing."
-        error "     Fix: bash scripts/deploy_vault_frontend_standalone.sh --restart-systemd --smoke"
-        error "     Or manually:"
-        error "       mkdir -p frontend/.next/standalone/.next/static"
-        error "       cp -r frontend/.next/static/. frontend/.next/standalone/.next/static/"
-        ((errors++))
+for route in "${ROUTES[@]}"; do
+    # Extract first 2 JS chunks from this route
+    chunks=$(curl -s "${BASE_URL}${route}" 2>/dev/null | grep -oP '/_next/static/chunks/[^"'"'"' ><]+\.js' | sort -u | head -2 || true)
+    
+    if [[ -n "$chunks" ]]; then
+        while IFS= read -r chunk_url; do
+            [[ -z "$chunk_url" ]] && continue
+            total_checked=$((total_checked + 1))
+            chunk_code=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}${chunk_url}" 2>/dev/null || echo '000')
+            if [[ "$chunk_code" == "200" ]]; then
+                total_ok=$((total_ok + 1))
+            else
+                error "  ❌ Static asset $chunk_url from $route returned HTTP $chunk_code"
+                errors=$((errors + 1))
+            fi
+        done <<< "$chunks"
     fi
+done
+
+if [[ $total_checked -gt 0 ]]; then
+    info "  ✅ Static assets checked: $total_ok/$total_checked passed"
+else
+    warn "  ⚠️  No static assets found to check"
+fi
+
+# ---- 5. Route-specific /vault chunk check -----------------------------------
+echo "  ── /vault route chunk check ──"
+
+# Extract chunks specifically from /vault HTML (limit to 3 for speed)
+VAULT_CHUNKS=$(curl -s "${BASE_URL}/vault" 2>/dev/null | grep -oP '/_next/static/chunks/[^"'"'"' ><]+\.js' | sort -u | head -3 || true)
+
+if [[ -n "$VAULT_CHUNKS" ]]; then
+    vault_chunks_ok=0
+    vault_chunks_total=0
+    while IFS= read -r chunk_url; do
+        [[ -z "$chunk_url" ]] && continue
+        vault_chunks_total=$((vault_chunks_total + 1))
+        chunk_code=$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}${chunk_url}" 2>/dev/null || echo '000')
+        if [[ "$chunk_code" == "200" ]]; then
+            vault_chunks_ok=$((vault_chunks_ok + 1))
+        else
+            error "  ❌ /vault chunk $chunk_url returned HTTP $chunk_code"
+            errors=$((errors + 1))
+        fi
+    done <<< "$VAULT_CHUNKS"
+
+    info "  ✅ /vault chunks checked: $vault_chunks_ok/$vault_chunks_total passed"
+else
+    warn "  ⚠️  No chunks found in /vault HTML"
 fi
 
 # ---- Summary ----------------------------------------------------------------

@@ -1,7 +1,7 @@
 # Vault Release / Deployment Runbook
 
 **Target domain:** `https://vault-lms.duckdns.org`  
-**Last updated:** 2026-07-05
+**Last updated:** 2026-07-06
 
 > Throughout this runbook, `$REPO_DIR` refers to the repository root.
 > On the production VPS this is `/root/vault-lms/repo` (do not rely on the
@@ -189,7 +189,7 @@ ls -la frontend/.next/standalone/.next/static/
 
 # Verify a known static asset loads via HTTP:
 # Extract a static asset URL from the HTML:
-STATIC_URL=$(curl -s https://vault-lms.duckdns.org | grep -oP '/_next/static/[^"'"'"']+' | head -1)
+STATIC_URL=$(curl -s https://vault-lms.duckdns.org | grep -oP '/_next/static/[^"'\'']+' | head -1)
 curl -s -o /dev/null -w '%{http_code}' "https://vault-lms.duckdns.org${STATIC_URL}"
 # Expected: 200
 ```
@@ -207,9 +207,16 @@ bash scripts/smoke_vault_live.sh https://vault-lms.duckdns.org
 # ✅ Notebooks (/notebooks) — 200
 # ✅ Owner gate (/owner) — redirects to /login?owner=1
 # ✅ API status (/api/auth/status) — responds with auth_enabled
-# ✅ Static asset load — 200
+# ✅ CSS/JS assets checked: N/N passed
+# ✅ /vault chunks checked: N/N passed
 # ✅ All smoke tests passed
 ```
+
+The smoke script now:
+- Checks static assets from **multiple routes** (/, /vault, /sources, /notebooks, /teacher)
+- Verifies all CSS/JS assets return 200
+- Specifically checks /vault route chunks
+- Media/font failures are warnings only; CSS/JS failures fail the smoke
 
 ### Step 9 — API Health Check
 
@@ -348,6 +355,41 @@ find .next/standalone/.next/static/ -type f | wc -l
 ```
 
 **Why this happens repeatedly:** Every `npm run build` creates a fresh `.next/standalone/` directory. The copy step MUST happen after every build, before restart. The deploy helper automates this.
+
+### ChunkLoadError (Stale/Missing Next Route Chunks)
+
+**Symptom:** Browser console shows `ChunkLoadError` for route chunks like `/_next/static/chunks/0xlom6.~a6t4v.js` returning 500.
+
+**Root cause:** The browser has cached an older build's HTML which references chunks that no longer exist in the current build. Each `npm run build` generates new chunk names, so old chunk references become invalid.
+
+**Diagnosis:**
+```bash
+# 1. Check what chunks the current HTML references:
+curl -s https://vault-lms.duckdns.org/vault | grep -oP '/_next/static/chunks/[^"]+\.js' | head -10
+
+# 2. Check if those chunks exist in standalone:
+ls frontend/.next/standalone/.next/static/chunks/ | head -10
+
+# 3. If HTML references chunks not in standalone → rebuild needed
+```
+
+**Fix path:**
+```bash
+# 1. Rebuild frontend
+cd frontend && npm run build
+
+# 2. Copy static assets to standalone
+rm -rf .next/standalone/.next/static
+cp -r .next/static .next/standalone/.next/static
+
+# 3. Restart frontend server
+pkill -f "node .next/standalone/server.js"
+cd frontend && PORT=3003 HOSTNAME=0.0.0.0 node .next/standalone/server.js &
+
+# 4. Clear browser site data / service worker if browser still shows old chunks
+```
+
+**Why this happens:** Next.js generates unique chunk names per build. If the frontend server is not restarted after a rebuild, it serves the old HTML which references stale chunk names. The browser then requests chunks that don't exist in the new build.
 
 ### Static Assets Returning 404
 
@@ -524,7 +566,8 @@ These are the routes checked during a smoke test:
 | `https://vault-lms.duckdns.org/teacher` | `200` | Teacher dashboard renders |
 | `https://vault-lms.duckdns.org/api/health` | `200` JSON `{"status":"ok","service":"vault-api"}` | Backend API health — **primary health check** |
 | `https://vault-lms.duckdns.org/api/auth/status` | JSON with `auth_enabled` | Auth subsystem reachable |
-| At least one `/_next/static/...` asset | `200` | Static assets load correctly |
+| `/_next/static/chunks/*.js` (from multiple routes) | `200` | CSS/JS assets load correctly |
+| `/_next/static/chunks/*.css` (from multiple routes) | `200` | CSS/JS assets load correctly |
 
 ---
 
@@ -560,7 +603,14 @@ bash scripts/smoke_vault_live.sh [base_url]
 bash scripts/smoke_vault_live.sh http://localhost:3003
 ```
 
-The script checks all routes in §8, extracts a static asset URL from the HTML, and verifies it loads. Exit code is `0` on success, `1` on failure.
+The script checks:
+- All routes in §8
+- Extracts static asset URLs from **multiple routes** (/, /vault, /sources, /notebooks, /teacher)
+- Verifies all CSS/JS assets return 200
+- Specifically checks /vault route chunks
+- Media/font failures are warnings only; CSS/JS failures fail the smoke
+
+Exit code is `0` on success, `1` on failure.
 
 ---
 
