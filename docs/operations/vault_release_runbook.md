@@ -114,11 +114,13 @@ The deploy helper:
 
 1. Installs dependencies with `npm ci`
 2. Runs `npm run build` (Next.js standalone output)
-3. Copies `.next/static/` → `.next/standalone/.next/static/` (critical — Next.js does not do this automatically)
-4. Copies `public/` → `.next/standalone/public/`
-5. Verifies `.next/standalone/server.js` exists
-6. (If `--restart`) Stops old process, starts new one via `nohup`
-7. (If `--smoke`) Runs HTTP route smoke tests
+3. **Removes stale** `.next/standalone/.next/static/` if it exists
+4. Copies `.next/static/` → `.next/standalone/.next/static/` (critical — Next.js does not do this automatically)
+5. **Verifies** at least one static file was copied (fails deployment if empty)
+6. Copies `public/` → `.next/standalone/public/`
+7. Verifies `.next/standalone/server.js` exists
+8. (If `--restart`) Stops old process, starts new one via `nohup` (uses `ss` not `lsof` for PID detection)
+9. (If `--smoke`) Runs HTTP route smoke tests
 
 ### Step 6 — Restart Backend (if changed)
 
@@ -251,8 +253,8 @@ cd ..
 mkdir -p frontend/.next/standalone/.next/static
 cp -r frontend/.next/static/. frontend/.next/standalone/.next/static/
 
-# 4. Restart the server
-PID=$(lsof -ti:3003)
+# 4. Restart the server (use ss for reliable PID detection)
+PID=$(ss -tlnp | grep ":3003 " | grep -oP 'pid=\K[0-9]+' | head -1)
 kill -TERM "$PID" 2>/dev/null
 sleep 2
 
@@ -312,6 +314,41 @@ git revert --no-commit HEAD          # revert the latest commit
 
 ## 6. Common Failure Modes
 
+### Static Assets Returning 500 (Missing Standalone Static Files)
+
+**Symptom:** Pages load HTML but `/_next/static/*` assets (JS, CSS, fonts) return **HTTP 500**.
+
+**Root cause:** Next.js `output: "standalone"` does **not** copy `.next/static/` into `.next/standalone/.next/static/`. After every `npm run build`, the standalone output is recreated from scratch and the static files are gone. If you build but forget to copy, the standalone server returns 500 for every static asset.
+
+**Diagnosis:**
+```bash
+# Check if standalone static directory exists and has files:
+ls frontend/.next/standalone/.next/static/
+# Empty or missing? → copy needed
+
+# Check file count:
+find frontend/.next/standalone/.next/static/ -type f | wc -l
+# Should be > 0 (typically 50+ files)
+```
+
+**Fix (recommended — uses the deploy helper):**
+```bash
+bash scripts/deploy_vault_frontend_standalone.sh --restart-systemd --smoke
+```
+
+**Fix (manual):**
+```bash
+cd frontend
+rm -rf .next/standalone/.next/static          # remove stale dir
+mkdir -p .next/standalone/.next/static
+cp -r .next/static/. .next/standalone/.next/static/
+# Verify:
+find .next/standalone/.next/static/ -type f | wc -l
+# Now restart the server
+```
+
+**Why this happens repeatedly:** Every `npm run build` creates a fresh `.next/standalone/` directory. The copy step MUST happen after every build, before restart. The deploy helper automates this.
+
 ### Static Assets Returning 404
 
 **Symptom:** Page loads HTML but JS/CSS files return 404.
@@ -341,12 +378,14 @@ git revert --no-commit HEAD          # revert the latest commit
 ### Port 3003 Already in Use
 
 ```bash
-# Find and kill the process on 3003
-PID=$(lsof -ti:3003)
-kill -TERM "$PID"
+# Find and kill the process on 3003 (use ss, not lsof — lsof can miss spawned processes)
+PID=$(ss -tlnp | grep ":3003 " | grep -oP 'pid=\K[0-9]+' | head -1)
+kill -TERM "$PID" 2>/dev/null
 sleep 2
 # Force if still alive
-kill -KILL "$PID" 2>/dev/null
+if kill -0 "$PID" 2>/dev/null; then
+    kill -KILL "$PID" 2>/dev/null
+fi
 ```
 
 ### Backend Not Responding

@@ -117,19 +117,47 @@ check_json_field "$BASE_URL/api/auth/status" "auth_enabled" "API auth status (/a
 # ---- 4. Static asset check --------------------------------------------------
 echo "  ── Static asset check ──"
 
-# Extract the first _next/static URL from the root HTML
-STATIC_URL="$(curl -s "$BASE_URL/" 2>/dev/null \
-    | grep -oP '/_next/static/[^"'"'"']+' \
-    | head -1 || true)"
+# Extract static asset URLs from the root HTML — try multiple in case one is malformed
+# Pattern matches /_next/static/... up to a quote, apostrophe, or whitespace
+STATIC_URLS="$(curl -s "$BASE_URL/" 2>/dev/null \
+    | grep -oP '/_next/static/[^"'"'"' ><]+' \
+    | head -5 || true)"
 
-if [[ -z "$STATIC_URL" ]]; then
-    warn "  ⚠️  Could not extract static asset URL from HTML — skipping static check"
+if [[ -z "$STATIC_URLS" ]]; then
+    warn "  ⚠️  Could not extract any static asset URL from HTML — skipping static check"
 else
-    static_code="$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}${STATIC_URL}" 2>/dev/null || echo '000')"
-    if [[ "$static_code" == "200" ]]; then
-        info "  ✅ Static asset load — HTTP 200 ($STATIC_URL)"
-    else
-        error "  ❌ Static asset at $STATIC_URL returned HTTP $static_code"
+    static_checked=false
+    static_ok=false
+    while IFS= read -r static_url; do
+        [[ -z "$static_url" ]] && continue
+        # Skip malformed URLs (e.g. very short paths)
+        if [[ ${#static_url} -lt 20 ]]; then
+            continue
+        fi
+        static_checked=true
+        static_code="$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}${static_url}" 2>/dev/null || echo '000')"
+        if [[ "$static_code" == "200" ]]; then
+            info "  ✅ Static asset load — HTTP 200 ($static_url)"
+            static_ok=true
+            break
+        else
+            warn "  ⚠️  Static asset $static_url returned HTTP $static_code — trying next…"
+        fi
+    done <<< "$STATIC_URLS"
+
+    if [[ "$static_checked" == false ]]; then
+        warn "  ⚠️  No valid static asset URLs found — skipping static check"
+    elif [[ "$static_ok" == false ]]; then
+        # All extracted URLs failed — provide diagnostic guidance
+        failed_url="$(echo "$STATIC_URLS" | head -1)"
+        error "  ❌ All static assets returned non-200 status"
+        error "     First URL checked: $failed_url"
+        error ""
+        error "     Common cause: .next/standalone/.next/static/ is missing."
+        error "     Fix: bash scripts/deploy_vault_frontend_standalone.sh --restart-systemd --smoke"
+        error "     Or manually:"
+        error "       mkdir -p frontend/.next/standalone/.next/static"
+        error "       cp -r frontend/.next/static/. frontend/.next/standalone/.next/static/"
         ((errors++))
     fi
 fi

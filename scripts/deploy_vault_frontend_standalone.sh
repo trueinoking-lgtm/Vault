@@ -130,7 +130,14 @@ npm run build
 BUILD_ID="$(cat .next/BUILD_ID 2>/dev/null || echo 'unknown')"
 info "Build complete. Build ID: $BUILD_ID"
 
-# ---- Step 4: Copy static files into standalone output -----------------------
+# ---- Step 4: Remove stale standalone static directory if needed --------------
+STANDALONE_STATIC=".next/standalone/.next/static"
+if [[ -d "$STANDALONE_STATIC" ]]; then
+    info "Removing stale standalone static directory…"
+    rm -rf "$STANDALONE_STATIC"
+fi
+
+# ---- Step 5: Copy static files into standalone output -----------------------
 info "Copying .next/static → .next/standalone/.next/static/ …"
 if [[ ! -d ".next/static" ]]; then
     error ".next/static not found — build may have failed or output format changed."
@@ -138,9 +145,18 @@ if [[ ! -d ".next/static" ]]; then
 fi
 mkdir -p ".next/standalone/.next/static"
 cp -r ".next/static/." ".next/standalone/.next/static/"
-info "Static files copied successfully."
 
-# ---- Step 5: Copy public assets into standalone output ----------------------
+# ---- Step 6: Verify static copy is not empty --------------------------------
+STATIC_FILE_COUNT="$(find "$STANDALONE_STATIC" -type f 2>/dev/null | wc -l)"
+if [[ "$STATIC_FILE_COUNT" -lt 1 ]]; then
+    error "Static copy verification FAILED — $STANDALONE_STATIC is empty."
+    error "This means static assets will return 500 in production."
+    error "Check that .next/static/ was populated by the build step."
+    exit 1
+fi
+info "Static copy verified: $STATIC_FILE_COUNT files in $STANDALONE_STATIC"
+
+# ---- Step 7: Copy public assets into standalone output ----------------------
 if [[ -d "public" ]] && [[ -n "$(ls -A public 2>/dev/null)" ]]; then
     info "Copying public assets → .next/standalone/public/ …"
     mkdir -p ".next/standalone/public"
@@ -148,7 +164,7 @@ if [[ -d "public" ]] && [[ -n "$(ls -A public 2>/dev/null)" ]]; then
     info "Public assets copied."
 fi
 
-# ---- Step 6: Verify standalone server entry point exists --------------------
+# ---- Step 8: Verify standalone server entry point exists --------------------
 if [[ ! -f ".next/standalone/server.js" ]]; then
     error ".next/standalone/server.js not found — standalone build incomplete."
     error "Check that next.config.ts has output: 'standalone'."
@@ -158,7 +174,7 @@ info "Standalone server entry point: .next/standalone/server.js"
 
 cd "$REPO_ROOT"
 
-# ---- Step 7a: Optional restart via systemd ----------------------------------
+# ---- Step 9a: Optional restart via systemd ----------------------------------
 if [[ "$RESTART_SYSTEMD" == true ]]; then
     info "systemd restart flag set — restarting via systemctl…"
 
@@ -201,12 +217,12 @@ if [[ "$RESTART_SYSTEMD" == true ]]; then
     fi
 fi
 
-# ---- Step 7b: Optional restart via nohup (original behavior) ----------------
+# ---- Step 9b: Optional restart via nohup (original behavior) ----------------
 if [[ "$RESTART" == true ]]; then
     info "Restart flag set — restarting Vault frontend (port $VAULT_PORT) via nohup…"
 
-    # Find and stop existing process on the port
-    OLD_PID="$(lsof -ti :"$VAULT_PORT" 2>/dev/null || true)"
+    # Find and stop existing process on the port (use ss, not lsof)
+    OLD_PID="$(ss -tlnp | grep ":${VAULT_PORT} " | grep -oP 'pid=\K[0-9]+' | head -1 || true)"
     if [[ -n "$OLD_PID" ]]; then
         info "Stopping existing process (PID: $OLD_PID)…"
         kill -TERM "$OLD_PID" 2>/dev/null || true
@@ -243,7 +259,7 @@ if [[ "$RESTART" == true ]]; then
     fi
 fi
 
-# ---- Step 8: Optional smoke test --------------------------------------------
+# ---- Step 10: Optional smoke test -------------------------------------------
 if [[ "$SMOKE" == true ]]; then
     echo ""
     info "Smoke flag set — running smoke tests against $VAULT_BASE_URL…"
@@ -309,6 +325,7 @@ info "════════════════════════�
 info "  Vault Frontend Deploy Helper — Complete"
 info "  Build ID:     $BUILD_ID"
 info "  Build output: $VAULT_FRONTEND_DIR/.next/standalone/"
+info "  Static files: $STATIC_FILE_COUNT files in $STANDALONE_STATIC"
 info ""
 info "  Next steps:"
 if [[ "$RESTART_SYSTEMD" != true && "$RESTART" != true ]]; then
