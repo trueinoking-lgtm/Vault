@@ -197,15 +197,15 @@ class ImpactAISummaryService:
 
     @staticmethod
     def _format_at_risk_learners(analytics: AssessmentAnalytics) -> str:
-        """Format at-risk learners for prompt."""
+        """Format at-risk learners for prompt (privacy: learner codes only)."""
         if not analytics.at_risk_learners:
             return "No at-risk learners identified."
 
         lines = []
         for learner in analytics.at_risk_learners:
-            name = learner.display_name or learner.learner_code
+            # Privacy: Use learner_code only, not display_name
             lines.append(
-                f"- {name}: {learner.percentage}% "
+                f"- Learner {learner.learner_code}: {learner.percentage}% "
                 f"({learner.total_score}/{learner.total_max_marks}) "
                 f"[{learner.risk_level} risk]"
             )

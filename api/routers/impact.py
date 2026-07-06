@@ -2315,6 +2315,10 @@ async def export_school_report_csv(school_id: str) -> StreamingResponse:
 # AI Summary Endpoints
 # =========================================================================
 
+import asyncio
+
+AI_TIMEOUT_SECONDS = 30  # 30 second timeout for AI calls
+
 
 @router.get("/assessments/{assessment_id}/ai/teacher-summary")
 async def generate_teacher_summary(assessment_id: str) -> Dict[str, Any]:
@@ -2326,22 +2330,32 @@ async def generate_teacher_summary(assessment_id: str) -> Dict[str, Any]:
         # Get analytics
         analytics = await ImpactAnalyticsEngine.calculate_analytics(assessment_id)
 
-        # Generate summary
-        summary = await ImpactAISummaryService.generate_teacher_summary(analytics)
+        # Generate summary with timeout
+        summary = await asyncio.wait_for(
+            ImpactAISummaryService.generate_teacher_summary(analytics),
+            timeout=AI_TIMEOUT_SECONDS,
+        )
 
         return {
             "summary": summary.summary,
             "revision_sequence": summary.revision_sequence,
             "source": summary.source,
         }
-    except Exception as e:
-        logger.error(f"Failed to generate teacher summary: {e}")
-        # Return graceful fallback
+    except asyncio.TimeoutError:
+        logger.warning(f"AI teacher summary timed out for assessment {assessment_id}")
         return {
-            "summary": "AI summary unavailable. Please check the analytics data above.",
+            "summary": "AI summary timed out. Please check the analytics data above.",
             "revision_sequence": "",
             "source": "fallback",
-            "error": str(e),
+            "error": "Request timed out",
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate teacher summary: {e}")
+        # Return graceful fallback - no provider/model details exposed
+        return {
+            "summary": "AI summaries are unavailable. Assessment analytics are still available.",
+            "revision_sequence": "",
+            "source": "fallback",
         }
 
 
@@ -2355,20 +2369,28 @@ async def generate_intervention_plan(assessment_id: str) -> Dict[str, Any]:
         # Get analytics
         analytics = await ImpactAnalyticsEngine.calculate_analytics(assessment_id)
 
-        # Generate plan
-        plan = await ImpactAISummaryService.generate_intervention_plan(analytics)
+        # Generate plan with timeout
+        plan = await asyncio.wait_for(
+            ImpactAISummaryService.generate_intervention_plan(analytics),
+            timeout=AI_TIMEOUT_SECONDS,
+        )
 
         return {
             "plan": plan.plan,
             "source": plan.source,
         }
+    except asyncio.TimeoutError:
+        logger.warning(f"AI intervention plan timed out for assessment {assessment_id}")
+        return {
+            "plan": "AI intervention plan timed out. Please review the interventions above.",
+            "source": "fallback",
+            "error": "Request timed out",
+        }
     except Exception as e:
         logger.error(f"Failed to generate intervention plan: {e}")
-        # Return graceful fallback
         return {
-            "plan": "AI intervention plan unavailable. Please review the interventions above.",
+            "plan": "AI summaries are unavailable. Assessment analytics are still available.",
             "source": "fallback",
-            "error": str(e),
         }
 
 
@@ -2403,11 +2425,14 @@ async def generate_remedial_lesson(assessment_id: str) -> Dict[str, Any]:
         # Get analytics
         analytics = await ImpactAnalyticsEngine.calculate_analytics(assessment_id)
 
-        # Generate lesson
-        lesson = await ImpactAISummaryService.generate_remedial_lesson(
-            analytics,
-            subject_name=subject_name,
-            class_name=class_name,
+        # Generate lesson with timeout
+        lesson = await asyncio.wait_for(
+            ImpactAISummaryService.generate_remedial_lesson(
+                analytics,
+                subject_name=subject_name,
+                class_name=class_name,
+            ),
+            timeout=AI_TIMEOUT_SECONDS,
         )
 
         return {
@@ -2417,12 +2442,18 @@ async def generate_remedial_lesson(assessment_id: str) -> Dict[str, Any]:
         }
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Failed to generate remedial lesson: {e}")
-        # Return graceful fallback
+    except asyncio.TimeoutError:
+        logger.warning(f"AI remedial lesson timed out for assessment {assessment_id}")
         return {
-            "outline": "AI remedial lesson unavailable. Please review the weak topics above.",
+            "outline": "AI remedial lesson timed out. Please review the weak topics above.",
             "mini_test_idea": "",
             "source": "fallback",
-            "error": str(e),
+            "error": "Request timed out",
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate remedial lesson: {e}")
+        return {
+            "outline": "AI summaries are unavailable. Assessment analytics are still available.",
+            "mini_test_idea": "",
+            "source": "fallback",
         }

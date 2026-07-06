@@ -576,34 +576,3 @@ export function useSchoolReport(schoolId: string) {
     enabled: !!schoolId,
   })
 }
-
-// =========================================================================
-// AI Summary Hooks
-// =========================================================================
-
-export function useTeacherSummary(assessmentId: string) {
-  return useQuery({
-    queryKey: [...impactKeys.all, 'ai', 'teacher-summary', assessmentId],
-    queryFn: () => impactReportsApi.generateTeacherSummary(assessmentId),
-    enabled: !!assessmentId,
-    staleTime: 5 * 60 * 1000, // 5 minutes - AI summaries don't change frequently
-  })
-}
-
-export function useInterventionPlan(assessmentId: string) {
-  return useQuery({
-    queryKey: [...impactKeys.all, 'ai', 'intervention-plan', assessmentId],
-    queryFn: () => impactReportsApi.generateInterventionPlan(assessmentId),
-    enabled: !!assessmentId,
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
-export function useRemedialLesson(assessmentId: string) {
-  return useQuery({
-    queryKey: [...impactKeys.all, 'ai', 'remedial-lesson', assessmentId],
-    queryFn: () => impactReportsApi.generateRemedialLesson(assessmentId),
-    enabled: !!assessmentId,
-    staleTime: 5 * 60 * 1000,
-  })
-}
