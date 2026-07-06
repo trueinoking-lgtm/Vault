@@ -12,6 +12,7 @@ import {
   useImpactQuestions,
   useImpactLearners,
 } from '@/lib/hooks/use-impact'
+import { impactReportsApi } from '@/lib/api/impact'
 
 type Tab = 'setup' | 'questions' | 'marks' | 'results' | 'interventions'
 
@@ -83,17 +84,65 @@ export default function AssessmentDetailPage({
                 {assessment.term && ` · ${assessment.term}`}
               </p>
             </div>
-            <span
-              className={`px-3 py-1 text-sm font-medium rounded-full ${
-                assessment.status === 'graded'
-                  ? 'bg-green-100 text-green-800'
-                  : assessment.status === 'published'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-slate-100 text-slate-800'
-              }`}
-            >
-              {assessment.status}
-            </span>
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/impact/assessments/${id}/report`}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+              >
+                View Report
+              </Link>
+              <button
+                onClick={async () => {
+                  try {
+                    const blob = await impactReportsApi.exportMarksCsv(id)
+                    const url = window.URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `marks_${assessment.title.replace(/\s+/g, '_')}.csv`
+                    document.body.appendChild(a)
+                    a.click()
+                    window.URL.revokeObjectURL(url)
+                    document.body.removeChild(a)
+                  } catch (error) {
+                    console.error('Failed to export marks CSV:', error)
+                  }
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                Export Marks
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const blob = await impactReportsApi.exportAnalyticsCsv(id)
+                    const url = window.URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `analytics_${assessment.title.replace(/\s+/g, '_')}.csv`
+                    document.body.appendChild(a)
+                    a.click()
+                    window.URL.revokeObjectURL(url)
+                    document.body.removeChild(a)
+                  } catch (error) {
+                    console.error('Failed to export analytics CSV:', error)
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Export Analytics
+              </button>
+              <span
+                className={`px-3 py-1 text-sm font-medium rounded-full ${
+                  assessment.status === 'graded'
+                    ? 'bg-green-100 text-green-800'
+                    : assessment.status === 'published'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-slate-100 text-slate-800'
+                }`}
+              >
+                {assessment.status}
+              </span>
+            </div>
           </div>
         </div>
 

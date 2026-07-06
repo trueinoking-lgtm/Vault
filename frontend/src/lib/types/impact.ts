@@ -478,3 +478,28 @@ export interface ClassNeedingSupportMinistry {
   pass_rate: number
   total_learners: number
 }
+
+// =========================================================================
+// Report Types
+// =========================================================================
+
+export interface AssessmentReport {
+  assessment: ImpactAssessment
+  questions: ImpactAssessmentQuestion[]
+  learners: ImpactLearner[]
+  analytics: AssessmentAnalytics
+  school?: ImpactSchool
+  class_group?: ImpactClassGroup
+  subject?: ImpactSubject
+}
+
+export interface SchoolReport {
+  school: ImpactSchool
+  classes: ImpactClassGroup[]
+  assessments: ImpactAssessment[]
+  pass_rate_by_class: ClassPassRate[]
+  recent_interventions: RecentIntervention[]
+  total_learners: number
+  total_learners_assessed: number
+  overall_pass_rate: number
+}

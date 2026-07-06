@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useSchoolDashboard, useImpactSchools } from '@/lib/hooks/use-impact'
+import { impactReportsApi } from '@/lib/api/impact'
 
 /**
  * Impact Intelligence — School Dashboard
@@ -61,8 +62,40 @@ export default function SchoolDashboardPage() {
           <Link href="/impact" className="text-blue-600 hover:text-blue-700 text-sm mb-2 inline-block">
             ← Back to Impact Intelligence
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900">{dashboard.school_name}</h1>
-          <p className="text-slate-600 mt-1">School performance overview</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">{dashboard.school_name}</h1>
+              <p className="text-slate-600 mt-1">School performance overview</p>
+            </div>
+            <div className="flex gap-3">
+              <Link
+                href={`/impact/schools/${schoolId}/report`}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+              >
+                View Full Report
+              </Link>
+              <button
+                onClick={async () => {
+                  try {
+                    const blob = await impactReportsApi.exportSchoolReportCsv(schoolId)
+                    const url = window.URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `school_report_${dashboard.school_name.replace(/\s+/g, '_')}.csv`
+                    document.body.appendChild(a)
+                    a.click()
+                    window.URL.revokeObjectURL(url)
+                    document.body.removeChild(a)
+                  } catch (error) {
+                    console.error('Failed to export school report CSV:', error)
+                  }
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                Export Report CSV
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Summary Stats */}

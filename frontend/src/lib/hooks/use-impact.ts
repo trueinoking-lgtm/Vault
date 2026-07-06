@@ -16,6 +16,8 @@ import {
   impactQuestionsApi,
   impactMarksApi,
   impactInterventionsApi,
+  impactDashboardsApi,
+  impactReportsApi,
 } from '@/lib/api/impact'
 import type {
   ImpactSchoolCreate,
@@ -552,5 +554,25 @@ export function useMinistryDashboard() {
   return useQuery({
     queryKey: [...impactKeys.all, 'dashboard', 'ministry'],
     queryFn: () => impactDashboardsApi.getMinistryDashboard(),
+  })
+}
+
+// =========================================================================
+// Reports Hooks
+// =========================================================================
+
+export function useAssessmentReport(assessmentId: string) {
+  return useQuery({
+    queryKey: [...impactKeys.all, 'reports', 'assessment', assessmentId],
+    queryFn: () => impactReportsApi.getAssessmentReport(assessmentId),
+    enabled: !!assessmentId,
+  })
+}
+
+export function useSchoolReport(schoolId: string) {
+  return useQuery({
+    queryKey: [...impactKeys.all, 'reports', 'school', schoolId],
+    queryFn: () => impactReportsApi.getSchoolReport(schoolId),
+    enabled: !!schoolId,
   })
 }

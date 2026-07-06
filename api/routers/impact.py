@@ -6,9 +6,12 @@ schools, class groups, learners, subjects, topics,
 assessments, assessment questions, mark entries, and interventions.
 """
 
+import csv
+import io
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from loguru import logger
 
 from api.models import (
@@ -1724,3 +1727,585 @@ async def get_ministry_dashboard() -> Dict[str, Any]:
         "schools_needing_support": schools_needing_support,
         "classes_needing_support": classes_needing_support[:10],  # Limit to 10 for ministry view
     }
+
+
+# =========================================================================
+# Report Endpoints
+# =========================================================================
+
+
+@router.get("/reports/assessment/{assessment_id}")
+async def get_assessment_report(assessment_id: str) -> Dict[str, Any]:
+    """Get comprehensive assessment report data."""
+    # Get assessment
+    assessment_result = await repo_query(
+        f"SELECT * FROM impact_assessment WHERE id = '{assessment_id}'"
+    )
+    if not assessment_result:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    assessment = ImpactAssessment(**assessment_result[0])
+
+    # Get questions
+    questions_result = await repo_query(
+        f"SELECT * FROM impact_assessment_question WHERE assessment_id = '{assessment_id}' ORDER BY question_number"
+    )
+    questions = [ImpactAssessmentQuestion(**r) for r in questions_result]
+
+    # Get learners
+    learners_result = await repo_query(
+        f"SELECT * FROM impact_learner WHERE class_group_id = '{assessment.class_group_id}'"
+    )
+    learners = [ImpactLearner(**r) for r in learners_result]
+
+    # Get marks
+    marks_result = await repo_query(
+        f"SELECT * FROM impact_mark_entry WHERE assessment_id = '{assessment_id}'"
+    )
+    marks = [ImpactMarkEntry(**r) for r in marks_result]
+
+    # Get analytics
+    engine = ImpactAnalyticsEngine()
+    analytics = await engine.calculate_analytics(assessment, questions, learners, marks)
+
+    # Get school, class, subject
+    school_result = await repo_query(
+        f"SELECT * FROM impact_school WHERE id = '{assessment.school_id}'"
+    )
+    school = ImpactSchool(**school_result[0]) if school_result else None
+
+    class_result = await repo_query(
+        f"SELECT * FROM impact_class_group WHERE id = '{assessment.class_group_id}'"
+    )
+    class_group = ImpactClassGroup(**class_result[0]) if class_result else None
+
+    subject_result = await repo_query(
+        f"SELECT * FROM impact_subject WHERE id = '{assessment.subject_id}'"
+    )
+    subject = ImpactSubject(**subject_result[0]) if subject_result else None
+
+    return {
+        "assessment": {
+            "id": _strip_prefix(str(assessment.id or "")),
+            "title": assessment.title,
+            "assessment_type": assessment.assessment_type,
+            "total_marks": assessment.total_marks,
+            "pass_mark": assessment.pass_mark,
+            "term": assessment.term,
+            "status": assessment.status,
+            "date_written": assessment.date_written,
+        },
+        "questions": [
+            {
+                "id": _strip_prefix(str(q.id or "")),
+                "question_number": q.question_number,
+                "label": q.label,
+                "max_marks": q.max_marks,
+                "topic_id": q.topic_id,
+                "skill_type": q.skill_type,
+                "difficulty": q.difficulty,
+            }
+            for q in questions
+        ],
+        "learners": [
+            {
+                "id": _strip_prefix(str(l.id or "")),
+                "learner_code": l.learner_code,
+                "display_name": l.display_name,
+                "status": l.status,
+            }
+            for l in learners
+        ],
+        "analytics": analytics,
+        "school": {
+            "id": _strip_prefix(str(school.id or "")),
+            "name": school.name,
+            "district": school.district,
+            "province": school.province,
+        } if school else None,
+        "class_group": {
+            "id": _strip_prefix(str(class_group.id or "")),
+            "name": class_group.name,
+            "grade_level": class_group.grade_level,
+            "teacher_name": class_group.teacher_name,
+        } if class_group else None,
+        "subject": {
+            "id": _strip_prefix(str(subject.id or "")),
+            "name": subject.name,
+            "level": subject.level,
+            "curriculum": subject.curriculum,
+        } if subject else None,
+    }
+
+
+@router.get("/reports/school/{school_id}")
+async def get_school_report(school_id: str) -> Dict[str, Any]:
+    """Get comprehensive school report data."""
+    # Get school
+    school_result = await repo_query(
+        f"SELECT * FROM impact_school WHERE id = '{school_id}'"
+    )
+    if not school_result:
+        raise HTTPException(status_code=404, detail="School not found")
+
+    school = ImpactSchool(**school_result[0])
+
+    # Get classes
+    classes_result = await repo_query(
+        f"SELECT * FROM impact_class_group WHERE school_id = '{school_id}'"
+    )
+    classes = [ImpactClassGroup(**r) for r in classes_result]
+
+    # Get assessments
+    assessments_result = await repo_query(
+        f"SELECT * FROM impact_assessment WHERE school_id = '{school_id}'"
+    )
+    assessments = [ImpactAssessment(**a) for a in assessments_result]
+
+    # Get all marks for school assessments
+    assessment_ids = [str(a.id) for a in assessments]
+    if assessment_ids:
+        quoted_ids = ','.join(['"' + aid + '"' for aid in assessment_ids])
+        marks_result = await repo_query(
+            f"SELECT * FROM impact_mark_entry WHERE assessment_id IN [{quoted_ids}]"
+        )
+    else:
+        marks_result = []
+    marks = [ImpactMarkEntry(**m) for m in marks_result]
+
+    # Get learners
+    learners_result = await repo_query(
+        f"SELECT * FROM impact_learner WHERE school_id = '{school_id}'"
+    )
+    learners = [ImpactLearner(**r) for r in learners_result]
+
+    # Calculate pass rates by class
+    pass_rate_by_class = []
+    total_learners_assessed = 0
+
+    for cls in classes:
+        class_learners = [l for l in learners if l.class_group_id == cls.id]
+        class_marks = [m for m in marks if m.learner_id in [l.id for l in class_learners]]
+        class_learners_assessed = len(set(m.learner_id for m in class_marks))
+        total_learners_assessed += class_learners_assessed
+
+        class_passed = 0
+        for assessment in [a for a in assessments if a.class_group_id == cls.id]:
+            assessment_marks = [m for m in class_marks if m.assessment_id == assessment.id]
+            learner_totals: Dict[str, float] = {}
+            for mark in assessment_marks:
+                if mark.learner_id not in learner_totals:
+                    learner_totals[mark.learner_id] = 0
+                learner_totals[mark.learner_id] += mark.score
+
+            for total in learner_totals.values():
+                if assessment.pass_mark and total >= assessment.pass_mark:
+                    class_passed += 1
+                elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                    class_passed += 1
+
+        class_pass_rate = (class_passed / class_learners_assessed * 100) if class_learners_assessed > 0 else 0
+
+        pass_rate_by_class.append({
+            "class_id": _strip_prefix(str(cls.id or "")),
+            "class_name": cls.name,
+            "total_learners": class_learners_assessed,
+            "pass_rate": round(class_pass_rate, 2),
+        })
+
+    # Overall pass rate
+    total_passed = sum(
+        c["total_learners"] * c["pass_rate"] / 100
+        for c in pass_rate_by_class
+        if c["total_learners"] > 0
+    )
+    overall_pass_rate = (total_passed / total_learners_assessed * 100) if total_learners_assessed > 0 else 0
+
+    # Recent interventions
+    quoted_class_ids_interventions = ','.join(['"' + str(cls.id) + '"' for cls in classes]) if classes else ''
+    interventions_result = await repo_query(
+        f"SELECT * FROM impact_intervention WHERE class_group_id IN [{quoted_class_ids_interventions}] ORDER BY created DESC LIMIT 10"
+    ) if classes else []
+    recent_interventions = [
+        {
+            "id": _strip_prefix(str(InterventionRecommendationResponse(**i).id or "")),
+            "severity": i.get("severity", "low"),
+            "recommendation": i.get("recommendation", ""),
+            "status": i.get("status", "pending"),
+            "created": i.get("created", ""),
+        }
+        for i in interventions_result
+    ]
+
+    return {
+        "school": {
+            "id": _strip_prefix(str(school.id or "")),
+            "name": school.name,
+            "district": school.district,
+            "province": school.province,
+            "school_type": school.school_type,
+        },
+        "classes": [
+            {
+                "id": _strip_prefix(str(c.id or "")),
+                "name": c.name,
+                "grade_level": c.grade_level,
+                "teacher_name": c.teacher_name,
+            }
+            for c in classes
+        ],
+        "assessments": [
+            {
+                "id": _strip_prefix(str(a.id or "")),
+                "title": a.title,
+                "assessment_type": a.assessment_type,
+                "total_marks": a.total_marks,
+                "pass_mark": a.pass_mark,
+                "status": a.status,
+            }
+            for a in assessments
+        ],
+        "pass_rate_by_class": pass_rate_by_class,
+        "recent_interventions": recent_interventions,
+        "total_learners": len(learners),
+        "total_learners_assessed": total_learners_assessed,
+        "overall_pass_rate": round(overall_pass_rate, 2),
+    }
+
+
+# =========================================================================
+# CSV Export Endpoints
+# =========================================================================
+
+
+@router.get("/assessments/{assessment_id}/export/marks")
+async def export_assessment_marks_csv(assessment_id: str) -> StreamingResponse:
+    """Export assessment marks as CSV."""
+    # Get assessment details
+    assessment_result = await repo_query(
+        f"SELECT * FROM impact_assessment WHERE id = '{assessment_id}'"
+    )
+    if not assessment_result:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    assessment = ImpactAssessment(**assessment_result[0])
+
+    # Get questions
+    questions_result = await repo_query(
+        f"SELECT * FROM impact_assessment_question WHERE assessment_id = '{assessment_id}' ORDER BY question_number"
+    )
+    questions = [ImpactAssessmentQuestion(**r) for r in questions_result]
+
+    # Get learners in the class
+    learners_result = await repo_query(
+        f"SELECT * FROM impact_learner WHERE class_group_id = '{assessment.class_group_id}'"
+    )
+    learners = [ImpactLearner(**r) for r in learners_result]
+
+    # Get mark entries
+    marks_result = await repo_query(
+        f"SELECT * FROM impact_mark_entry WHERE assessment_id = '{assessment_id}'"
+    )
+    marks = [ImpactMarkEntry(**r) for r in marks_result]
+
+    # Build CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Header row
+    header = ["Learner Code", "Display Name"]
+    for q in questions:
+        header.append(f"Q{q.question_number} (/{q.max_marks})")
+    header.extend(["Total", "Percentage", "Status"])
+    writer.writerow(header)
+
+    # Data rows
+    for learner in learners:
+        row = [learner.learner_code, learner.display_name or ""]
+        total_score = 0
+        total_max = 0
+
+        for question in questions:
+            mark = next(
+                (m for m in marks if m.question_id == question.id and m.learner_id == learner.id),
+                None,
+            )
+            if mark:
+                row.append(str(mark.score))
+                total_score += mark.score
+                total_max += mark.max_score
+            else:
+                row.append("")
+                total_max += question.max_marks
+
+        percentage = (total_score / total_max * 100) if total_max > 0 else 0
+        passed = percentage >= 50 if not assessment.pass_mark else total_score >= assessment.pass_mark
+        row.extend([
+            str(total_score),
+            f"{percentage:.1f}",
+            "Pass" if passed else "Fail",
+        ])
+        writer.writerow(row)
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="marks_{assessment.title.replace(" ", "_")}.csv"'
+        },
+    )
+
+
+@router.get("/assessments/{assessment_id}/export/analytics")
+async def export_assessment_analytics_csv(assessment_id: str) -> StreamingResponse:
+    """Export assessment analytics as CSV."""
+    # Get analytics data
+    assessment_result = await repo_query(
+        f"SELECT * FROM impact_assessment WHERE id = '{assessment_id}'"
+    )
+    if not assessment_result:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    assessment = ImpactAssessment(**assessment_result[0])
+
+    # Get questions
+    questions_result = await repo_query(
+        f"SELECT * FROM impact_assessment_question WHERE assessment_id = '{assessment_id}' ORDER BY question_number"
+    )
+    questions = [ImpactAssessmentQuestion(**r) for r in questions_result]
+
+    # Get marks
+    marks_result = await repo_query(
+        f"SELECT * FROM impact_mark_entry WHERE assessment_id = '{assessment_id}'"
+    )
+    marks = [ImpactMarkEntry(**r) for r in marks_result]
+
+    # Get topics
+    topics_result = await repo_query("SELECT * FROM impact_topic")
+    topics = [ImpactTopic(**r) for r in topics_result]
+
+    # Build CSV with multiple sections
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Section 1: Assessment Summary
+    writer.writerow(["Assessment Summary"])
+    writer.writerow(["Title", assessment.title])
+    writer.writerow(["Type", assessment.assessment_type])
+    writer.writerow(["Total Marks", assessment.total_marks])
+    writer.writerow(["Pass Mark", assessment.pass_mark or "Not set"])
+    writer.writerow(["Term", assessment.term or "Not set"])
+    writer.writerow([])
+
+    # Section 2: Question Performance
+    writer.writerow(["Question Performance"])
+    writer.writerow(["Question #", "Label", "Max Marks", "Skill Type", "Difficulty", "Average Score", "Average %", "Status"])
+
+    for q in questions:
+        q_marks = [m for m in marks if m.question_id == q.id]
+        avg_score = sum(m.score for m in q_marks) / len(q_marks) if q_marks else 0
+        avg_pct = (avg_score / q.max_marks * 100) if q.max_marks > 0 else 0
+        is_critical = avg_pct < 35
+
+        writer.writerow([
+            q.question_number,
+            q.label or "",
+            q.max_marks,
+            q.skill_type,
+            q.difficulty or "",
+            f"{avg_score:.1f}",
+            f"{avg_pct:.1f}",
+            "Critical" if is_critical else "OK",
+        ])
+
+    writer.writerow([])
+
+    # Section 3: Topic Performance
+    writer.writerow(["Topic Performance"])
+    writer.writerow(["Topic", "Total Score", "Total Max", "Percentage", "# Questions", "Status"])
+
+    topic_stats: Dict[str, Dict[str, Any]] = {}
+    for q in questions:
+        if q.topic_id:
+            if q.topic_id not in topic_stats:
+                topic_stats[q.topic_id] = {"score": 0, "max": 0, "count": 0}
+            q_marks = [m for m in marks if m.question_id == q.id]
+            topic_stats[q.topic_id]["score"] += sum(m.score for m in q_marks)
+            topic_stats[q.topic_id]["max"] += sum(m.max_score for m in q_marks)
+            topic_stats[q.topic_id]["count"] += 1
+
+    for topic_id, stats in topic_stats.items():
+        topic = next((t for t in topics if t.id == topic_id), None)
+        percentage = (stats["score"] / stats["max"] * 100) if stats["max"] > 0 else 0
+        is_weak = percentage < 55
+        is_critical = percentage < 40
+
+        writer.writerow([
+            topic.name if topic else topic_id,
+            f"{stats['score']:.1f}",
+            stats["max"],
+            f"{percentage:.1f}",
+            stats["count"],
+            "Critical" if is_critical else "Weak" if is_weak else "OK",
+        ])
+
+    writer.writerow([])
+
+    # Section 4: Learner Performance
+    writer.writerow(["Learner Performance"])
+    writer.writerow(["Learner Code", "Display Name", "Total Score", "Total Max", "Percentage", "Status", "Risk Level"])
+
+    # Get learners
+    learners_result = await repo_query(
+        f"SELECT * FROM impact_learner WHERE class_group_id = '{assessment.class_group_id}'"
+    )
+    learners = [ImpactLearner(**r) for r in learners_result]
+
+    for learner in learners:
+        l_marks = [m for m in marks if m.learner_id == learner.id]
+        total_score = sum(m.score for m in l_marks)
+        total_max = sum(m.max_score for m in l_marks)
+        percentage = (total_score / total_max * 100) if total_max > 0 else 0
+        passed = percentage >= 50 if not assessment.pass_mark else total_score >= assessment.pass_mark
+
+        if percentage < 40:
+            risk_level = "High"
+        elif percentage < 55:
+            risk_level = "Medium"
+        else:
+            risk_level = "Low"
+
+        writer.writerow([
+            learner.learner_code,
+            learner.display_name or "",
+            f"{total_score:.1f}",
+            total_max,
+            f"{percentage:.1f}",
+            "Pass" if passed else "Fail",
+            risk_level,
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="analytics_{assessment.title.replace(" ", "_")}.csv"'
+        },
+    )
+
+
+@router.get("/schools/{school_id}/export/report")
+async def export_school_report_csv(school_id: str) -> StreamingResponse:
+    """Export school impact report as CSV."""
+    # Get school details
+    school_result = await repo_query(
+        f"SELECT * FROM impact_school WHERE id = '{school_id}'"
+    )
+    if not school_result:
+        raise HTTPException(status_code=404, detail="School not found")
+
+    school = ImpactSchool(**school_result[0])
+
+    # Get classes
+    classes_result = await repo_query(
+        f"SELECT * FROM impact_class_group WHERE school_id = '{school_id}'"
+    )
+    classes = [ImpactClassGroup(**r) for r in classes_result]
+
+    # Get all assessments for this school
+    assessments_result = await repo_query(
+        f"SELECT * FROM impact_assessment WHERE school_id = '{school_id}'"
+    )
+    assessments = [ImpactAssessment(**a) for a in assessments_result]
+
+    # Get all marks for school assessments
+    assessment_ids = [str(a.id) for a in assessments]
+    quoted_ids = ','.join(['"' + aid + '"' for aid in assessment_ids])
+    marks_result = await repo_query(
+        f"SELECT * FROM impact_mark_entry WHERE assessment_id IN [{quoted_ids}]"
+    )
+    marks = [ImpactMarkEntry(**m) for m in marks_result]
+
+    # Build CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Section 1: School Summary
+    writer.writerow(["School Report"])
+    writer.writerow(["School", school.name])
+    writer.writerow(["District", school.district or ""])
+    writer.writerow(["Province", school.province or ""])
+    writer.writerow(["Type", school.school_type or ""])
+    writer.writerow(["Total Classes", len(classes)])
+    writer.writerow(["Total Assessments", len(assessments)])
+    writer.writerow([])
+
+    # Section 2: Pass Rate by Class
+    writer.writerow(["Pass Rate by Class"])
+    writer.writerow(["Class Name", "Total Learners", "Pass Rate %"])
+
+    for cls in classes:
+        class_learners_result = await repo_query(
+            f"SELECT * FROM impact_learner WHERE class_group_id = '{cls.id}'"
+        )
+        class_learners = [ImpactLearner(**l) for l in class_learners_result]
+        class_learners_assessed = len(set(
+            m.learner_id for m in marks
+            if any(
+                m.learner_id == l.id
+                for l in class_learners
+            )
+        ))
+
+        class_passed = 0
+        for assessment in [a for a in assessments if a.class_group_id == cls.id]:
+            assessment_marks = [m for m in marks if m.assessment_id == assessment.id]
+            learner_totals: Dict[str, float] = {}
+            for mark in assessment_marks:
+                if mark.learner_id not in learner_totals:
+                    learner_totals[mark.learner_id] = 0
+                learner_totals[mark.learner_id] += mark.score
+
+            for total in learner_totals.values():
+                if assessment.pass_mark and total >= assessment.pass_mark:
+                    class_passed += 1
+                elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                    class_passed += 1
+
+        class_pass_rate = (class_passed / class_learners_assessed * 100) if class_learners_assessed > 0 else 0
+
+        writer.writerow([
+            cls.name,
+            class_learners_assessed,
+            f"{class_pass_rate:.1f}",
+        ])
+
+    writer.writerow([])
+
+    # Section 3: Recent Interventions
+    writer.writerow(["Recent Interventions"])
+    writer.writerow(["Severity", "Recommendation", "Status", "Date"])
+
+    quoted_class_ids = ','.join(['"' + str(cls.id) + '"' for cls in classes])
+    interventions_result = await repo_query(
+        f"SELECT * FROM impact_intervention WHERE class_group_id IN [{quoted_class_ids}]"
+    )
+    for intervention_data in interventions_result:
+        intervention = ImpactIntervention(**intervention_data)
+        writer.writerow([
+            intervention.severity,
+            intervention.recommendation or "",
+            intervention.status,
+            intervention.created or "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="school_report_{school.name.replace(" ", "_")}.csv"'
+        },
+    )

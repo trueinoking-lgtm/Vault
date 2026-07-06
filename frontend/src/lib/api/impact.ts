@@ -43,6 +43,10 @@ import type {
   ImpactInterventionUpdate,
   ImpactInterventionListResponse,
   AssessmentAnalytics,
+  SchoolDashboard,
+  MinistryDashboard,
+  AssessmentReport,
+  SchoolReport,
 } from '@/lib/types/impact'
 
 // =========================================================================
@@ -346,6 +350,43 @@ export const impactDashboardsApi = {
 
   getMinistryDashboard: async () => {
     const response = await apiClient.get<MinistryDashboard>('/impact/dashboards/ministry')
+    return response.data
+  },
+}
+
+// =========================================================================
+// Reports & Export API
+// =========================================================================
+
+export const impactReportsApi = {
+  getAssessmentReport: async (assessmentId: string) => {
+    const response = await apiClient.get<AssessmentReport>(`/impact/reports/assessment/${assessmentId}`)
+    return response.data
+  },
+
+  getSchoolReport: async (schoolId: string) => {
+    const response = await apiClient.get<SchoolReport>(`/impact/reports/school/${schoolId}`)
+    return response.data
+  },
+
+  exportMarksCsv: async (assessmentId: string) => {
+    const response = await apiClient.get(`/impact/assessments/${assessmentId}/export/marks`, {
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  exportAnalyticsCsv: async (assessmentId: string) => {
+    const response = await apiClient.get(`/impact/assessments/${assessmentId}/export/analytics`, {
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  exportSchoolReportCsv: async (schoolId: string) => {
+    const response = await apiClient.get(`/impact/schools/${schoolId}/export/report`, {
+      responseType: 'blob',
+    })
     return response.data
   },
 }
