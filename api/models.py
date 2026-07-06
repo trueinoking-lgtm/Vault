@@ -1526,3 +1526,95 @@ class ImpactInterventionListResponse(BaseModel):
 
     interventions: List[ImpactInterventionResponse]
     total: int
+
+
+# =========================================================================
+# Impact Intelligence — Analytics Response Schemas
+# =========================================================================
+
+
+class QuestionPerformanceResponse(BaseModel):
+    """Performance metrics for a single question."""
+
+    question_id: str
+    question_number: int
+    label: Optional[str] = None
+    max_marks: float
+    topic_id: Optional[str] = None
+    skill_type: str
+    difficulty: Optional[str] = None
+    total_score: float
+    num_learners: int
+    average_score: float
+    average_percentage: float
+    is_critical: bool
+
+
+class TopicPerformanceResponse(BaseModel):
+    """Performance metrics for a topic across questions."""
+
+    topic_id: str
+    topic_name: str
+    total_score: float
+    total_max_marks: float
+    percentage: float
+    num_questions: int
+    num_learners: int
+    is_weak: bool
+    is_critical: bool
+
+
+class LearnerPerformanceResponse(BaseModel):
+    """Performance metrics for a single learner."""
+
+    learner_id: str
+    learner_code: str
+    display_name: Optional[str] = None
+    total_score: float
+    total_max_marks: float
+    percentage: float
+    passed: bool
+    risk_level: str  # "low" | "medium" | "high"
+    questions_answered: int
+    total_questions: int
+
+
+class InterventionRecommendationResponse(BaseModel):
+    """Recommended intervention based on performance."""
+
+    intervention_type: str  # "critical" | "weak" | "stable"
+    entity_type: str  # "topic" | "learner"
+    entity_id: str
+    entity_name: str
+    severity: str  # "low" | "medium" | "high" | "critical"
+    recommendation: str
+    percentage: float
+
+
+class AssessmentAnalyticsResponse(BaseModel):
+    """Complete analytics for an assessment."""
+
+    assessment_id: str
+    assessment_title: str
+    assessment_type: str
+    total_marks: float
+    pass_mark: Optional[float] = None
+    term: Optional[str] = None
+
+    # Summary statistics
+    total_learners: int
+    learners_assessed: int
+    mark_completion_rate: float
+    class_average_percentage: float
+    pass_rate: float
+    failure_rate: float
+
+    # Detailed performance
+    question_performance: List[QuestionPerformanceResponse]
+    topic_performance: List[TopicPerformanceResponse]
+    learner_performance: List[LearnerPerformanceResponse]
+
+    # Weaknesses and interventions
+    weak_topics: List[TopicPerformanceResponse]
+    at_risk_learners: List[LearnerPerformanceResponse]
+    interventions: List[InterventionRecommendationResponse]

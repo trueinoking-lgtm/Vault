@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Query
 from loguru import logger
 
 from api.models import (
+    AssessmentAnalyticsResponse,
     ImpactAssessmentCreate,
     ImpactAssessmentListResponse,
     ImpactAssessmentQuestionCreate,
@@ -48,7 +49,12 @@ from api.models import (
     ImpactTopicListResponse,
     ImpactTopicResponse,
     ImpactTopicUpdate,
+    InterventionRecommendationResponse,
+    LearnerPerformanceResponse,
+    QuestionPerformanceResponse,
+    TopicPerformanceResponse,
 )
+from vault_core.analytics.impact import ImpactAnalyticsEngine
 from vault_core.database.repository import repo_query
 from vault_core.domain.impact import (
     ImpactAssessment,
@@ -811,6 +817,128 @@ async def delete_assessment(assessment_id: str) -> Dict[str, str]:
     await assessment.delete()
     logger.info(f"Deleted Impact Assessment: {assessment_id}")
     return {"message": f"Assessment {assessment_id} deleted"}
+
+
+@router.get(
+    "/assessments/{assessment_id}/analytics",
+    response_model=AssessmentAnalyticsResponse,
+)
+async def get_assessment_analytics(
+    assessment_id: str,
+) -> AssessmentAnalyticsResponse:
+    """
+    Get deterministic analytics for an assessment.
+
+    Calculates class performance, topic weaknesses, question weaknesses,
+    learner risk, and intervention recommendations.
+    """
+    assessment_id = _ensure_prefixed(assessment_id, "impact_assessment")
+    try:
+        analytics = await ImpactAnalyticsEngine.calculate_analytics(assessment_id)
+    except ValueError as e:
+        raise NotFoundError(str(e))
+
+    return AssessmentAnalyticsResponse(
+        assessment_id=analytics.assessment_id,
+        assessment_title=analytics.assessment_title,
+        assessment_type=analytics.assessment_type,
+        total_marks=analytics.total_marks,
+        pass_mark=analytics.pass_mark,
+        term=analytics.term,
+        total_learners=analytics.total_learners,
+        learners_assessed=analytics.learners_assessed,
+        mark_completion_rate=analytics.mark_completion_rate,
+        class_average_percentage=analytics.class_average_percentage,
+        pass_rate=analytics.pass_rate,
+        failure_rate=analytics.failure_rate,
+        question_performance=[
+            QuestionPerformanceResponse(
+                question_id=q.question_id,
+                question_number=q.question_number,
+                label=q.label,
+                max_marks=q.max_marks,
+                topic_id=q.topic_id,
+                skill_type=q.skill_type,
+                difficulty=q.difficulty,
+                total_score=q.total_score,
+                num_learners=q.num_learners,
+                average_score=q.average_score,
+                average_percentage=q.average_percentage,
+                is_critical=q.is_critical,
+            )
+            for q in analytics.question_performance
+        ],
+        topic_performance=[
+            TopicPerformanceResponse(
+                topic_id=t.topic_id,
+                topic_name=t.topic_name,
+                total_score=t.total_score,
+                total_max_marks=t.total_max_marks,
+                percentage=t.percentage,
+                num_questions=t.num_questions,
+                num_learners=t.num_learners,
+                is_weak=t.is_weak,
+                is_critical=t.is_critical,
+            )
+            for t in analytics.topic_performance
+        ],
+        learner_performance=[
+            LearnerPerformanceResponse(
+                learner_id=l.learner_id,
+                learner_code=l.learner_code,
+                display_name=l.display_name,
+                total_score=l.total_score,
+                total_max_marks=l.total_max_marks,
+                percentage=l.percentage,
+                passed=l.passed,
+                risk_level=l.risk_level,
+                questions_answered=l.questions_answered,
+                total_questions=l.total_questions,
+            )
+            for l in analytics.learner_performance
+        ],
+        weak_topics=[
+            TopicPerformanceResponse(
+                topic_id=t.topic_id,
+                topic_name=t.topic_name,
+                total_score=t.total_score,
+                total_max_marks=t.total_max_marks,
+                percentage=t.percentage,
+                num_questions=t.num_questions,
+                num_learners=t.num_learners,
+                is_weak=t.is_weak,
+                is_critical=t.is_critical,
+            )
+            for t in analytics.weak_topics
+        ],
+        at_risk_learners=[
+            LearnerPerformanceResponse(
+                learner_id=l.learner_id,
+                learner_code=l.learner_code,
+                display_name=l.display_name,
+                total_score=l.total_score,
+                total_max_marks=l.total_max_marks,
+                percentage=l.percentage,
+                passed=l.passed,
+                risk_level=l.risk_level,
+                questions_answered=l.questions_answered,
+                total_questions=l.total_questions,
+            )
+            for l in analytics.at_risk_learners
+        ],
+        interventions=[
+            InterventionRecommendationResponse(
+                intervention_type=i.intervention_type,
+                entity_type=i.entity_type,
+                entity_id=i.entity_id,
+                entity_name=i.entity_name,
+                severity=i.severity,
+                recommendation=i.recommendation,
+                percentage=i.percentage,
+            )
+            for i in analytics.interventions
+        ],
+    )
 
 
 # =========================================================================
