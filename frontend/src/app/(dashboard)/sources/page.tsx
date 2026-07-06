@@ -8,7 +8,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { AppShell } from '@/components/layout/AppShell'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { FileText, Link as LinkIcon, Upload, AlignLeft, Trash2, ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import { FileText, Link as LinkIcon, Upload, AlignLeft, Trash2, ArrowDown, ArrowUp, ArrowUpDown, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,51 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { getApiErrorKey } from '@/lib/utils/error-handler'
 import { useCreateDialogs } from '@/lib/hooks/use-create-dialogs'
+import {
+  normalizeBackendSourceStatus,
+  mapBackendSourceStatusToLearnerStatus,
+  type LearnerSourceStatus,
+} from '@/lib/source-status'
+
+function SourceStatusBadge({ status }: { status: LearnerSourceStatus }) {
+  const { t } = useTranslation()
+
+  const config = {
+    preparing: {
+      label: t('sources.statusPreparingText'),
+      variant: 'secondary' as const,
+      icon: Clock,
+      className: 'text-muted-foreground',
+    },
+    building: {
+      label: t('sources.statusBuildingStudyMemory'),
+      variant: 'secondary' as const,
+      icon: Loader2,
+      className: 'text-blue-600 dark:text-blue-400',
+    },
+    ready: {
+      label: t('sources.statusReadyToStudy'),
+      variant: 'default' as const,
+      icon: CheckCircle2,
+      className: 'text-green-600 dark:text-green-400',
+    },
+    failed: {
+      label: t('sources.statusFailedFriendly'),
+      variant: 'destructive' as const,
+      icon: AlertCircle,
+      className: 'text-destructive',
+    },
+  }[status]
+
+  const Icon = config.icon
+
+  return (
+    <Badge variant={config.variant} className={`text-xs gap-1 ${config.className}`}>
+      <Icon className={`h-3 w-3 ${status === 'building' ? 'animate-spin' : ''}`} />
+      {config.label}
+    </Badge>
+  )
+}
 
 export default function SourcesPage() {
   const { t, language } = useTranslation()
@@ -333,11 +378,12 @@ export default function SourcesPage() {
           <table
             ref={tableRef}
             tabIndex={0}
-            className="w-full min-w-[920px] outline-none table-fixed"
+            className="w-full min-w-[1020px] outline-none table-fixed"
           >
             <colgroup>
               <col className="w-[120px]" />
               <col className="w-auto" />
+              <col className="w-[160px]" />
               <col className="w-[140px]" />
               <col className="w-[140px]" />
               <col className="w-[100px]" />
@@ -351,6 +397,9 @@ export default function SourcesPage() {
                 </th>
                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
                   {renderSortableHeader('title', t('common.title'))}
+                </th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground hidden sm:table-cell">
+                  Status
                 </th>
                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground hidden sm:table-cell">
                   {renderSortableHeader('created', t('common.created_label'))}
@@ -370,73 +419,82 @@ export default function SourcesPage() {
               </tr>
             </thead>
             <tbody>
-              {sources.map((source, index) => (
-                <tr
-                  key={source.id}
-                  onClick={() => handleRowClick(index, source.id)}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                  className={cn(
-                    "border-b transition-colors cursor-pointer",
-                    selectedIndex === index
-                      ? "bg-accent"
-                      : "hover:bg-muted/50"
-                  )}
-                >
-                  <td className="h-12 px-4">
-                    <div className="flex items-center gap-2">
-                      {getSourceIcon(source)}
-                      <Badge variant="secondary" className="text-xs">
-                        {getSourceType(source)}
-                      </Badge>
-                    </div>
-                  </td>
-                  <td className="h-12 px-4">
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="font-medium truncate">
-                        {source.title || t('sources.untitledSource')}
-                      </span>
-                      {source.asset?.url && (
-                        <span className="text-xs text-muted-foreground truncate">
-                          {source.asset.url}
+              {sources.map((source, index) => {
+                // Compute learner-friendly status
+                const backendStatus = normalizeBackendSourceStatus(source.status, !!source.command_id)
+                const learnerStatus = mapBackendSourceStatusToLearnerStatus(backendStatus)
+
+                return (
+                  <tr
+                    key={source.id}
+                    onClick={() => handleRowClick(index, source.id)}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                    className={cn(
+                      "border-b transition-colors cursor-pointer",
+                      selectedIndex === index
+                        ? "bg-accent"
+                        : "hover:bg-muted/50"
+                    )}
+                  >
+                    <td className="h-12 px-4">
+                      <div className="flex items-center gap-2">
+                        {getSourceIcon(source)}
+                        <Badge variant="secondary" className="text-xs">
+                          {getSourceType(source)}
+                        </Badge>
+                      </div>
+                    </td>
+                    <td className="h-12 px-4">
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="font-medium truncate">
+                          {source.title || t('sources.untitledSource')}
                         </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="h-12 px-4 text-muted-foreground text-sm hidden sm:table-cell">
-                    {formatDistanceToNow(new Date(source.created), { 
-                      addSuffix: true,
-                      locale: getDateLocale(language)
-                    })}
-                  </td>
-                  <td className="h-12 px-4 text-muted-foreground text-sm hidden sm:table-cell">
-                    {formatDistanceToNow(new Date(source.updated), {
-                      addSuffix: true,
-                      locale: getDateLocale(language)
-                    })}
-                  </td>
-                  <td className="h-12 px-4 text-center hidden md:table-cell">
-                    <span className="text-sm font-medium">{source.insights_count || 0}</span>
-                  </td>
-                  <td className="h-12 px-4 text-center hidden lg:table-cell">
-                    <Badge variant={source.embedded ? "default" : "secondary"} className="text-xs">
-                      {source.embedded ? t('sources.yes') : t('sources.no')}
-                    </Badge>
-                  </td>
-                  <td className="h-12 px-4 text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => handleDeleteClick(e, source)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+                        {source.asset?.url && (
+                          <span className="text-xs text-muted-foreground truncate">
+                            {source.asset.url}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="h-12 px-4 hidden sm:table-cell">
+                      <SourceStatusBadge status={learnerStatus} />
+                    </td>
+                    <td className="h-12 px-4 text-muted-foreground text-sm hidden sm:table-cell">
+                      {formatDistanceToNow(new Date(source.created), { 
+                        addSuffix: true,
+                        locale: getDateLocale(language)
+                      })}
+                    </td>
+                    <td className="h-12 px-4 text-muted-foreground text-sm hidden sm:table-cell">
+                      {formatDistanceToNow(new Date(source.updated), {
+                        addSuffix: true,
+                        locale: getDateLocale(language)
+                      })}
+                    </td>
+                    <td className="h-12 px-4 text-center hidden md:table-cell">
+                      <span className="text-sm font-medium">{source.insights_count || 0}</span>
+                    </td>
+                    <td className="h-12 px-4 text-center hidden lg:table-cell">
+                      <Badge variant={source.embedded ? "default" : "secondary"} className="text-xs">
+                        {source.embedded ? t('sources.yes') : t('sources.no')}
+                      </Badge>
+                    </td>
+                    <td className="h-12 px-4 text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleDeleteClick(e, source)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
               {loadingMore && (
                 <tr>
-                  <td colSpan={7} className="h-16 text-center">
+                  <td colSpan={8} className="h-16 text-center">
                     <div className="flex items-center justify-center">
                       <LoadingSpinner />
                       <span className="ml-2 text-muted-foreground">{t('sources.loadingMore')}</span>
