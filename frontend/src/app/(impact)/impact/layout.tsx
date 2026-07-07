@@ -27,9 +27,9 @@ export default function ImpactLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <header className="flex-shrink-0 sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Product name */}
           <Link
@@ -71,8 +71,8 @@ export default function ImpactLayout({
         </div>
       </header>
 
-      {/* Page content */}
-      <main className="mx-auto">
+      {/* Page content — scrollable area */}
+      <main className="flex-1 overflow-y-auto mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
     </div>
