@@ -91,7 +91,7 @@ ZimLearnGraph uses **learner-code-first anonymization** as its foundational priv
 2. **No personal identifiers in the dataset** — learner names, national ID numbers, dates of birth, contact details, and guardian information are never collected or stored
 3. **Teacher anonymisation** — teachers are represented by staff codes; full names are stored only at school level for operational purposes, never in the analytical dataset
 4. **School-level aggregation** — dashboards and analytics default to class-group and school-level aggregation; individual learner data is visible only to the assigned teacher
-5. **No GPDR-style consent bottleneck** — because no personally identifiable information (PII) is collected, the dataset falls outside the scope of data protection regimes that regulate PII processing; the school acts as data controller for the code-name mapping that never enters the system
+5. **No GDPR-style consent bottleneck** — because no personally identifiable information (PII) is collected, the dataset falls outside the scope of data protection regimes that regulate PII processing; the school acts as data controller for the code-name mapping that never enters the system
 
 ## Quality Checks
 

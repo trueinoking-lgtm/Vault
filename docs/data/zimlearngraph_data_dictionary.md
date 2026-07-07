@@ -150,7 +150,7 @@ An individual learner's mark on a specific question within a specific assessment
 | `assessment_id` | string | ✅ | Parent assessment | FK → `assessment.assessment_id` |
 | `question_id` | string | ✅ | Question being marked | FK → `assessment_question.question_id` |
 | `learner_code` | string | ✅ | Anonymised learner | FK → `learner.learner_code` |
-| `score` | number | ✅ | Mark awarded | Must be 0 ≤ score ≤ question.max_score |
+| `score` | number | ❌ | Mark awarded (null allowed for absent learners; see Quality Framework Q5) | Must be 0 ≤ score ≤ question.max_score if present |
 | `score_percentage` | number | ✅ | Calculated percentage | Computed: `(score / max_score) * 100` |
 | `is_absent` | boolean | ✅ | Learner absent for assessment | Default: false |
 | `entry_timestamp` | datetime | ✅ | When the mark was entered | ISO 8601 datetime |
@@ -198,7 +198,7 @@ Automated flag indicating that a learner is below the mastery threshold on a top
 
 ## Entity: `intervention`
 
-A teacher-recorded remediation action taken in response to one or more learner risk signals.
+A teacher-recorded remediation action taken in response to a specific learner risk signal. For group interventions (scope: small_group, whole_class), separate intervention records are created per learner risk signal.
 
 | Field | Type | Required | Description | Constraints |
 |---|---|---|---|---|

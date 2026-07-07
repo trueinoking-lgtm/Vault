@@ -181,7 +181,7 @@ The teacher may enter marks via:
 ### 6.3 Linking
 
 - Each intervention is linked to the originating `learner_risk_signal` via `signal_id`
-- A single intervention may address multiple learners if scope is `small_group` or `whole_class` (by linking multiple signals)
+- For group interventions (scope: `small_group` or `whole_class`), a separate intervention record is created for each affected learner's risk signal, allowing per-learner tracking and follow-up comparison
 
 ---
 

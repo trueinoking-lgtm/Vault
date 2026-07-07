@@ -168,7 +168,7 @@ Duplicate Learner Code Rate = (Assessments with ≥ 1 duplicate / Total assessme
 | Level | Range | Action |
 |---|---|---|
 | ✅ Good | 0% | No action required |
-| ⚠️ Warning | 0–5% | Duplicates flagged; teacher asked to resolve |
+| ⚠️ Warning | > 0% to ≤ 5% | Duplicates flagged; teacher asked to resolve |
 | 🔴 Critical | > 5% | Repeated issues trigger teacher retraining |
 
 **Pilot target:** 0% (enforced at entry — duplicates are auto-rejected with clear error messaging)
