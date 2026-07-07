@@ -11,6 +11,8 @@ import ImpactMetrics from './ImpactMetrics';
 import ImpactIntervention from './ImpactIntervention';
 import ImpactPilot from './ImpactPilot';
 import ImpactCTA from './ImpactCTA';
+import LiveDataTicker from './LiveDataTicker';
+import SectionEntrance from './SectionEntrance';
 
 const FixedScene = dynamic(() => import('./HeroScene'), {
   ssr: false,
@@ -32,17 +34,20 @@ export default function ImpactLandingPage() {
         <FixedScene />
       </div>
 
+      {/* Live data ticker — always visible at top */}
+      <LiveDataTicker />
+
       {/* Content overlay — scrolls normally with semi-transparent background */}
       <div className="relative z-10 bg-[#050814]/60 backdrop-blur-[2px]">
         <ImpactNav />
         <ImpactHero />
-        <ImpactProblem />
-        <ImpactHowItWorks />
-        <ImpactIntelligenceLayers />
-        <ImpactMetrics />
-        <ImpactIntervention />
-        <ImpactPilot />
-        <ImpactCTA />
+        <SectionEntrance animation="fadeUp"><ImpactProblem /></SectionEntrance>
+        <SectionEntrance animation="slideLeft"><ImpactHowItWorks /></SectionEntrance>
+        <SectionEntrance animation="fadeUp"><ImpactIntelligenceLayers /></SectionEntrance>
+        <SectionEntrance animation="scaleIn"><ImpactMetrics /></SectionEntrance>
+        <SectionEntrance animation="slideRight"><ImpactIntervention /></SectionEntrance>
+        <SectionEntrance animation="fadeUp"><ImpactPilot /></SectionEntrance>
+        <SectionEntrance animation="fadeUp"><ImpactCTA /></SectionEntrance>
 
         <footer className="relative border-t border-white/[0.03] bg-[#050814]/90">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -7,12 +7,14 @@ import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { SCENE } from '@/lib/landing/impact-scene-config';
 import { useScrollRef, useReducedMotion } from '@/lib/landing/ScrollContext';
+import { phaseProgress, SCROLL_PHASE, easeInOutCubic } from '@/lib/landing/motion-config';
 import DataParticleField from './DataParticleField';
 import AssessmentNetwork from './AssessmentNetwork';
 import FloatingDashboardPanels from './FloatingDashboardPanels';
+import MouseParallax, { applyParallaxOffset } from './MouseParallax';
 
 /**
- * Camera rig — moves based on scroll, static when reduced-motion is preferred.
+ * Camera rig — moves based on scroll, responds to mouse parallax.
  */
 function CameraRig() {
   const { camera } = useThree();
@@ -22,11 +24,11 @@ function CameraRig() {
   const targetLook = useRef(new THREE.Vector3(0, 0, 0));
 
   useFrame(() => {
-    if (reducedMotion) return; // Keep camera at initial position
+    if (reducedMotion) return;
 
     const scroll = scrollRef.current;
     const t = Math.min(scroll, 1);
-    const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    const e = easeInOutCubic(t);
 
     const camY = e * 2.5;
     const camZ = 8 + e * 5;
@@ -35,8 +37,11 @@ function CameraRig() {
     targetPos.current.set(0, camY, camZ);
     targetLook.current.set(0, lookY, 0);
 
+    // Apply mouse parallax offset
+    const parallaxTarget = applyParallaxOffset(camera, targetLook.current, 0.3);
+
     camera.position.lerp(targetPos.current, 0.03);
-    camera.lookAt(targetLook.current);
+    camera.lookAt(parallaxTarget);
   });
 
   return null;
@@ -49,6 +54,7 @@ function SceneContent() {
   return (
     <>
       <CameraRig />
+      <MouseParallax />
 
       <ambientLight intensity={0.4} />
       <pointLight position={[0, 5, 5]} intensity={0.8} color="#00f0ff" />

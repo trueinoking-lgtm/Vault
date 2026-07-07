@@ -1,16 +1,46 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PARTICLES } from '@/lib/landing/impact-scene-config';
 import { useScrollRef, useReducedMotion } from '@/lib/landing/ScrollContext';
+import { phaseProgress, SCROLL_PHASE } from '@/lib/landing/motion-config';
+
+/**
+ * Generates a soft circular glow texture for particles.
+ * Returns a data URL for use as a sprite.
+ */
+function createGlowTexture(): THREE.DataTexture {
+  const size = 64;
+  const data = new Uint8Array(size * size * 4);
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const dx = x / size - 0.5;
+      const dy = y / size - 0.5;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      // Soft gaussian-like falloff
+      const alpha = Math.max(0, 1 - dist * 2.2);
+      // Core is brighter
+      const brightness = Math.max(0, 1 - dist * 1.5);
+      data[i] = 255;
+      data[i + 1] = 255;
+      data[i + 2] = 255;
+      data[i + 3] = Math.round(alpha * 255);
+    }
+  }
+
+  const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+  texture.needsUpdate = true;
+  return texture;
+}
 
 /**
  * Instanced particle field representing raw assessment data points.
- * ~4000 glowing particles that organize from scattered → structured
- * based on scroll progress. Enhanced with pulsating cluster glow,
- * colour shifts, and a dramatic "ignition" moment on scroll.
+ * ~2500 glowing particles that organize from scattered → structured.
+ * Enhanced with glow sprite textures, larger sizes, and scroll-driven color shifts.
  */
 export default function DataParticleField() {
   const pointsRef = useRef<THREE.Points>(null);
@@ -18,6 +48,7 @@ export default function DataParticleField() {
   const scrollRef = useScrollRef();
   const reducedMotion = useReducedMotion();
   const timeRef = useRef(0);
+  const glowTexture = useMemo(() => createGlowTexture(), []);
 
   // Generate particle positions, colors, sizes, and target positions
   const { basePositions, organizedPositions, colors, sizes } = useMemo(() => {
@@ -36,7 +67,7 @@ export default function DataParticleField() {
       new THREE.Color(PARTICLES.colors.rose),
     ];
 
-    // Cluster centers for organized state — more variety
+    // Cluster centers for organized state
     const clusterCenters: [number, number, number][] = [
       [-2.5, 1.5, 0], [-3.0, 0.0, 0], [-2.5, -1.5, 0],
       [2.5, 1.5, 0], [3.5, 0.5, 0.5], [3.0, -0.5, -0.3],
@@ -47,10 +78,10 @@ export default function DataParticleField() {
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
 
-      // Base position: scattered cloud with slight torus tendency
+      // Scattered cloud with slight torus tendency, wider spread
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      const r = Math.cbrt(Math.random()) * PARTICLES.spread.x * 0.6;
+      const r = Math.cbrt(Math.random()) * PARTICLES.spread.x * 0.7;
       base[i3] = Math.sin(phi) * Math.cos(theta) * r;
       base[i3 + 1] = Math.sin(phi) * Math.sin(theta) * r * 0.7;
       base[i3 + 2] = Math.cos(phi) * r * 0.5;
@@ -61,19 +92,21 @@ export default function DataParticleField() {
       organized[i3 + 1] = center[1] + (Math.random() - 0.5) * 1.5;
       organized[i3 + 2] = center[2] + (Math.random() - 0.5) * 1.0;
 
-      // Colour: weighted toward cyan/blue, with amber for weak signals
+      // Color: weighted toward cyan/blue, amber for weak signals
       const colorChoice = Math.random();
       let c: THREE.Color;
-      if (colorChoice < 0.35) c = palette[0];       // cyan
-      else if (colorChoice < 0.65) c = palette[1];  // blue
-      else if (colorChoice < 0.78) c = palette[2];  // amber
-      else if (colorChoice < 0.88) c = palette[4];  // teal
-      else if (colorChoice < 0.94) c = palette[5];  // rose
-      else c = palette[3];                           // white
+      if (colorChoice < 0.35) c = palette[0];
+      else if (colorChoice < 0.65) c = palette[1];
+      else if (colorChoice < 0.78) c = palette[2];
+      else if (colorChoice < 0.88) c = palette[4];
+      else if (colorChoice < 0.94) c = palette[5];
+      else c = palette[3];
 
       col[i3] = c.r;
       col[i3 + 1] = c.g;
       col[i3 + 2] = c.b;
+
+      // Larger size range for more visible, less grainy particles
       siz[i] = PARTICLES.sizes.min + Math.random() * (PARTICLES.sizes.max - PARTICLES.sizes.min);
     }
 
@@ -87,7 +120,7 @@ export default function DataParticleField() {
     timeRef.current += delta;
     const scroll = reducedMotion ? 0 : scrollRef.current;
 
-    // Scroll-driven organization (0.10–0.35)
+    // Scroll-driven organization (0.08–0.35)
     const orgFactor = Math.min(Math.max((scroll - 0.08) / 0.27, 0), 1);
     const easedOrg = 1 - Math.pow(1 - orgFactor, 2);
 
@@ -96,8 +129,12 @@ export default function DataParticleField() {
     const count = posAttr.count;
     const driftAmp = (1 - easedOrg) * 0.003;
 
-    // Time-based pulse for dramatic effect
+    // Time-based pulse
     const pulse = Math.sin(timeRef.current * 0.5) * 0.3 + 0.7;
+
+    // Late-phase ambient drift (scroll > 0.5: gentle floating)
+    const driftPhase = Math.min(Math.max((scroll - 0.5) / 0.3, 0), 1);
+    const driftWobble = driftPhase * 0.002;
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
@@ -105,19 +142,21 @@ export default function DataParticleField() {
       const targetY = basePositions[i3 + 1] + (organizedPositions[i3 + 1] - basePositions[i3 + 1]) * easedOrg;
       const targetZ = basePositions[i3 + 2] + (organizedPositions[i3 + 2] - basePositions[i3 + 2]) * easedOrg;
 
-      // Faster convergence = more dramatic transition
       const convergence = 0.03 + easedOrg * 0.04;
-      array[i3] += (targetX - array[i3]) * convergence;
-      array[i3 + 1] += (targetY - array[i3 + 1]) * convergence + (Math.random() - 0.5) * driftAmp;
+      // Add late-phase ambient wobble for persistent motion
+      const wobbleX = Math.sin(timeRef.current * 0.3 + i * 0.01) * driftWobble;
+      const wobbleY = Math.cos(timeRef.current * 0.4 + i * 0.015) * driftWobble;
+
+      array[i3] += (targetX - array[i3]) * convergence + wobbleX;
+      array[i3 + 1] += (targetY - array[i3 + 1]) * convergence + wobbleY + (Math.random() - 0.5) * driftAmp;
       array[i3 + 2] += (targetZ - array[i3 + 2]) * convergence + (Math.random() - 0.5) * driftAmp;
     }
     posAttr.needsUpdate = true;
 
     if (matRef.current) {
-      // Opacity brightens as particles organize
+      // Opacity brightens, size grows as particles organize
       matRef.current.opacity = PARTICLES.opacity * (0.4 + easedOrg * 0.6 * pulse);
-      // Size grows slightly as particles coalesce
-      matRef.current.size = 0.06 + easedOrg * 0.05;
+      matRef.current.size = 0.08 + easedOrg * 0.07;
     }
   });
 
@@ -130,13 +169,16 @@ export default function DataParticleField() {
       </bufferGeometry>
       <pointsMaterial
         ref={matRef}
-        size={0.06}
+        size={0.08}
         vertexColors
         transparent
         opacity={PARTICLES.opacity}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthWrite={false}
+        map={glowTexture}
+        alphaMap={glowTexture}
+        alphaTest={0.001}
       />
     </points>
   );
