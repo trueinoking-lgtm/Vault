@@ -90,7 +90,7 @@ export default function HeroScene() {
     <div className="absolute inset-0 pointer-events-none">
       <Suspense fallback={<SceneFallback />}>
         <Canvas
-          dpr={[1, 2]}
+          dpr={[1, 1.5]}
           camera={{
             position: SCENE.camera.position,
             fov: SCENE.camera.fov,

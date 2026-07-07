@@ -80,12 +80,12 @@ export default function FloatingDashboardPanels() {
             </mesh>
 
             {/* Panel value */}
-            <Text position={[0, 0.12, 0.06]} fontSize={0.22} color={panel.color} font="/fonts/Inter-Bold.ttf" anchorX="center" anchorY="middle">
+            <Text position={[0, 0.12, 0.06]} fontSize={0.22} color={panel.color} anchorX="center" anchorY="middle">
               {panel.value}
             </Text>
 
             {/* Panel label */}
-            <Text position={[0, -0.15, 0.06]} fontSize={0.07} color="#64748b" font="/fonts/Inter-Regular.ttf" anchorX="center" anchorY="middle">
+            <Text position={[0, -0.15, 0.06]} fontSize={0.07} color="#64748b" anchorX="center" anchorY="middle">
               {panel.label}
             </Text>
           </group>

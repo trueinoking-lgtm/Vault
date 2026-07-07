@@ -11,7 +11,7 @@ export const SCENE = {
 } as const;
 
 export const PARTICLES = {
-  count: 4000,          // Doubled for more presence
+  count: 3000,          // Reduced from 4000 to improve GPU stability
   spread: { x: 10, y: 6, z: 5 },
   colors: {
     cyan: '#00f0ff',

@@ -142,7 +142,7 @@ export default function AssessmentNetwork() {
             <planeGeometry args={[0.82, 0.52]} />
             <meshBasicMaterial color="#00f0ff" transparent opacity={0} side={THREE.DoubleSide} depthWrite={false} />
           </mesh>
-          <Text position={[0, 0, 0.06]} fontSize={0.15} color="#00f0ff" font="/fonts/Inter-Bold.ttf" anchorX="center" anchorY="middle">
+          <Text position={[0, 0, 0.06]} fontSize={0.15} color="#00f0ff" anchorX="center" anchorY="middle">
             {q.label}
           </Text>
         </group>
@@ -160,10 +160,10 @@ export default function AssessmentNetwork() {
             <Sphere args={[0.2, 16, 16]}>
               <meshStandardMaterial color={nodeColor} emissive={nodeColor} emissiveIntensity={0.15} transparent opacity={0} roughness={0.3} metalness={0.1} />
             </Sphere>
-            <Text position={[0, -0.45, 0]} fontSize={0.12} color={isWeak ? '#f59e0b' : '#94a3b8'} font="/fonts/Inter-Regular.ttf" anchorX="center" anchorY="top">
+            <Text position={[0, -0.45, 0]} fontSize={0.12} color={isWeak ? '#f59e0b' : '#94a3b8'} anchorX="center" anchorY="top">
               {topic.label}
             </Text>
-            <Text position={[0, 0.45, 0]} fontSize={0.1} color={nodeColor} font="/fonts/Inter-Bold.ttf" anchorX="center" anchorY="bottom">
+            <Text position={[0, 0.45, 0]} fontSize={0.1} color={nodeColor} anchorX="center" anchorY="bottom">
               {`${topic.score}%`}
             </Text>
           </group>
