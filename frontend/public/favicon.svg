@@ -1,24 +1,10 @@
-<svg width="32" height="32" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="240" y2="240" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#7c3aed"/>
-      <stop offset="100%" stop-color="#3b82f6"/>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="100%" stop-color="#2563eb"/>
     </linearGradient>
   </defs>
-  <!-- Rounded background -->
-  <rect width="240" height="240" rx="48" fill="url(#bg)"/>
-  <!-- Open book (white) -->
-  <g>
-    <path d="M120 60 C110 56, 72 46, 58 50 L58 170 C72 166, 110 176, 120 180 Z"
-          fill="white" opacity="0.95"/>
-    <path d="M120 60 C130 56, 168 46, 182 50 L182 170 C168 166, 130 176, 120 180 Z"
-          fill="white" opacity="0.95"/>
-    <line x1="120" y1="60" x2="120" y2="180" stroke="rgba(255,255,255,0.5)" stroke-width="3"/>
-  </g>
-  <!-- Lock (white) -->
-  <g transform="translate(110, 22)">
-    <rect x="0" y="8" width="20" height="14" rx="2" fill="white" opacity="0.95"/>
-    <path d="M5 8 V6 C5 2, 15 2, 15 6 V8" stroke="white" stroke-width="3" fill="none" opacity="0.95"/>
-    <circle cx="10" cy="14" r="2.5" fill="#7c3aed"/>
-  </g>
+  <rect width="32" height="32" rx="8" fill="url(#g)"/>
+  <text x="16" y="22" text-anchor="middle" fill="white" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="18">Z</text>
 </svg>

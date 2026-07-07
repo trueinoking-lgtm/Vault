@@ -27,52 +27,70 @@ export default function ImpactLayout({
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col overflow-hidden">
-      {/* Top Navigation Bar */}
-      <header className="flex-shrink-0 sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-[#0a0f2e] dark:to-[#050814] flex flex-col">
+      {/* Premium Top Navigation Bar */}
+      <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-white/[0.04] bg-white/95 dark:bg-[#050814]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80">
+        {/* Subtle glow */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+        </div>
+
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Product name */}
+          {/* Product name — ZimLearnGraph brand */}
           <Link
             href="/impact"
-            className="flex items-center gap-2 text-lg font-bold text-slate-900"
+            className="flex items-center gap-2 group"
           >
-            <svg
-              className="h-6 w-6 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-            Impact Intelligence
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 text-white text-xs font-bold shadow-sm">
+              Z
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm font-bold text-slate-900 dark:text-white">
+                ZimLearnGraph
+              </span>
+              <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 tracking-wide">
+                Impact Intelligence
+              </span>
+            </div>
           </Link>
 
           {/* Nav links */}
-          <nav className="flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
                   isActive(item.href)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    ? 'bg-gradient-to-r from-cyan-500/10 to-blue-600/10 text-cyan-700 dark:text-cyan-400 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {item.label}
               </Link>
             ))}
           </nav>
+
+          {/* Mobile nav dots */}
+          <div className="md:hidden flex items-center gap-1">
+            {NAV_ITEMS.slice(0, 4).map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  isActive(item.href)
+                    ? 'bg-cyan-500 w-4'
+                    : 'bg-slate-300 dark:bg-slate-600'
+                }`}
+                aria-label={item.label}
+              />
+            ))}
+          </div>
         </div>
       </header>
 
-      {/* Page content — scrollable area */}
-      <main className="flex-1 overflow-y-auto mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      {/* Page content */}
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
     </div>

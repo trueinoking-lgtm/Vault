@@ -1,6 +1,8 @@
 /* ============================================================
    Impact Intelligence — 3D Scene Configuration
    Central constants for the R3F hero scene layout.
+   Enhanced for cinematic spectacle — more particles,
+   stronger visual moments, immersive scroll narrative.
    ============================================================ */
 
 export const SCENE = {
@@ -9,16 +11,18 @@ export const SCENE = {
 } as const;
 
 export const PARTICLES = {
-  count: 2000,
-  spread: { x: 8, y: 5, z: 4 },
+  count: 4000,          // Doubled for more presence
+  spread: { x: 10, y: 6, z: 5 },
   colors: {
     cyan: '#00f0ff',
     blue: '#1e40af',
     amber: '#f59e0b',
     white: '#ffffff',
+    teal: '#14b8a6',
+    rose: '#f43f5e',
   },
-  sizes: { min: 0.02, max: 0.08 },
-  opacity: 0.6,
+  sizes: { min: 0.015, max: 0.1 },
+  opacity: 0.7,
 } as const;
 
 export const QUESTIONS = [

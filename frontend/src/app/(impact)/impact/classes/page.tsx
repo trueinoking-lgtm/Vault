@@ -50,15 +50,15 @@ export default function ImpactClassesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <Link href="/impact" className="text-blue-600 hover:text-blue-700 text-sm mb-2 inline-block">
+          <Link href="/impact" className="text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 text-sm mb-2 inline-flex items-center gap-1 transition-colors">
             ← Back to Impact Intelligence
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900">Classes</h1>
-          <p className="text-slate-600 mt-1">Manage class groups and enroll learners</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">Classes</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage class groups and enroll learners</p>
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold hover:shadow-[0_0_20px_-5px_rgba(0,240,255,0.25)] transition-all duration-300"
         >
           Add class
         </button>

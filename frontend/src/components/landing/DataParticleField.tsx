@@ -8,13 +8,16 @@ import { useScrollRef, useReducedMotion } from '@/lib/landing/ScrollContext';
 
 /**
  * Instanced particle field representing raw assessment data points.
- * ~2000 glowing particles that organize from scattered → structured based on scroll.
+ * ~4000 glowing particles that organize from scattered → structured
+ * based on scroll progress. Enhanced with pulsating cluster glow,
+ * colour shifts, and a dramatic "ignition" moment on scroll.
  */
 export default function DataParticleField() {
   const pointsRef = useRef<THREE.Points>(null);
   const matRef = useRef<THREE.PointsMaterial>(null);
   const scrollRef = useScrollRef();
   const reducedMotion = useReducedMotion();
+  const timeRef = useRef(0);
 
   // Generate particle positions, colors, sizes, and target positions
   const { basePositions, organizedPositions, colors, sizes } = useMemo(() => {
@@ -24,38 +27,49 @@ export default function DataParticleField() {
     const col = new Float32Array(count * 3);
     const siz = new Float32Array(count);
 
-    const cyan = new THREE.Color(PARTICLES.colors.cyan);
-    const blue = new THREE.Color(PARTICLES.colors.blue);
-    const amber = new THREE.Color(PARTICLES.colors.amber);
-    const white = new THREE.Color(PARTICLES.colors.white);
+    const palette = [
+      new THREE.Color(PARTICLES.colors.cyan),
+      new THREE.Color(PARTICLES.colors.blue),
+      new THREE.Color(PARTICLES.colors.amber),
+      new THREE.Color(PARTICLES.colors.white),
+      new THREE.Color(PARTICLES.colors.teal),
+      new THREE.Color(PARTICLES.colors.rose),
+    ];
 
-    // Cluster centers for organized state
+    // Cluster centers for organized state — more variety
     const clusterCenters: [number, number, number][] = [
       [-2.5, 1.5, 0], [-3.0, 0.0, 0], [-2.5, -1.5, 0],
       [2.5, 1.5, 0], [3.5, 0.5, 0.5], [3.0, -0.5, -0.3],
       [2.0, -1.5, 0.2], [1.0, -2.5, -0.5],
+      [0, 0, 0], [0.5, 2.0, 0],
     ];
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
 
+      // Base position: scattered cloud with slight torus tendency
       const theta = Math.random() * Math.PI * 2;
-      const r = Math.cbrt(Math.random()) * PARTICLES.spread.x * 0.7;
-      base[i3] = Math.cos(theta) * r;
-      base[i3 + 1] = (Math.random() - 0.5) * PARTICLES.spread.y;
-      base[i3 + 2] = (Math.random() - 0.5) * PARTICLES.spread.z;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = Math.cbrt(Math.random()) * PARTICLES.spread.x * 0.6;
+      base[i3] = Math.sin(phi) * Math.cos(theta) * r;
+      base[i3 + 1] = Math.sin(phi) * Math.sin(theta) * r * 0.7;
+      base[i3 + 2] = Math.cos(phi) * r * 0.5;
 
+      // Organized: cluster around topic/question nodes
       const center = clusterCenters[Math.floor(Math.random() * clusterCenters.length)];
-      organized[i3] = center[0] + (Math.random() - 0.5) * 1.2;
-      organized[i3 + 1] = center[1] + (Math.random() - 0.5) * 1.2;
-      organized[i3 + 2] = center[2] + (Math.random() - 0.5) * 0.8;
+      organized[i3] = center[0] + (Math.random() - 0.5) * 1.5;
+      organized[i3 + 1] = center[1] + (Math.random() - 0.5) * 1.5;
+      organized[i3 + 2] = center[2] + (Math.random() - 0.5) * 1.0;
 
+      // Colour: weighted toward cyan/blue, with amber for weak signals
       const colorChoice = Math.random();
       let c: THREE.Color;
-      if (colorChoice < 0.5) c = cyan;
-      else if (colorChoice < 0.85) c = blue;
-      else if (colorChoice < 0.95) c = amber;
-      else c = white;
+      if (colorChoice < 0.35) c = palette[0];       // cyan
+      else if (colorChoice < 0.65) c = palette[1];  // blue
+      else if (colorChoice < 0.78) c = palette[2];  // amber
+      else if (colorChoice < 0.88) c = palette[4];  // teal
+      else if (colorChoice < 0.94) c = palette[5];  // rose
+      else c = palette[3];                           // white
 
       col[i3] = c.r;
       col[i3 + 1] = c.g;
@@ -68,17 +82,22 @@ export default function DataParticleField() {
 
   const currentPositions = useMemo(() => new Float32Array(basePositions), [basePositions]);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!pointsRef.current) return;
+    timeRef.current += delta;
     const scroll = reducedMotion ? 0 : scrollRef.current;
 
-    const orgFactor = Math.min(Math.max((scroll - 0.1) / 0.25, 0), 1);
+    // Scroll-driven organization (0.10–0.35)
+    const orgFactor = Math.min(Math.max((scroll - 0.08) / 0.27, 0), 1);
     const easedOrg = 1 - Math.pow(1 - orgFactor, 2);
 
     const posAttr = pointsRef.current.geometry.attributes.position;
     const array = posAttr.array as Float32Array;
     const count = posAttr.count;
-    const driftAmp = (1 - easedOrg) * 0.002;
+    const driftAmp = (1 - easedOrg) * 0.003;
+
+    // Time-based pulse for dramatic effect
+    const pulse = Math.sin(timeRef.current * 0.5) * 0.3 + 0.7;
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
@@ -86,14 +105,19 @@ export default function DataParticleField() {
       const targetY = basePositions[i3 + 1] + (organizedPositions[i3 + 1] - basePositions[i3 + 1]) * easedOrg;
       const targetZ = basePositions[i3 + 2] + (organizedPositions[i3 + 2] - basePositions[i3 + 2]) * easedOrg;
 
-      array[i3] += (targetX - array[i3]) * 0.02;
-      array[i3 + 1] += (targetY - array[i3 + 1]) * 0.02 + (Math.random() - 0.5) * driftAmp;
-      array[i3 + 2] += (targetZ - array[i3 + 2]) * 0.02 + (Math.random() - 0.5) * driftAmp;
+      // Faster convergence = more dramatic transition
+      const convergence = 0.03 + easedOrg * 0.04;
+      array[i3] += (targetX - array[i3]) * convergence;
+      array[i3 + 1] += (targetY - array[i3 + 1]) * convergence + (Math.random() - 0.5) * driftAmp;
+      array[i3 + 2] += (targetZ - array[i3 + 2]) * convergence + (Math.random() - 0.5) * driftAmp;
     }
     posAttr.needsUpdate = true;
 
     if (matRef.current) {
-      matRef.current.opacity = PARTICLES.opacity * (0.6 + easedOrg * 0.4);
+      // Opacity brightens as particles organize
+      matRef.current.opacity = PARTICLES.opacity * (0.4 + easedOrg * 0.6 * pulse);
+      // Size grows slightly as particles coalesce
+      matRef.current.size = 0.06 + easedOrg * 0.05;
     }
   });
 
@@ -106,7 +130,7 @@ export default function DataParticleField() {
       </bufferGeometry>
       <pointsMaterial
         ref={matRef}
-        size={0.08}
+        size={0.06}
         vertexColors
         transparent
         opacity={PARTICLES.opacity}

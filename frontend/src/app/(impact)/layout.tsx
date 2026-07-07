@@ -9,14 +9,12 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
  * This layout replaces the main Vault dashboard layout for Impact pages.
  * It does NOT include:
  * - Vault sidebar / AppShell
- * - CommandPalette
- * - ModalProvider / CreateDialogsProvider
- * - Notebook/source terminology
+ * - Vault terminology
+ * - Generic dashboard styling
  *
- * It includes:
+ * It provides:
  * - Auth check (redirects to /login if not authenticated)
- * - Page metadata
- * - Impact top navigation (from child layouts/pages)
+ * - ZimLearnGraph-branded document metadata
  * - Clean standalone shell
  */
 
@@ -30,18 +28,29 @@ export default function ImpactRootLayout({
   useEffect(() => {
     setMounted(true)
 
-    // Update document metadata for Impact Intelligence
-    document.title = 'Impact Intelligence'
+    // Update document metadata for ZimLearnGraph Impact Intelligence
+    document.title = 'Impact Intelligence — ZimLearnGraph'
     const metaDesc = document.querySelector('meta[name="description"]')
     if (metaDesc) {
-      metaDesc.setAttribute('content', 'Assessment intelligence for schools — turn tests into learning evidence.')
+      metaDesc.setAttribute('content', 'ZimLearnGraph Impact Intelligence — turn teacher-marked assessments into structured learning evidence. Weak-topic analysis, learner risk signals, and school-level analytics.')
+    }
+
+    // Update favicon to ZimLearnGraph brand
+    const favicon = document.querySelector('link[rel="icon"]')
+    if (favicon) {
+      favicon.setAttribute('href', '/favicon.svg')
     }
   }, [])
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
-        <LoadingSpinner />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#050814] to-[#0a0f2e]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white text-lg font-bold shadow-lg">
+            Z
+          </div>
+          <LoadingSpinner />
+        </div>
       </div>
     )
   }
