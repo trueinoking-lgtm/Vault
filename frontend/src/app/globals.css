@@ -193,3 +193,16 @@
     cursor: pointer !important;
   }
 }
+
+/* ── Landing page animations ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(1deg); }
+}
+
+/* Landing page scroll reset — applied by (impact-public) layout */
+.landing-page,
+.landing-page body {
+  overflow: auto !important;
+  height: auto !important;
+}

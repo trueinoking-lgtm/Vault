@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { ConnectionGuard } from '@/components/common/ConnectionGuard'
 import { ModalProvider } from '@/components/providers/ModalProvider'
 import { CreateDialogsProvider } from '@/lib/hooks/use-create-dialogs'
 import { CommandPalette } from '@/components/common/CommandPalette'
@@ -52,12 +53,14 @@ export default function DashboardLayout({
   }
 
   return (
-    <ErrorBoundary>
-      <CreateDialogsProvider>
-        {children}
-        <ModalProvider />
-        <CommandPalette />
-      </CreateDialogsProvider>
-    </ErrorBoundary>
+    <ConnectionGuard>
+      <ErrorBoundary>
+        <CreateDialogsProvider>
+          {children}
+          <ModalProvider />
+          <CommandPalette />
+        </CreateDialogsProvider>
+      </ErrorBoundary>
+    </ConnectionGuard>
   )
 }

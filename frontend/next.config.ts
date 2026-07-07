@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Enable standalone output for optimized Docker deployment
   output: "standalone",
 
+  // Allow remote origins for headless browser QA
+  allowedDevOrigins: ['178.104.213.110'],
+
   // Experimental features
   // Type assertion needed: proxyClientMaxBodySize is valid in Next.js 15 but types lag behind
   experimental: {
