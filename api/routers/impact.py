@@ -93,6 +93,14 @@ def _ensure_prefixed(value: str, prefix: str) -> str:
     return value
 
 
+def _split_record_id(record_id: str) -> tuple:
+    """Split a RecordId string into (table, id) parts."""
+    if ":" in record_id:
+        table, _, rid = record_id.partition(":")
+        return table, rid
+    return "", record_id
+
+
 # =========================================================================
 # Schools
 # =========================================================================
@@ -1395,25 +1403,26 @@ async def get_school_dashboard(school_id: str) -> Dict[str, Any]:
     if not school:
         raise NotFoundError(f"School {school_id} not found")
 
-    # Fetch classes
+    # Fetch classes (must use type::thing for RecordId comparison)
+    school_table, school_rid = _split_record_id(school_id)
     classes_result = await repo_query(
-        "SELECT * FROM impact_class_group WHERE school_id = $school_id",
-        {"school_id": school_id},
+        "SELECT * FROM impact_class_group WHERE school_id = type::thing($table, $id)",
+        {"table": school_table, "id": school_rid},
     )
     classes = [ImpactClassGroup(**r) for r in classes_result]
     class_ids = [c.id for c in classes if c.id]
 
-    # Fetch learners
+    # Fetch learners (must use type::thing for RecordId comparison)
     learners_result = await repo_query(
-        "SELECT * FROM impact_learner WHERE school_id = $school_id",
-        {"school_id": school_id},
+        "SELECT * FROM impact_learner WHERE school_id = type::thing($table, $id)",
+        {"table": school_table, "id": school_rid},
     )
     learners = [ImpactLearner(**r) for r in learners_result]
 
-    # Fetch assessments
+    # Fetch assessments (must use type::thing for RecordId comparison)
     assessments_result = await repo_query(
-        "SELECT * FROM impact_assessment WHERE school_id = $school_id",
-        {"school_id": school_id},
+        "SELECT * FROM impact_assessment WHERE school_id = type::thing($table, $id)",
+        {"table": school_table, "id": school_rid},
     )
     assessments = [ImpactAssessment(**r) for r in assessments_result]
     assessment_ids = [a.id for a in assessments if a.id]
@@ -1527,9 +1536,10 @@ async def get_school_dashboard(school_id: str) -> Dict[str, Any]:
 
     weakest_topics = []
     for topic in topics:
+        topic_table, topic_rid = _split_record_id(str(topic.id or ""))
         topic_questions_result = await repo_query(
-            "SELECT * FROM impact_assessment_question WHERE topic_id = $topic_id",
-            {"topic_id": topic.id},
+            "SELECT * FROM impact_assessment_question WHERE topic_id = type::thing($table, $id)",
+            {"table": topic_table, "id": topic_rid},
         )
         topic_questions = [ImpactAssessmentQuestion(**r) for r in topic_questions_result]
         topic_question_ids = [q.id for q in topic_questions]
@@ -1657,9 +1667,10 @@ async def get_ministry_dashboard() -> Dict[str, Any]:
         subject_weak_topics = []
 
         for topic in subject_topics:
+            topic_table, topic_rid = _split_record_id(str(topic.id or ""))
             topic_questions_result = await repo_query(
-                "SELECT * FROM impact_assessment_question WHERE topic_id = $topic_id",
-                {"topic_id": topic.id},
+                "SELECT * FROM impact_assessment_question WHERE topic_id = type::thing($table, $id)",
+                {"table": topic_table, "id": topic_rid},
             )
             topic_questions = [ImpactAssessmentQuestion(**r) for r in topic_questions_result]
             topic_question_ids = [q.id for q in topic_questions]
