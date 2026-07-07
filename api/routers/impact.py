@@ -347,10 +347,11 @@ async def list_learners(
 ) -> ImpactLearnerListResponse:
     """List Impact Learners, optionally filtered by class group."""
     if class_group_id:
-        class_group_id = _ensure_prefixed(class_group_id, "impact_class_group")
+        table = "impact_class_group"
+        rid = _strip_prefix(class_group_id)
         result = await repo_query(
-            "SELECT * FROM impact_learner WHERE class_group_id = $class_group_id ORDER BY learner_code",
-            {"class_group_id": class_group_id},
+            "SELECT * FROM impact_learner WHERE class_group_id = type::thing($table, $rid) ORDER BY learner_code",
+            {"table": table, "rid": rid},
         )
         learners = [ImpactLearner(**r) for r in result]
     else:
@@ -688,11 +689,13 @@ async def list_assessments(
     conditions = []
     params: Dict[str, str] = {}
     if class_group_id:
-        conditions.append("class_group_id = $class_group_id")
-        params["class_group_id"] = _ensure_prefixed(class_group_id, "impact_class_group")
+        conditions.append("class_group_id = type::thing($cg_table, $cg_rid)")
+        params["cg_table"] = "impact_class_group"
+        params["cg_rid"] = _strip_prefix(class_group_id)
     if subject_id:
-        conditions.append("subject_id = $subject_id")
-        params["subject_id"] = _ensure_prefixed(subject_id, "impact_subject")
+        conditions.append("subject_id = type::thing($sub_table, $sub_rid)")
+        params["sub_table"] = "impact_subject"
+        params["sub_rid"] = _strip_prefix(subject_id)
 
     if conditions:
         where_clause = " AND ".join(conditions)
@@ -965,10 +968,11 @@ async def list_assessment_questions(
     assessment_id: str,
 ) -> ImpactAssessmentQuestionListResponse:
     """List questions for an assessment."""
-    assessment_id = _ensure_prefixed(assessment_id, "impact_assessment")
+    table = "impact_assessment"
+    rid = _strip_prefix(assessment_id)
     result = await repo_query(
-        "SELECT * FROM impact_assessment_question WHERE assessment_id = $assessment_id ORDER BY question_number",
-        {"assessment_id": assessment_id},
+        "SELECT * FROM impact_assessment_question WHERE assessment_id = type::thing($table, $rid) ORDER BY question_number",
+        {"table": table, "rid": rid},
     )
     questions = [ImpactAssessmentQuestion(**r) for r in result]
     return ImpactAssessmentQuestionListResponse(
@@ -1103,11 +1107,13 @@ async def list_mark_entries(
     conditions = []
     params: Dict[str, str] = {}
     if assessment_id:
-        conditions.append("assessment_id = $assessment_id")
-        params["assessment_id"] = _ensure_prefixed(assessment_id, "impact_assessment")
+        conditions.append("assessment_id = type::thing($a_table, $a_rid)")
+        params["a_table"] = "impact_assessment"
+        params["a_rid"] = _strip_prefix(assessment_id)
     if learner_id:
-        conditions.append("learner_id = $learner_id")
-        params["learner_id"] = _ensure_prefixed(learner_id, "impact_learner")
+        conditions.append("learner_id = type::thing($l_table, $l_rid)")
+        params["l_table"] = "impact_learner"
+        params["l_rid"] = _strip_prefix(learner_id)
 
     if conditions:
         where_clause = " AND ".join(conditions)
@@ -1234,8 +1240,9 @@ async def list_interventions(
     conditions = []
     params: Dict[str, str] = {}
     if class_group_id:
-        conditions.append("class_group_id = $class_group_id")
-        params["class_group_id"] = _ensure_prefixed(class_group_id, "impact_class_group")
+        conditions.append("class_group_id = type::thing($cg_table, $cg_rid)")
+        params["cg_table"] = "impact_class_group"
+        params["cg_rid"] = _strip_prefix(class_group_id)
     if severity:
         conditions.append("severity = $severity")
         params["severity"] = severity
@@ -1782,32 +1789,32 @@ async def get_ministry_dashboard() -> Dict[str, Any]:
 @router.get("/reports/assessment/{assessment_id}")
 async def get_assessment_report(assessment_id: str) -> Dict[str, Any]:
     """Get comprehensive assessment report data."""
-    # Normalize ID prefix
+    # Get assessment (use raw ID since get handles it)
     assessment_id_full = _ensure_prefixed(assessment_id, "impact_assessment")
-
-    # Get assessment
     assessment = await ImpactAssessment.get(assessment_id_full)
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
 
     # Get questions
+    a_table, a_rid = "impact_assessment", _strip_prefix(assessment_id)
     questions_result = await repo_query(
-        "SELECT * FROM impact_assessment_question WHERE assessment_id = $assessment_id ORDER BY question_number",
-        {"assessment_id": assessment_id_full},
+        "SELECT * FROM impact_assessment_question WHERE assessment_id = type::thing($a_table, $a_rid) ORDER BY question_number",
+        {"a_table": a_table, "a_rid": a_rid},
     )
     questions = [ImpactAssessmentQuestion(**r) for r in questions_result]
 
     # Get learners
+    cg_table, cg_rid = "impact_class_group", _strip_prefix(str(assessment.class_group_id))
     learners_result = await repo_query(
-        "SELECT * FROM impact_learner WHERE class_group_id = $class_group_id",
-        {"class_group_id": assessment.class_group_id},
+        "SELECT * FROM impact_learner WHERE class_group_id = type::thing($cg_table, $cg_rid)",
+        {"cg_table": cg_table, "cg_rid": cg_rid},
     )
     learners = [ImpactLearner(**r) for r in learners_result]
 
     # Get marks
     marks_result = await repo_query(
-        "SELECT * FROM impact_mark_entry WHERE assessment_id = $assessment_id",
-        {"assessment_id": assessment_id_full},
+        "SELECT * FROM impact_mark_entry WHERE assessment_id = type::thing($a_table, $a_rid)",
+        {"a_table": a_table, "a_rid": a_rid},
     )
     marks = [ImpactMarkEntry(**r) for r in marks_result]
 

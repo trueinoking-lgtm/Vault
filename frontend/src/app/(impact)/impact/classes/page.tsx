@@ -169,7 +169,11 @@ export default function ImpactClassesPage() {
         ) : (
           <div className="divide-y divide-slate-200">
             {classesData?.class_groups.map((cls) => (
-              <div key={cls.id} className="p-6 hover:bg-slate-50 transition-colors">
+              <Link
+                key={cls.id}
+                href={`/impact/classes/${cls.id}/learners`}
+                className="block p-6 hover:bg-slate-50 transition-colors"
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-medium text-slate-900">{cls.name}</h3>
@@ -179,11 +183,16 @@ export default function ImpactClassesPage() {
                         .join(' · ')}
                     </p>
                   </div>
-                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
-                    {cls.active ? 'Active' : 'Inactive'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-blue-600 font-medium">
+                      Manage learners →
+                    </span>
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
+                      {cls.active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

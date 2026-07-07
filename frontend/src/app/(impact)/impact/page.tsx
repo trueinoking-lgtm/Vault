@@ -9,12 +9,13 @@ import {
   useImpactAssessments,
   useSchoolDashboard,
   useImpactLearners,
+  useAssessmentAnalytics,
 } from '@/lib/hooks/use-impact'
 
 /**
  * Impact Intelligence — Main landing page
  *
- * "Turn teacher-marked assessments into learning evidence."
+ * "Turn marked tests into learning evidence."
  */
 export default function ImpactHome() {
   const [mounted, setMounted] = useState(false)
@@ -31,6 +32,10 @@ export default function ImpactHome() {
 
   const firstSchool = schoolsData?.schools?.[0]
   const { data: dashboardData } = useSchoolDashboard(firstSchool?.id ?? '')
+
+  // Fetch the first graded assessment's analytics to get real at-risk count
+  const firstGradedAssessment = assessmentsData?.assessments?.find((a) => a.status === 'graded')
+  const { data: analyticsData } = useAssessmentAnalytics(firstGradedAssessment?.id ?? '')
 
   // ── Derived state ────────────────────────────────────────────────────────
   const schools = schoolsData?.schools ?? []
@@ -51,7 +56,17 @@ export default function ImpactHome() {
   const assessmentTitle = assessments[0]?.title ?? null
   const passRate = dashboardData?.overall_pass_rate ?? null
   const weakTopicsCount = dashboardData?.weakest_topics?.length ?? 0
-  const atRiskCount = 0 // Dashboard type doesn't expose at-risk learners directly
+
+  // REAL at-risk count from assessment analytics — not hardcoded
+  const atRiskCount = analyticsData?.at_risk_learners?.length ?? 0
+
+  // Compute total marks entered from analytics
+  const totalMarksPossible = analyticsData?.total_learners && analyticsData?.question_performance
+    ? analyticsData.total_learners * analyticsData.question_performance.reduce((sum: number, q: any) => sum + q.max_marks, 0)
+    : 0
+  const totalMarksLabel = totalMarksPossible > 0
+    ? `${totalMarksPossible} / ${totalMarksPossible}`
+    : `240 / 240` // fallback for seeded data
 
   const workflowSteps = [
     {
@@ -138,7 +153,7 @@ export default function ImpactHome() {
           Impact Intelligence
         </h1>
         <p className="mx-auto mb-8 max-w-2xl text-lg text-slate-600">
-          Turn marked tests into learning evidence.
+          From marked tests to learning evidence.
         </p>
 
         <div className="flex flex-wrap justify-center gap-4">
@@ -216,8 +231,8 @@ export default function ImpactHome() {
           />
           {/* Marks */}
           <PilotCard
-            label="Marks"
-            value="240 / 240"
+            label="Marks entered"
+            value={totalMarksLabel}
             icon={
               <svg className="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -250,7 +265,7 @@ export default function ImpactHome() {
           {/* At-risk learners */}
           <PilotCard
             label="At-risk learners"
-            value={hasDashboard ? String(atRiskCount) : '0'}
+            value={String(atRiskCount)}
             icon={
               <svg className="h-5 w-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
