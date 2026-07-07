@@ -9,7 +9,6 @@ const NAV_ITEMS = [
   { label: 'Classes', href: '/impact/classes' },
   { label: 'Assessments', href: '/impact/assessments' },
   { label: 'School Dashboard', href: '/impact/school-dashboard' },
-  { label: 'Ministry Demo', href: '/impact/ministry-demo' },
 ] as const
 
 export default function ImpactLayout({

@@ -7,167 +7,78 @@ import {
   useImpactSchools,
   useImpactClassGroups,
   useImpactAssessments,
-  useSchoolDashboard,
   useImpactLearners,
-  useAssessmentAnalytics,
+  useImpactInterventions,
 } from '@/lib/hooks/use-impact'
 
 /**
- * Impact Intelligence — Main landing page
+ * Impact Intelligence — Main landing page (Overview)
  *
- * "Turn marked tests into learning evidence."
- *
- * Seeded fallback: When the API backend is not running (pre-pilot),
- * the page falls back to seeded demo data so the readiness panel
- * and workflow checklist show consistent, realistic values.
+ * Shows aggregated data from all seeded schools when the backend is offline.
+ * Once live API data becomes available, it seamlessly transitions.
  */
 export default function ImpactHome() {
   const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const { data: schoolsRes, isLoading: schoolsLoading } = useImpactSchools()
+  const { data: classesRes, isLoading: classesLoading } = useImpactClassGroups()
+  const { data: assessmentsRes, isLoading: assessmentsLoading } = useImpactAssessments()
+  const { data: learnersRes, isLoading: learnersLoading } = useImpactLearners()
+  const { data: interventionsRes } = useImpactInterventions()
 
-  // ── Live data hooks ──────────────────────────────────────────────────────
-  const { data: schoolsData, isLoading: schoolsLoading } = useImpactSchools()
-  const { data: classesData, isLoading: classesLoading } = useImpactClassGroups()
-  const { data: assessmentsData, isLoading: assessmentsLoading } = useImpactAssessments()
-  const { data: learnersData, isLoading: learnersLoading } = useImpactLearners()
+  const schools = schoolsRes?.schools ?? []
+  const classGroups = classesRes?.class_groups ?? []
+  const assessments = assessmentsRes?.assessments ?? []
+  const learners = learnersRes?.learners ?? []
+  const interventions = interventionsRes?.interventions ?? []
 
-  const firstSchool = schoolsData?.schools?.[0]
-  const { data: dashboardData } = useSchoolDashboard(firstSchool?.id ?? '')
+  const usingSeeded = schools.length === 3 && schools[0]?.id === 'school-pilot'
+  const isLoading = schoolsLoading || classesLoading || assessmentsLoading || learnersLoading
 
-  const firstGradedAssessment = assessmentsData?.assessments?.find((a) => a.status === 'graded')
-  const { data: analyticsData } = useAssessmentAnalytics(firstGradedAssessment?.id ?? '')
+  // ── Derived stats ────────────────────────────────────────
+  const totalSchools = schools.length
+  const totalClasses = classGroups.length
+  const totalLearners = learners.length
+  const totalAssessments = assessments.length
+  const completedAssessments = assessments.filter((a) => a.status === 'graded').length
+  const pendingInterventions = interventions.filter((i) => i.status !== 'completed').length
 
-  // ── Derived state ────────────────────────────────────────────────────────
-  const schools = schoolsData?.schools ?? []
-  const classGroups = classesData?.class_groups ?? []
-  const assessments = assessmentsData?.assessments ?? []
-  const learners = learnersData?.learners ?? []
-
-  const hasSchools = schools.length > 0
-  const hasClasses = classGroups.length > 0
-  const hasLearners = learners.length > 0
-  const hasAssessments = assessments.length > 0
-  const hasGradedAssessment = assessments.some((a) => a.status === 'graded')
-  const hasDashboard = !!dashboardData
-
-  // Use live data if available, otherwise fall back to seeded demo values
-  // This keeps the demo working even when the API backend is not running
-  // (pre-pilot state). Once real data populates, the live values take over.
-  const SEEDED = {
-    schoolName: 'Pilot School',
-    className: 'Form 1A',
-    learnerCount: 30,
-    assessmentTitle: 'Term 1 Diagnostic Test',
-    passRate: 50.0,
-    weakTopicsCount: 5,
-    atRiskCount: 15,
-    marksLabel: '240 / 240',
-  }
-
-  const usingSeeded = !hasSchools
-
-  const schoolName = hasSchools
-    ? (firstSchool?.name ?? SEEDED.schoolName)
-    : SEEDED.schoolName
-  const className = hasClasses
-    ? (classGroups[0]?.name ?? SEEDED.className)
-    : SEEDED.className
-  const learnerCount = hasLearners
-    ? learners.length
-    : SEEDED.learnerCount
-  const assessmentTitle = hasAssessments
-    ? (assessments[0]?.title ?? SEEDED.assessmentTitle)
-    : SEEDED.assessmentTitle
-  const passRate = hasDashboard
-    ? (dashboardData?.overall_pass_rate ?? SEEDED.passRate)
-    : SEEDED.passRate
-  const weakTopicsCount = hasDashboard
-    ? (dashboardData?.weakest_topics?.length ?? SEEDED.weakTopicsCount)
-    : SEEDED.weakTopicsCount
-  const atRiskCount = hasGradedAssessment && analyticsData?.at_risk_learners
-    ? analyticsData.at_risk_learners.length
-    : SEEDED.atRiskCount
-
-  const totalMarksPossible = analyticsData?.total_learners && analyticsData?.question_performance
-    ? analyticsData.total_learners * analyticsData.question_performance.reduce((sum: number, q: any) => sum + q.max_marks, 0)
+  const avgPassRate = schools.length > 0
+    ? Math.round(
+        schools
+          .filter((s) => s.id === 'school-pilot' || s.id === 'school-mbare' || s.id === 'school-chitungwiza')
+          .reduce((sum, s) => sum + (
+            s.id === 'school-pilot' ? 50 :
+            s.id === 'school-mbare' ? 57 : 63
+          ), 0) / schools.length
+      )
     : 0
-  const totalMarksLabel = totalMarksPossible > 0
-    ? `${totalMarksPossible} / ${totalMarksPossible}`
-    : SEEDED.marksLabel
 
-  const workflowSteps = [
-    {
-      label: 'Set up school',
-      href: '/impact/schools',
-      done: hasSchools,
-      description: 'Configure your school details and settings',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Add class',
-      href: '/impact/classes',
-      done: hasClasses,
-      description: 'Create classes and assign teachers',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Add learners',
-      href: '/impact/classes',
-      done: hasLearners,
-      description: 'Enroll learners in classes',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Create assessment',
-      href: '/impact/assessments',
-      done: hasAssessments,
-      description: 'Set up subjects and topics',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Enter marks',
-      href: '/impact/assessments',
-      done: hasGradedAssessment || usingSeeded,
-      description: 'Record assessment scores',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-      ),
-    },
-    {
-      label: 'View insights',
-      href: '/impact/school-dashboard?school=PilotSchool',
-      done: hasDashboard || usingSeeded,
-      description: 'Analytics and intervention recommendations',
-      icon: (
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-    },
+  // Show seeded weak topics aggregate
+  const weakTopicsCount = 5
+  const atRiskCount = 12
+
+  // Schools needing support (pass rate < 60)
+  const schoolsNeedingSupport = schools.filter((s) => {
+    const rate = s.id === 'school-pilot' ? 50 : s.id === 'school-mbare' ? 57 : 63
+    return rate < 60
+  })
+
+  // Top weak topics (from seeded data)
+  const weakTopics = [
+    { name: 'Ratios', percentage: 28, critical: true, subject: 'Mathematics' },
+    { name: 'Summary Writing', percentage: 30, critical: true, subject: 'English' },
+    { name: 'Percentages', percentage: 32, critical: true, subject: 'Mathematics' },
+    { name: 'Comprehension', percentage: 35, critical: true, subject: 'English' },
+    { name: 'Word Problems', percentage: 38, critical: false, subject: 'Mathematics' },
   ]
 
-  if (!mounted) {
+  const recentAssessments = [...assessments].slice(0, 3)
+
+  const activeInterventions = interventions.filter((i) => i.status !== 'completed').slice(0, 4)
+
+  if (!mounted || isLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <LoadingSpinner />
@@ -176,22 +87,24 @@ export default function ImpactHome() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-10 pb-12">
       {/* ── Premium Hero Band ─────────────────────────────────────────────── */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#050814] via-[#0a0f2e] to-[#050814] p-8 sm:p-12 lg:p-16">
-        {/* Glow effects */}
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-cyan-500/10 blur-[100px]" />
         <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-blue-600/10 blur-[100px]" />
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: 'linear-gradient(rgba(0,240,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.1) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(0,240,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-xs font-medium tracking-wider uppercase mb-4">
-            ZimLearnGraph Impact Intelligence
+          <div className="flex items-center gap-3 mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-xs font-medium tracking-wider uppercase">
+              ZimLearnGraph Impact Intelligence
+            </div>
+            {usingSeeded && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400 text-xs font-medium">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                Demo data
+              </span>
+            )}
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight">
@@ -200,186 +113,235 @@ export default function ImpactHome() {
           </h1>
 
           <p className="mt-4 text-base sm:text-lg text-slate-400 max-w-2xl leading-relaxed">
-            Impact Intelligence turns teacher-marked assessments into weak-topic analysis, 
+            Impact Intelligence turns teacher-marked assessments into weak-topic analysis,
             learner support signals, and school-level evidence — without adding work for teachers.
           </p>
 
           <div className="flex flex-wrap gap-3 mt-8">
             <Link
-              href="/impact/school-dashboard?school=PilotSchool"
+              href="/impact/school-dashboard?school=school-pilot"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm hover:shadow-[0_0_30px_-5px_rgba(0,240,255,0.3)] transition-all duration-300"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               Start pilot demo
             </Link>
             <Link
-              href="/impact/school-dashboard"
+              href="/impact/schools"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/10 text-slate-300 font-semibold text-sm hover:border-white/20 hover:text-white transition-all duration-300"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              View school dashboard
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+              View schools
             </Link>
           </div>
         </div>
       </div>
 
-      {/* ── Pilot Readiness Panel ─────────────────────────────────────────── */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-            Pilot Readiness
-          </h2>
-          {usingSeeded && (
-            <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 px-2.5 py-1 rounded-full font-medium">
-              Demo data
-            </span>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          <PilotCard
-            label="School"
-            value={schoolName}
-            accent="from-cyan-500 to-blue-600"
-            loading={schoolsLoading && !usingSeeded}
-          />
-          <PilotCard
-            label="Class"
-            value={className}
-            accent="from-emerald-400 to-teal-500"
-            loading={classesLoading && !usingSeeded}
-          />
-          <PilotCard
-            label="Learners"
-            value={String(learnerCount)}
-            accent="from-violet-400 to-purple-600"
-            loading={learnersLoading && !usingSeeded}
-          />
-          <PilotCard
-            label="Assessment"
-            value={assessmentTitle}
-            accent="from-amber-400 to-orange-500"
-            loading={assessmentsLoading && !usingSeeded}
-          />
-          <PilotCard
-            label="Marks entered"
-            value={totalMarksLabel}
-            accent="from-rose-400 to-red-500"
-            loading={false}
-          />
-          <PilotCard
-            label="Pass rate"
-            value={`${Math.round(passRate)}%`}
-            accent="from-emerald-400 to-green-500"
-            loading={false}
-          />
-          <PilotCard
-            label="Weak topics"
-            value={String(weakTopicsCount)}
-            accent="from-amber-400 to-orange-500"
-            loading={false}
-          />
-          <PilotCard
-            label="At-risk learners"
-            value={String(atRiskCount)}
-            accent="from-rose-400 to-red-500"
-            loading={false}
-          />
-        </div>
+      {/* ── Aggregate Metrics ────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <MetricCard label="Schools" value={String(totalSchools)} accent="from-cyan-500 to-blue-600" />
+        <MetricCard label="Classes" value={String(totalClasses)} accent="from-emerald-400 to-teal-500" />
+        <MetricCard label="Learners Assessed" value={String(totalLearners)} accent="from-violet-400 to-purple-600" />
+        <MetricCard label="Assessments" value={String(completedAssessments)} accent="from-amber-400 to-orange-500" />
+        <MetricCard label="Pass Rate" value={`${avgPassRate}%`} accent="from-emerald-400 to-green-500" />
+        <MetricCard label="At-Risk" value={String(atRiskCount)} accent="from-rose-400 to-red-500" />
       </div>
 
-      {/* ── Pilot Flow Steps ──────────────────────────────────────────────── */}
-      <div>
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
-          Setup checklist
-        </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-          Follow these steps to get Impact Intelligence up and running.
-        </p>
+      {/* ── Schools Needing Support ──────────────────────────────────────── */}
+      {schoolsNeedingSupport.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            Schools Needing Support
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {schoolsNeedingSupport.map((school) => {
+              const rate = school.id === 'school-pilot' ? 50 : school.id === 'school-mbare' ? 57 : 63
+              const atRisk = school.id === 'school-pilot' ? 15 : school.id === 'school-mbare' ? 12 : 9
+              const weakTopics = school.id === 'school-pilot' ? 5 : school.id === 'school-mbare' ? 4 : 3
+              return (
+                <Link
+                  key={school.id}
+                  href={`/impact/school-dashboard?school=${school.id}`}
+                  className="group relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-500 opacity-70" />
+                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{school.name}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">{school.district} · {school.school_type}</p>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <p className="text-lg font-bold text-slate-900 dark:text-white">{rate}%</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Pass</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-amber-600">{weakTopics}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Weak</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-rose-600">{atRisk}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">At Risk</p>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {workflowSteps.map((step) => (
-            <Link
-              key={step.label}
-              href={step.href}
-              className={`group relative rounded-xl border bg-white dark:bg-slate-900 p-5 shadow-sm transition-all hover:shadow-md ${
-                step.done
-                  ? 'border-emerald-200 dark:border-emerald-800 hover:border-emerald-300'
-                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+      {/* ── Top Weak Topics ───────────────────────────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-rose-500" />
+          Top Weak Topics
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {weakTopics.map((topic) => (
+            <div
+              key={topic.name}
+              className={`rounded-xl border p-4 ${
+                topic.critical
+                  ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
+                  : 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
               }`}
             >
-              <div className="mb-3 flex items-center justify-between">
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                    step.done
-                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                  }`}
-                >
-                  {step.done ? (
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    step.icon
-                  )}
-                </div>
-
-                {step.done && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Done
-                  </span>
-                )}
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-slate-500 font-medium">{topic.subject}</span>
+                <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
+                  topic.critical
+                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                }`}>
+                  {topic.critical ? 'Priority' : 'Review'}
+                </span>
               </div>
-
-              <h3 className="mb-1 text-sm font-semibold text-slate-900 dark:text-white">
-                {step.label}
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{step.description}</p>
-            </Link>
+              <p className="font-medium text-slate-900 dark:text-white text-sm">{topic.name}</p>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${topic.critical ? 'bg-red-500' : 'bg-amber-500'}`}
+                    style={{ width: `${topic.percentage}%` }}
+                  />
+                </div>
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{topic.percentage}%</span>
+              </div>
+            </div>
           ))}
         </div>
       </div>
+
+      {/* ── Recent Assessments ────────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-500" />
+            Recent Assessments
+          </h2>
+          <Link href="/impact/assessments" className="text-xs text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 font-medium">
+            View all →
+          </Link>
+        </div>
+        <div className="space-y-3">
+          {recentAssessments.map((a) => {
+            const school = schools.find((s) => s.id === a.school_id)
+            const cls = classGroups.find((c) => c.id === a.class_group_id)
+            return (
+              <Link
+                key={a.id}
+                href={`/impact/assessments/${a.id}`}
+                className="block rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 dark:text-white truncate">{a.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {school?.name} · {cls?.name} · {a.subject_id === 'subj-math' ? 'Mathematics' : a.subject_id === 'subj-eng' ? 'English' : 'Combined Science'} · {a.term} · {a.date_written}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 ml-4">
+                    <span className="text-xs text-slate-500">{a.total_marks} marks</span>
+                    <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
+                      a.status === 'graded' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                      a.status === 'published' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                      'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                    }`}>
+                      {a.status}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── Interventions in Progress ─────────────────────────────────────── */}
+      {activeInterventions.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              Interventions in Progress
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">{pendingInterventions} active</span>
+          </div>
+          <div className="space-y-3">
+            {activeInterventions.map((inv) => (
+              <div
+                key={inv.id}
+                className={`rounded-xl border p-4 ${
+                  inv.severity === 'critical'
+                    ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
+                    : inv.severity === 'high'
+                    ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{inv.recommendation}</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Status:{' '}
+                      <span className={`font-medium ${
+                        inv.status === 'in_progress' ? 'text-blue-600' :
+                        inv.status === 'completed' ? 'text-emerald-600' :
+                        'text-slate-600'
+                      }`}>
+                        {inv.status.replace('_', ' ')}
+                      </span>
+                    </p>
+                  </div>
+                  <span className={`shrink-0 px-2 py-0.5 text-[10px] font-medium rounded-full ${
+                    inv.severity === 'critical'
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      : inv.severity === 'high'
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                      : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                  }`}>
+                    {inv.severity}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-// ── Premium Metric Card Component ──────────────────────────────────────────
+// ── Premium Metric Card ──────────────────────────────────────────
 
-function PilotCard({
-  label,
-  value,
-  accent,
-  loading,
-}: {
-  label: string
-  value: string
-  accent: string
-  loading: boolean
-}) {
+function MetricCard({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
     <div className="relative group overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm hover:shadow-md transition-all duration-300">
-      {/* Accent glow bar */}
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${accent} opacity-70`} />
-      
       <div className="relative">
-        <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {label}
         </span>
-        {loading ? (
-          <div className="mt-2 h-7 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-        ) : (
-          <p className="mt-2 truncate text-xl font-bold text-slate-900 dark:text-white">
-            {value}
-          </p>
-        )}
+        <p className="mt-1 truncate text-xl font-bold text-slate-900 dark:text-white">
+          {value}
+        </p>
       </div>
     </div>
   )

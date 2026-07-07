@@ -2,6 +2,7 @@
  * Impact Intelligence — React Hooks
  *
  * TanStack Query hooks for the Impact Intelligence module.
+ * Falls back to seeded demo data when the API backend is unavailable.
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -39,6 +40,19 @@ import type {
   ImpactInterventionCreate,
   ImpactInterventionUpdate,
 } from '@/lib/types/impact'
+import {
+  SEEDED_SCHOOLS,
+  SEEDED_CLASSES,
+  SEEDED_LEARNERS,
+  SEEDED_SUBJECTS,
+  SEEDED_TOPICS,
+  SEEDED_ASSESSMENTS,
+  SEEDED_INTERVENTIONS,
+  getSeededQuestions,
+  getSeededSchoolDashboard,
+  getSeededAssessmentAnalytics,
+  SEEDED_MINISTRY_DASHBOARD,
+} from '@/lib/impact/demo-data'
 
 // =========================================================================
 // Query Keys
@@ -71,13 +85,32 @@ export const impactKeys = {
 }
 
 // =========================================================================
+// Fallback helper
+// =========================================================================
+
+/**
+ * Wraps a query function to fall back to seeded data on error.
+ * When the backend is offline, the hooks return seeded demo data
+ * so the app remains fully navigable and populated.
+ */
+function withFallback<T>(queryFn: () => Promise<T>, fallback: T): () => Promise<T> {
+  return async () => {
+    try {
+      return await queryFn()
+    } catch {
+      return fallback
+    }
+  }
+}
+
+// =========================================================================
 // Schools Hooks
 // =========================================================================
 
 export function useImpactSchools() {
   return useQuery({
     queryKey: impactKeys.schools(),
-    queryFn: () => impactSchoolsApi.list(),
+    queryFn: withFallback(() => impactSchoolsApi.list(), SEEDED_SCHOOLS),
   })
 }
 
@@ -128,7 +161,7 @@ export function useDeleteImpactSchool() {
 export function useImpactClassGroups(schoolId?: string) {
   return useQuery({
     queryKey: impactKeys.classGroups(schoolId),
-    queryFn: () => impactClassGroupsApi.list(schoolId),
+    queryFn: withFallback(() => impactClassGroupsApi.list(schoolId), SEEDED_CLASSES),
   })
 }
 
@@ -179,7 +212,15 @@ export function useDeleteImpactClassGroup() {
 export function useImpactLearners(classGroupId?: string) {
   return useQuery({
     queryKey: impactKeys.learners(classGroupId),
-    queryFn: () => impactLearnersApi.list(classGroupId),
+    queryFn: withFallback(
+      () => impactLearnersApi.list(classGroupId),
+      classGroupId
+        ? {
+            total: SEEDED_LEARNERS.learners.filter((l) => l.class_group_id === classGroupId).length,
+            learners: SEEDED_LEARNERS.learners.filter((l) => l.class_group_id === classGroupId),
+          }
+        : SEEDED_LEARNERS,
+    ),
   })
 }
 
@@ -206,9 +247,8 @@ export function useUpdateImpactLearner() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ImpactLearnerUpdate }) =>
       impactLearnersApi.update(id, data),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: impactKeys.all })
-      queryClient.invalidateQueries({ queryKey: impactKeys.learner(id) })
     },
   })
 }
@@ -230,7 +270,7 @@ export function useDeleteImpactLearner() {
 export function useImpactSubjects() {
   return useQuery({
     queryKey: impactKeys.subjects(),
-    queryFn: () => impactSubjectsApi.list(),
+    queryFn: withFallback(() => impactSubjectsApi.list(), SEEDED_SUBJECTS),
   })
 }
 
@@ -247,7 +287,7 @@ export function useCreateImpactSubject() {
   return useMutation({
     mutationFn: (data: ImpactSubjectCreate) => impactSubjectsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: impactKeys.subjects() })
+      queryClient.invalidateQueries({ queryKey: impactKeys.all })
     },
   })
 }
@@ -257,9 +297,8 @@ export function useUpdateImpactSubject() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ImpactSubjectUpdate }) =>
       impactSubjectsApi.update(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: impactKeys.subjects() })
-      queryClient.invalidateQueries({ queryKey: impactKeys.subject(id) })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: impactKeys.all })
     },
   })
 }
@@ -269,7 +308,7 @@ export function useDeleteImpactSubject() {
   return useMutation({
     mutationFn: (id: string) => impactSubjectsApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: impactKeys.subjects() })
+      queryClient.invalidateQueries({ queryKey: impactKeys.all })
     },
   })
 }
@@ -281,7 +320,15 @@ export function useDeleteImpactSubject() {
 export function useImpactTopics(subjectId?: string) {
   return useQuery({
     queryKey: impactKeys.topics(subjectId),
-    queryFn: () => impactTopicsApi.list(subjectId),
+    queryFn: withFallback(
+      () => impactTopicsApi.list(subjectId),
+      subjectId
+        ? {
+            total: SEEDED_TOPICS.topics.filter((t) => t.subject_id === subjectId).length,
+            topics: SEEDED_TOPICS.topics.filter((t) => t.subject_id === subjectId),
+          }
+        : SEEDED_TOPICS,
+    ),
   })
 }
 
@@ -332,7 +379,7 @@ export function useDeleteImpactTopic() {
 export function useImpactAssessments(params?: { class_group_id?: string; subject_id?: string }) {
   return useQuery({
     queryKey: impactKeys.assessments(params),
-    queryFn: () => impactAssessmentsApi.list(params),
+    queryFn: withFallback(() => impactAssessmentsApi.list(params), SEEDED_ASSESSMENTS),
   })
 }
 
@@ -379,7 +426,10 @@ export function useDeleteImpactAssessment() {
 export function useAssessmentAnalytics(id: string) {
   return useQuery({
     queryKey: impactKeys.analytics(id),
-    queryFn: () => impactAssessmentsApi.getAnalytics(id),
+    queryFn: withFallback(
+      () => impactAssessmentsApi.getAnalytics(id),
+      getSeededAssessmentAnalytics(id) as any,
+    ),
     enabled: !!id,
   })
 }
@@ -391,7 +441,10 @@ export function useAssessmentAnalytics(id: string) {
 export function useImpactQuestions(assessmentId: string) {
   return useQuery({
     queryKey: impactKeys.questions(assessmentId),
-    queryFn: () => impactQuestionsApi.list(assessmentId),
+    queryFn: withFallback(
+      () => impactQuestionsApi.list(assessmentId),
+      getSeededQuestions(assessmentId),
+    ),
     enabled: !!assessmentId,
   })
 }
@@ -470,9 +523,8 @@ export function useUpdateImpactMark() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ImpactMarkEntryUpdate }) =>
       impactMarksApi.update(id, data),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: impactKeys.all })
-      queryClient.invalidateQueries({ queryKey: impactKeys.mark(id) })
     },
   })
 }
@@ -494,7 +546,7 @@ export function useDeleteImpactMark() {
 export function useImpactInterventions(params?: { class_group_id?: string; severity?: string }) {
   return useQuery({
     queryKey: impactKeys.interventions(params),
-    queryFn: () => impactInterventionsApi.list(params),
+    queryFn: withFallback(() => impactInterventionsApi.list(params), SEEDED_INTERVENTIONS),
   })
 }
 
@@ -545,7 +597,10 @@ export function useDeleteImpactIntervention() {
 export function useSchoolDashboard(schoolId: string) {
   return useQuery({
     queryKey: [...impactKeys.all, 'dashboard', 'school', schoolId],
-    queryFn: () => impactDashboardsApi.getSchoolDashboard(schoolId),
+    queryFn: withFallback(
+      () => impactDashboardsApi.getSchoolDashboard(schoolId),
+      getSeededSchoolDashboard(schoolId) || { school_id: '', school_name: '', total_classes: 0, total_learners: 0, total_learners_assessed: 0, total_assessments: 0, overall_pass_rate: 0, pass_rate_by_subject: [], pass_rate_by_class: [], weakest_topics: [], classes_needing_support: [], recent_interventions: [] },
+    ),
     enabled: !!schoolId,
   })
 }
@@ -553,7 +608,10 @@ export function useSchoolDashboard(schoolId: string) {
 export function useMinistryDashboard() {
   return useQuery({
     queryKey: [...impactKeys.all, 'dashboard', 'ministry'],
-    queryFn: () => impactDashboardsApi.getMinistryDashboard(),
+    queryFn: withFallback(
+      () => impactDashboardsApi.getMinistryDashboard(),
+      SEEDED_MINISTRY_DASHBOARD,
+    ),
   })
 }
 

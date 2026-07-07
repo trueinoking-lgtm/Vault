@@ -11,8 +11,8 @@ export const SCENE = {
 } as const;
 
 export const PARTICLES = {
-  count: 3000,          // Reduced from 4000 to improve GPU stability
-  spread: { x: 10, y: 6, z: 5 },
+  count: 2500,          // Reduced for less grain, more structured feel
+  spread: { x: 12, y: 8, z: 6 },
   colors: {
     cyan: '#00f0ff',
     blue: '#1e40af',
@@ -21,7 +21,7 @@ export const PARTICLES = {
     teal: '#14b8a6',
     rose: '#f43f5e',
   },
-  sizes: { min: 0.015, max: 0.1 },
+  sizes: { min: 0.03, max: 0.15 },  // Larger = less grainy
   opacity: 0.7,
 } as const;
 

@@ -1,20 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { HERO } from '@/lib/landing/impact-copy';
 import { ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-
-const HeroScene = dynamic(() => import('./HeroScene'), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 bg-[#050814]">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#050814] via-[#0a0f2e] to-[#050814]" />
-      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(ellipse_at_center,_#00f0ff_0%,_transparent_70%)]" />
-    </div>
-  ),
-});
 
 export default function ImpactHero() {
   const [mounted, setMounted] = useState(false);
@@ -23,11 +12,8 @@ export default function ImpactHero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center overflow-hidden bg-[#050814]"
+      className="relative min-h-screen flex items-center overflow-hidden"
     >
-      {/* WebGL 3D Scene — background layer */}
-      <HeroScene />
-
       {/* Vignette overlays for readability */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#050814]/80 via-transparent to-[#050814]/40 pointer-events-none z-[1]" />
       <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#050814] to-transparent pointer-events-none z-[1]" />

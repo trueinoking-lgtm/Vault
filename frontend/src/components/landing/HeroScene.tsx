@@ -87,7 +87,7 @@ function SceneFallback() {
  */
 export default function HeroScene() {
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="fixed inset-0 pointer-events-none" style={{ width: '100vw', height: '100vh' }}>
       <Suspense fallback={<SceneFallback />}>
         <Canvas
           dpr={[1, 1.5]}
