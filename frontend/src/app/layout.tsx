@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   description: "Vault Knowledge Engine",
   icons: {
     icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
   },
 };
 
@@ -28,8 +29,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon.ico" type="image/x-icon" />
       </head>
       <body className={inter.className}>
         <ErrorBoundary>
