@@ -1,62 +1,51 @@
 # Executive Summary: ZimLearnGraph
 
-> **Turning School Assessment Records into AI-Ready Learning Evidence**
+> **Turning ordinary teacher-marked assessments into structured, privacy-conscious, AI-ready learning evidence.**
 
-**AI for International Impact (AI4I) — Data Track Application**
-
----
-
-## The Problem
-
-Zimbabwe's schools produce millions of assessment records every term — test scores, exam results, topic exercises — containing rich, granular signals about what learners know and where they struggle. This data is **trapped**: in paper mark books, teacher notebooks, isolated spreadsheets, and end-of-term reports. It is not standardised, not anonymised, not linked to curriculum topics, and not structured for any analytical or AI use.
-
-The consequence: teachers make intervention decisions from memory, school leaders lack evidence for resource allocation, education researchers have no granular longitudinal dataset, and AI applications cannot be built because the foundational training data does not exist in structured, privacy-preserving form.
-
-## The Solution
-
-ZimLearnGraph is a structured data pipeline that converts Zimbabwe's existing teacher-marked assessments into a privacy-preserving, topic-linked, longitudinal dataset. It is designed for the country's classroom reality:
-
-- **Paper-based assessments** — works with existing teacher marking, no platform migration
-- **Offline-friendly** — CSV upload, batch processing, no real-time requirement
-- **Low connectivity** — works in peri-urban and rural schools where internet is intermittent
-- **National curriculum** — topic registry aligned with ZIMSEC Ordinary Level syllabuses
-
-## Core Innovation
-
-The innovation is structural, not algorithmic. ZimLearnGraph provides the **data layer** — the collection protocol, schema, quality framework, and privacy governance — that converts scattered marks into machine-readable learning evidence. The live dashboard is a proof/interface layer. AI summaries are explicitly advisory; deterministic analytics remain the source of truth.
-
-## Current State
-
-An MVP exists demonstrating the complete data flow with seeded data:
-- Data Track: 7 documentation documents (dataset card, data dictionary, collection protocol, quality framework, privacy governance, schema, AI4I strategy)
-- Design Track: Live landing page visualising the data layer
-- Full schema with 11 core entities, 29 foreign key constraints, and SQL DDL
-- 10 quality metrics with automated monitoring framework
-- Privacy governance with learner-code-first anonymisation
-
-## Ask
-
-Funding to deploy a real pilot across 5–10 Zimbabwean schools (500–1,000 learners, 3 subjects, 2 academic terms), validating the pipeline with genuine classroom data, refining quality thresholds, training teachers, and producing verifiable impact evidence.
-
-## Expected Outcomes
-
-| Outcome | Target |
-|---|---|
-| Structured dataset | ≥ 500 learners across 5–10 schools |
-| Data quality | ≥ 90% on all core metrics |
-| Teacher adoption | ≥ 80% regularly submitting data |
-| Intervention linkage | ≥ 70% of weakness signals linked to interventions |
-| Intervention effectiveness | ≥ 60% of follow-ups show improvement |
-| Scalable template | Validated pipeline ready for national deployment |
-
-## Why Data Track
-
-The Data Track is primary because the structural innovation is the **dataset itself** — its privacy-by-design architecture, teacher-centred collection protocol, deterministic analytics pipeline, and readiness for AI-augmented education intelligence. Without the data layer, there is no AI, no dashboard, no impact. The dashboard proves usefulness but is not the core innovation.
-
-## Alignment
-
-ZimLearnGraph directly aligns with Zimbabwe's National AI Policy Framework priorities (data as a national asset, privacy-preserving infrastructure, home-grown AI training data) and MoPSE's education data strategy outcomes (evidence-based teaching, intervention effectiveness measurement, longitudinal tracking).
+**AI4I Data Track Application**
 
 ---
 
-*ZimLearnGraph is an AI4I Data Track submission. The data layer is the core innovation. The dashboard is the proof. AI is advisory. Impact is measurable.*
+## The Core Idea
+
+Zimbabwean schools already generate learning data every week through ordinary assessments. That data carries granular signals about what each learner knows, which topics need reteaching, and which learners need support. But after the score is recorded, most of that intelligence stays trapped inside paper mark books and static spreadsheets.
+
+ZimLearnGraph converts those existing assessment records into a structured, privacy-preserving, topic-linked dataset. It is designed for the classroom reality that exists: paper-based assessments, teacher-driven marking, low connectivity, and a national curriculum already organised into topics.
+
+## Data Track Fit
+
+The dataset is the innovation. The Impact Intelligence dashboard is a proof/interface layer — it shows what the data enables but is not the primary contribution. AI summaries are an advisory layer built on top of deterministic analytics. The core work is creating clean, structured, privacy-conscious education data where none existed in usable form.
+
+## What Exists Today
+
+A complete, working MVP:
+
+- **Data pipeline** — full schema with 14 entities, 29 foreign key constraints, SQL DDL
+- **Collection protocol** — 8-step SOP designed for Zimbabwe's classroom constraints
+- **Quality framework** — 10 automated metrics with tiered thresholds
+- **Privacy governance** — learner-code-first, schema-enforced, school-controlled
+- **Analytics engine** — deterministic topic performance, weakness signals, intervention tracking
+- **Public landing page** — live demo with seeded data showing the full assessment-to-intervention flow
+- **Complete documentation** — seven documents specifying every layer (dataset card, data dictionary, collection protocol, quality framework, privacy governance, schema, AI4I strategy)
+
+## What a Pilot Proves
+
+A 5–10 school pilot would validate:
+
+- The collection protocol works in real classroom conditions
+- Teachers can adopt structured data entry within existing workflows
+- Quality thresholds are calibrated correctly
+- The full data chain — mark entry → topic performance → weakness signal → intervention → follow-up — operates end-to-end with real data
+- The dataset supports meaningful analytics and advisory summaries
+
+## Why This Matters for AI in Zimbabwe
+
+You cannot build education AI without structured, privacy-preserving, representative education data. ZimLearnGraph solves the data infrastructure problem that is the fundamental barrier to AI impact in Zimbabwean education. The dataset is designed to support future AI applications — weakness detection, personalised recommendations, teacher advisory — but delivers standalone value through its deterministic analytics layer.
+
+## Why Us
+
+We are not starting from zero. A live MVP exists. A complete data package exists. A public landing page exists. The privacy architecture is designed. The quality system is specified. We have moved from concept to working proof and are ready to turn a validated prototype into a real pilot dataset.
+
+---
+
+*ZimLearnGraph is an AI4I Data Track submission. The dataset layer is the core innovation. The dashboard is proof. AI is advisory. Impact is measurable.*

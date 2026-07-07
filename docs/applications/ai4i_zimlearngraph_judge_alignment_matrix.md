@@ -1,185 +1,138 @@
 # Judge Alignment Matrix: ZimLearnGraph
 
-> **AI4I Data Track — Mapping the Project to AI4I Judging Criteria**
+> **Mapping the project to likely AI4I judging concerns — with evidence of what exists and what a pilot would prove.**
 
 ---
 
-## Scoring Legend
+## Problem Relevance
 
-| Score | Meaning |
-|---|---|
-| ★★★ | Strong alignment — evidence provided, central to the project |
-| ★★☆ | Moderate alignment — present but not primary |
-| ★☆☆ | Minimal alignment — ancillary or future-state |
-| ☆☆☆ | Not applicable or absent |
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Is the problem real and significant? | Zimbabwean schools generate millions of assessment records every term — all trapped in paper/unstructured formats. This is not a hypothetical problem. | Dataset card: motivation section; Problem statement in application draft | Pilot data would provide concrete examples of lost signals |
+| Is it a Zimbabwe/Africa problem specifically? | Designed for Zimbabwe's classroom reality: paper assessments, teacher-driven marking, low connectivity, ZIMSEC curriculum | Collection protocol: offline CSV workflow; Topic registry aligned to ZIMSEC syllabus | Pilot would demonstrate protocol works in target schools |
+| Does the applicant understand local constraints? | Teacher-first design, minimal overhead (15 min per assessment), school champion model, cluster-based training | Collection protocol; Budget (25% training/onboarding) | Teacher satisfaction data from pilot |
 
 ---
 
-## Criteria: Problem Relevance — ★★★
+## Data Track Fit
 
-| Sub-criterion | Score | Evidence |
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Is this genuinely a Data Track project? | The dataset itself is the innovation — schema, privacy model, quality framework, AI-readiness levels. Dashboard is proof layer only. | Data asset features doc; Data track fit doc; 7 docs in docs/data/ | Pilot dataset export would demonstrate the data asset |
+| Could this also work as Design Track? | Design Track is secondary because the dashboard proves data utility, not the core innovation. The hard/valuable part is the data pipeline. | Data track fit doc; Application draft positioning | — |
+| What makes this a dataset contribution vs a tool? | Dataset is versioned, quality-scored, documented, reusable across many AI applications. | Data asset features: dataset versioning, quality scoring, export formats | Pilot dataset with quality scorecard |
+
+---
+
+## Innovation
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Is the solution novel? | First structured, privacy-preserving, AI-ready education assessment dataset purpose-built for Zimbabwe's constraints | Schema; Privacy governance; AI-readiness levels | Comparison with existing EMIS data |
+| Is this just "apply AI to existing data"? | The innovation is creating the data that does not exist — not applying AI to data that already does. AI is advisory only. | Data track fit doc; Responsible AI safeguards | — |
+| Is the innovation technical or structural? | Structural: privacy architecture, collection protocol for low-connectivity, quality framework, intervention-outcome linkage | All 7 docs in docs/data/ | Pilot would validate structural decisions work in practice |
+| Can the innovation be replicated? | Protocol, schema, and governance are transferable to any subject, school type, or country | Collection protocol; Schema DDL; Privacy governance | Replication guide after pilot |
+
+---
+
+## Feasibility
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Is the plan realistic? | 24-week pilot with phased milestones, clear deliverables, over-recruitment buffer | Application draft: pilot pathway; Budget doc | Pilot execution |
+| Are risks identified? | 8 specific risks with likelihood, impact, and detailed mitigations | FAQ defense doc; AI4I strategy doc | Risk register updates during pilot |
+| Is the timeline achievable? | MVP already exists — not starting from scratch. Pilot is validation, not construction. | Why us doc: what already exists | Pilot timeline tracking |
+| Can the team deliver? | Full working MVP exists. Complete data package exists. Public landing page exists. | Why us doc; Live MVP dashboard | — |
+
+---
+
+## Evidence of Execution
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Has anything been built? | Complete data pipeline with seeded data. Live landing page. 7 documents. Analytics engine. | Why us doc: comprehensive table of existing deliverables | Pilot data collection |
+| Is it real or just a concept? | Working MVP at public domain. Seeded dataset with full assessment-to-intervention flow. | Live dashboard; Seeded dataset | Real school data |
+| What stage is the project at? | Post-MVP, pre-pilot. Pipeline is built and documented. Ready for real-school validation. | Why us doc: readiness table | Pilot kickoff |
+
+---
+
+## Responsible AI
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Is AI used appropriately? | AI is advisory only. Deterministic analytics are source of truth. AI generates natural-language briefs from computed data. | Privacy governance: AI summaries advisory only; Collection protocol footer | — |
+| Are there safeguards against harm? | No automated high-stakes decisions. No pass/fail or promotion by system. Teacher-in-the-loop for all interventions. | Responsible AI safeguards in application draft; Non-intended use in dataset card | Pilot would demonstrate teacher-in-the-loop |
+| Can the system be misused? | Non-intended uses explicitly documented. Governance limits use to advisory analytics. Data processing agreements per school. | Dataset card: non-intended use; Privacy governance | Deployment agreements |
+
+---
+
+## Privacy
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| How is learner data protected? | Learner-code-first, no PII in schema, school controls mapping, RBAC enforced | Privacy governance; Schema (zero PII fields) | Privacy audit during pilot |
+| What happens if there is a breach? | Breach response plan: 24-hour assessment, 72-hour notification, remediation, transparency report | Privacy governance: breach response section | — |
+| Who controls the data? | School is data controller. Platform is data processor. School can withdraw and delete data. | Privacy governance: data governance structure | Data processing agreements executed |
+| Is the privacy model transparent? | Complete published governance document. Data processing agreement template. Annual transparency report planned. | Privacy governance document | First transparency report |
+
+---
+
+## Scalability
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Can this grow beyond a pilot? | Each school is an independent data unit. Protocol does not change between 5 schools and 500. | Dataset card: future scaling path; Data asset features | Pilot demonstrates per-school onboarding efficiency |
+| Does it work in different school types? | Protocol is school-type agnostic (government, private, mission). Offline CSV works in rural areas. | Collection protocol; Privacy governance works for any school type | Pilot includes diverse school types |
+| Can it handle more subjects? | Topic registry is expandable. Schema supports any ZIMSEC subject. Adding subjects means extending the registry. | Schema; Data dictionary | Expanded topic registry for additional subjects |
+
+---
+
+## Public Value
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Who benefits from this? | Teachers get topic-level weakness data. School leaders get aggregate analytics. Learners get targeted interventions. | Application draft: problem statement; Impact model doc | Pilot impact report |
+| Does it align with national priorities? | Maps to National AI Policy Framework (data infrastructure, privacy, home-grown AI data) and MoPSE education data strategy | AI4I strategy doc: national alignment section | — |
+| Is the value equitably distributed? | Pilot includes peri-urban schools. Offline design ensures connectivity is not a barrier. Privacy protects all learners equally. | Collection protocol: offline workflow; Pilot scope includes diverse schools | Equity analysis in pilot report |
+
+---
+
+## Measurable Outcomes
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Can outcomes be measured? | 9 primary impact metrics with defined formulas, targets, and collection methods | Impact model doc; Quality framework | Pilot metric reports |
+| Are targets realistic? | Pilot targets are achievable (90% completeness, 80% mapping, 70% linkage) with stretch goals | Quality framework: pilot targets summary | Quality metric trends during pilot |
+| Is measurement built into the system? | Quality framework is automated — metrics computed from database. No self-report bias for core indicators. | Quality framework: automated computation | — |
+
+---
+
+## Sustainability
+
+| What judges may care about | How ZimLearnGraph answers it | Proof we already have | Next evidence needed |
+|---|---|---|---|
+| Can this continue after AI4I support? | Low infrastructure cost. Data collection uses existing teacher duties. Open schema, no proprietary lock-in. | Application draft: sustainability section | Post-pilot continuation data |
+| Are skills transferred to local teams? | Training and onboarding build teacher capability. School champion model creates local ownership. | Collection protocol: training; Budget: school champion stipends | Teacher capability assessment |
+| Is the model financially sustainable? | Operational costs are low (CSV upload, cloud analytics). Government or donor funding for national scale. | Budget doc: cost containment notes | Cost-per-school analysis after pilot |
+
+---
+
+## Summary
+
+| Criterion | Strength | Key Evidence |
 |---|---|---|
-| Is the problem clearly defined? | ★★★ | Five interlocking barriers documented with specific, observable consequences per stakeholder group |
-| Is the problem significant for Zimbabwe/Africa? | ★★★ | Affects every school, every learner; assessment data is universally generated and universally trapped |
-| Does the applicant demonstrate local understanding? | ★★★ | Designed specifically for Zimbabwe's classroom reality (paper assessments, teacher-driven marking, low connectivity, ZIMSEC curriculum) |
-| Is the timing right? | ★★★ | National AI Policy Framework prioritises data infrastructure; MoPSE seeks evidence-based tools; MVP exists now |
-
-**Judge note:** The problem is not speculative — it describes a structural failure in how every school in Zimbabwe handles assessment data. The applicant demonstrates specific, on-the-ground understanding of Zimbabwe's education system constraints.
-
----
-
-## Criteria: Innovation — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Is the solution novel? | ★★★ | First structured, privacy-preserving, AI-ready education assessment dataset purpose-built for Zimbabwe's constraints |
-| Is the innovation technical, social, or both? | ★★☆ | Primarily structural/technical (privacy architecture, collection protocol, quality framework); social innovation in teacher-centred design |
-| Does it go beyond "apply AI to existing data"? | ★★★ | Core innovation is the data infrastructure itself — AI is an advisory layer built on top of deterministic analytics |
-| Is the innovation replicable? | ★★★ | Protocol, schema, and governance are transferable to any subject, school, or country |
-
-**Judge note:** The innovation is creating the dataset that doesn't exist — not applying AI to data that already does. This is a genuine structural innovation for education data in developing contexts.
+| Problem relevance | ★★★ Real, significant, well-understood | Dataset card problem statement |
+| Data Track fit | ★★★ Dataset is the product | Data track fit doc, 7 data documents |
+| Innovation | ★★★ Structural, not algorithmic | AI-readiness levels, privacy architecture |
+| Feasibility | ★★★ MVP exists, plan is realistic | Why us doc, pilot pathway |
+| Evidence of execution | ★★★ Live MVP, complete docs | Why us doc, live dashboard |
+| Responsible AI | ★★★ Advisory-only, deterministic truth | Privacy governance, safeguard sections |
+| Privacy | ★★★ Architecture-enforced | Privacy governance, schema-zero PII |
+| Scalability | ★★★ Designed for scale | Future scaling path, independent school units |
+| Public value | ★★★ Multi-stakeholder, nationally aligned | AI4I strategy national alignment |
+| Measurable outcomes | ★★★ 9 metrics, formula-defined, automated | Quality framework, impact model |
+| Sustainability | ★★★ Low cost, open, transferable | Budget notes, open schema |
 
 ---
 
-## Criteria: Data Readiness — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Is the data pipeline specified? | ★★★ | Complete data dictionary (14 entities), formal schema (SQL DDL, 29 FK constraints), 8-step collection protocol |
-| Is data quality addressed? | ★★★ | 10 quality metrics with formulas, 3-tier thresholds, automated monitoring, remediation protocols |
-| Is privacy incorporated from the start? | ★★★ | Learner-code-first design; no PII fields in schema; school holds the only identifier mapping; RBAC model |
-| Is the data pipeline feasible in context? | ★★★ | Offline CSV workflow, batch upload, teacher-first design, topic registry aligned to existing curriculum |
-| Is the dataset documented? | ★★★ | Complete dataset card, data dictionary, collection protocol, quality framework, privacy governance — all published |
-
-**Judge note:** Data readiness is exceptionally strong. The entire pipeline is documented, specified, and ready for deployment. This is the project's core strength.
-
----
-
-## Criteria: Feasibility — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Is the implementation plan realistic? | ★★★ | 24-week pilot with phased milestones (4-week setup, 12-week collection, 8-week analysis); no unrealistic assumptions |
-| Are risks identified and mitigated? | ★★★ | 8 specific risks with likelihood, impact, and detailed mitigation strategies documented in AI4I strategy |
-| Is the team capable? | ★★☆ | MVP exists demonstrating technical capability; pilot would build operational capacity |
-| Is the budget realistic for the scope? | ★★★ | $75,000 budget aligns with 5–10 schools, 1–2 staff, 24-week deployment; lean with clear value-for-money metrics |
-
-**Judge note:** Feasibility is well-demonstrated by the existing MVP. The 24-week timeline is aggressive but achievable with the over-recruitment and risk mitigation strategies described.
-
----
-
-## Criteria: Responsible AI — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Are ethical risks identified? | ★★★ | Dataset card documents 7 ethical risks with specific mitigations; privacy governance dedicates full section |
-| Is AI positioned appropriately? | ★★★ | AI is explicitly advisory only; summaries labelled as non-authoritative; deterministic analytics are source of truth |
-| Are high-stakes automated decisions prohibited? | ★★★ | Explicitly prohibited in non-intended use, privacy governance, and ethical safeguards |
-| Is there a human-in-the-loop? | ★★★ | Teacher reviews all weakness signals before action; acknowledges each signal; records professional judgement |
-
-**Judge note:** Exemplary approach to responsible AI. The project is architecturally designed so that AI cannot make decisions — it can only summarise what deterministic analytics have already computed. This is a defensible, trustworthy design.
-
----
-
-## Criteria: Privacy — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Is privacy built into the architecture? | ★★★ | Learner codes from day one; no PII fields in schema; no place for a learner name |
-| Is the privacy model transparent? | ★★★ | Complete privacy governance document; published data processing agreement template; annual transparency report |
-| Who controls the data? | ★★★ | School is data controller; platform is data processor; school can withdraw and delete data at any time |
-| Are data retention and deletion defined? | ★★★ | 2-year retention for anonymised data; 3-year audit logs; school-side mapping per school policy |
-
-**Judge note:** Privacy is the project's strongest architectural feature. The learner-code-first approach is not bolted on — it is schema-enforced. No PII can be stored because there is nowhere to put it.
-
----
-
-## Criteria: Scalability — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Can the solution grow horizontally? | ★★★ | Adding schools is a procedural onboarding process; per-school cost decreases with scale |
-| Can it grow vertically? | ★★★ | Adding subjects means extending the topic registry; schema supports any curriculum subject |
-| Can it grow geographically? | ★★★ | Offline CSV workflow works in rural areas; protocol is school-type agnostic (government, private, mission) |
-| Is there a national-scale pathway? | ★★★ | Documented 5-phase scaling path: Term 2 → Term 3–4 → Year 2 (national pilot) → Year 3 (AI4I Data Track) → Year 3–5 (learning intelligence infrastructure) |
-
-**Judge note:** Scalability is designed-in from the start. Each school is an independent unit; expanding means onboarding more units, not redesigning the system. The scaling path is concrete and phased.
-
----
-
-## Criteria: Local/National Impact — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Does the project benefit Zimbabwean learners? | ★★★ | Directly: teachers get topic-level weakness data, learners get targeted interventions. Indirectly: longitudinal dataset enables systemic improvement |
-| Does it benefit teachers? | ★★★ | Reduces reliance on memory; provides actionable data for intervention decisions; structured data reduces end-of-term reporting burden |
-| Does it benefit school leaders? | ★★★ | Aggregate performance dashboards by class, subject, topic for data-driven resource allocation |
-| Does it align with national priorities? | ★★★ | Maps to National AI Policy Framework (4 priorities) and MoPSE education data strategy outcomes (4 outcomes) |
-
-**Judge note:** Impact is multi-stakeholder — learners, teachers, school leaders, and national planners all benefit. The project does not extract value; it builds local capacity.
-
----
-
-## Criteria: Sustainability — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Can the project continue without ongoing funding? | ★★★ | Low infrastructure cost; data collection protocol works with existing teacher duties; schools retain capability post-pilot |
-| Is the model financially sustainable? | ★★☆ | Pilot requires funding; national scale would require government or donor partnership; open-source design minimises licensing costs |
-| Is there institutional buy-in? | ★☆☆ | District engagement planned in pilot; MoPSE alignment is Year 2 goal — not yet achieved |
-| Is the knowledge/skill transferable? | ★★★ | Teachers learn structured data entry, topic mapping, intervention tracking — skills that outlast the pilot |
-
-**Judge note:** Operational sustainability is strong (low cost, existing staff, open tools). Financial sustainability beyond pilot requires a transition plan — a reasonable expectation at this stage.
-
----
-
-## Criteria: Measurable Outcomes — ★★★
-
-| Sub-criterion | Score | Evidence |
-|---|---|---|
-| Are outcome metrics defined? | ★★★ | 9 primary metrics + 5 secondary + 4 long-term — all with formulas, targets, and collection methods |
-| Are targets realistic? | ★★★ | Pilot targets are achievable (90% completeness, 80% mapping coverage, 70% intervention linkage) with stretch goals |
-| Is measurement built into the system? | ★★★ | Quality framework is automated; metrics computed from database; no self-report bias for most metrics |
-| Is there an evaluation plan? | ★★★ | Mid-pilot evaluation + end-of-pilot impact report + teacher survey + independent quality audit |
-
-**Judge note:** Measurement is a strength. Every metric has a defined computation, an automated collection method, and a transparent reporting process. Judges can verify the claims.
-
----
-
-## Overall Scoring Summary
-
-| Criteria | Rating | Key Strength |
-|---|---|---|
-| Problem Relevance | ★★★ | Specific, significant, well-understood |
-| Innovation | ★★★ | Structural, not algorithmic; dataset-first |
-| Data Readiness | ★★★ | Complete, documented, deployment-ready |
-| Feasibility | ★★★ | MVP exists; realistic plan and budget |
-| Responsible AI | ★★★ | Advisory-only; deterministic source of truth |
-| Privacy | ★★★ | Architecture-enforced; learner-code-first |
-| Scalability | ★★★ | Designed for scale; independent school units |
-| Local/National Impact | ★★★ | Multi-stakeholder; aligned with national priorities |
-| Sustainability | ★★☆ | Operational yes; financial transition needed |
-| Measurable Outcomes | ★★★ | Quantified, automated, verifiable |
-
-**Overall Assessment:** ★★★ (9/10 criteria at highest rating)
-
----
-
-## Recommended Messaging for Each Criterion
-
-| Criteria | Key Message |
-|---|---|
-| Problem Relevance | "Zimbabwe's assessment data is trapped — we free it." |
-| Innovation | "This is not an AI wrapper. This is data infrastructure that makes AI possible." |
-| Data Readiness | "Complete pipeline. MVP live. Schema, protocol, quality, governance — all documented." |
-| Feasibility | "Low risk. Teacher-first design. Offline workflow. Over-recruitment buffer." |
-| Responsible AI | "AI advises. Teachers decide. Deterministic analytics are the truth." |
-| Privacy | "No learner name ever touches the dataset. Schema-enforced. School-controlled." |
-| Scalability | "One school works. A thousand works the same way. Protocol doesn't change." |
-| Local/National Impact | "Teachers get usable data. Leaders get dashboards. MoPSE gets a national template." |
-| Sustainability | "Low cost. Open schema. Skills stay in schools. Data outlasts the pilot." |
-| Measurable Outcomes | "9 primary metrics, all formula-defined, all automatically collected, all transparent." |
-
----
-
-*This alignment matrix is designed to help judges evaluate ZimLearnGraph against the AI4I Data Track criteria. Every claim is supported by specific evidence from the application package or existing deliverables.*
+*This matrix is designed to help judges evaluate ZimLearnGraph against the AI4I Data Track criteria. Every claim is supported by specific evidence from existing deliverables.*
