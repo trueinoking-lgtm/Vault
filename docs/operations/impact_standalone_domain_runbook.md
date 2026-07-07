@@ -2,92 +2,104 @@
 
 ## Overview
 
-This document describes how to serve Impact Intelligence as a standalone product on its own domain (e.g., `impact.vault-lms.duckdns.org`) while keeping the main Vault application running on `vault-lms.duckdns.org`.
+This document describes how to serve Impact Intelligence as a standalone product on its own domain (e.g., `zimlearngraph.duckdns.org`) while keeping the main Vault application running on `vault-lms.duckdns.org`.
 
-The same Next.js frontend and FastAPI backend are reused — no separate repo is needed. The standalone domain simply opens the `/impact` route by default.
-
----
-
-## 1. Recommended DuckDNS Subdomain
-
-Register a new DuckDNS subdomain:
-
-| Purpose | Example Domain |
-|---------|---------------|
-| Main Vault | `vault-lms.duckdns.org` |
-| Impact standalone | `impact-vault-lms.duckdns.org` or `impact-lab.duckdns.org` |
-
-Point both subdomains to the same server IP.
+The same Next.js frontend and FastAPI backend are reused — no separate repo is needed. The standalone domain simply redirects `/` to `/impact` so Impact Intelligence opens at the root.
 
 ---
 
-## 2. Approach Options
+## 1. DuckDNS Subdomain
 
-### Option A: nginx Rewrite (Recommended)
+Register a new DuckDNS subdomain pointing to the same VPS IP.
 
-Use nginx to serve a different Next.js route based on the domain. No frontend code changes needed.
+| Purpose | Example Domain | VPS IP |
+|---------|---------------|--------|
+| Main Vault | `vault-lms.duckdns.org` | `178.104.213.110` |
+| Impact standalone | `zimlearngraph.duckdns.org` | `178.104.213.110` |
+
+### Creating the domain
+
+1. Go to https://www.duckdns.org/ and sign in
+2. Add a new domain with the chosen hostname
+3. Set IP to your VPS public IP (both A and AAAA if IPv6)
+4. DNS propagates within seconds for DuckDNS
+
+---
+
+## 2. Approach: nginx Redirect (No Rewrite, No Code Changes)
+
+**No path rewriting** — the simplest approach that cannot break anything:
+
+- `/` → 302 redirects to `/impact` (browser URL updates to `/impact`)
+- `/impact/*`, `/_next/static/*` → proxied straight through to Next.js (port 3003)
+- `/api/*` → proxied to FastAPI (port 5055)
+- `Host` header is passed as `$host` (the actual domain the user typed)
+
+This avoids all the pitfalls of nginx path rewriting (double-prefix issues, broken static assets, etc.).
+
+### nginx Config
+
+Save as `deploy/nginx/impact-standalone.conf`:
 
 ```nginx
-# /etc/nginx/sites-available/vault-lms
-
-# --- Main Vault domain ---
 server {
     listen 80;
-    server_name vault-lms.duckdns.org;
+    server_name zimlearngraph.duckdns.org;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
 
     location / {
-        proxy_pass http://localhost:3000;
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name zimlearngraph.duckdns.org;
+
+    ssl_certificate /etc/letsencrypt/live/zimlearngraph.duckdns.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/zimlearngraph.duckdns.org/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # API → same FastAPI backend (port 5055)
+    location /api/ {
+        proxy_pass http://127.0.0.1:5055/api/;
+        proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
 
-        # WebSocket support
+    # Root path → redirect to /impact so standalone domain opens Impact Intelligence
+    location = / {
+        return 302 /impact;
+    }
+
+    # Everything else → Next.js frontend (port 3003)
+    # No path rewriting — Next.js handles its own routing
+    location / {
+        proxy_pass http://127.0.0.1:3003;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-
-    location /api/ {
-        proxy_pass http://localhost:5055/api/;
+        proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-
-# --- Impact standalone domain ---
-server {
-    listen 80;
-    server_name impact-vault-lms.duckdns.org;
-
-    location / {
-        proxy_pass http://localhost:3000/impact;
-        proxy_set_header Host vault-lms.duckdns.org;
-
-        # IMPORTANT: The /impact prefix is stripped. The Next.js app
-        # receives requests as /impact/... but the proxy sends them
-        # directly to /impact.
-        # Actually, to make this cleaner, we add a rewrite:
-        rewrite ^/(.*)$ /impact/$1 break;
-        proxy_pass http://localhost:3000;
-    }
-
-    # API still works via same backend
-    location /api/ {
-        proxy_pass http://localhost:5055/api/;
-        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
     }
 }
 ```
 
-**How it works:**
-- Requests to `impact-vault-lms.duckdns.org/school-dashboard` are rewritten to `localhost:3000/impact/school-dashboard`
-- Next.js handles the route as `/impact/school-dashboard` as if navigated from within Impact
-- The API endpoints (`/impact/schools`, `/impact/assessments`, etc.) continue to work via the same proxy
+### Alternative: Frontend Hostname Detection
 
-### Option B: Next.js Hostname Detection
-
-Add hostname detection in a Next.js middleware or the landing page to auto-redirect:
+Instead of the nginx redirect, you could add a Next.js middleware to detect the standalone domain:
 
 ```typescript
 // frontend/src/middleware.ts
@@ -96,14 +108,13 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
-  const isImpactDomain = hostname.includes('impact-vault-lms')
-    || hostname.includes('impact-lab')
-  
-  // Redirect impact domain root to /impact
+  const isImpactDomain = hostname.includes('zimlearngraph')
+    || hostname.includes('impact')
+
   if (isImpactDomain && request.nextUrl.pathname === '/') {
     return NextResponse.redirect(new URL('/impact', request.url))
   }
-  
+
   return NextResponse.next()
 }
 
@@ -113,103 +124,107 @@ export const config = {
 ```
 
 **Pros:** No nginx rewrite config needed.
-**Cons:** Slightly more complex, can affect page load performance.
+**Cons:** Slightly more complex, adds middleware processing overhead.
 
-### Option C: Docker Compose with nginx
+---
 
-If using Docker, add the nginx config as a volume mount:
+## 3. Installation Steps
 
-```yaml
-# docker-compose.override.yml (or main compose file)
-services:
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/impact-standalone.conf:/etc/nginx/conf.d/impact-standalone.conf:ro
-    networks:
-      - vault-network
+```bash
+# 1. Create nginx symlinks
+sudo ln -sf /root/vault-open-notebook/deploy/nginx/impact-standalone.conf /etc/nginx/sites-available/zimlearngraph
+sudo ln -sf /etc/nginx/sites-available/zimlearngraph /etc/nginx/sites-enabled/zimlearngraph
+
+# 2. Get SSL certificate (first time)
+sudo mkdir -p /var/www/certbot
+sudo certbot certonly --webroot -w /var/www/certbot -d zimlearngraph.duckdns.org \
+  --non-interactive --agree-tos --email your-email@example.com
+
+# 3. Test and reload nginx
+sudo nginx -t
+sudo nginx -s reload
 ```
 
 ---
 
-## 3. Verification Checklist
+## 4. Verification Checklist
 
-After configuring the standalone domain, verify:
-
-### 3.1 DNS Resolution
+### 4.1 DNS Resolution
 ```bash
-nslookup impact-vault-lms.duckdns.org
-# Should resolve to your server IP
+dig +short zimlearngraph.duckdns.org A
+# Should resolve to your VPS IP (e.g., 178.104.213.110)
 ```
 
-### 3.2 Landing Page Loads
+### 4.2 Root Redirect Works
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://impact-vault-lms.duckdns.org/
-# Should return 200
+curl -sI -o /dev/null -w "%{http_code} %{redirect_url}\n" https://zimlearngraph.duckdns.org/
+# Should return: 302 https://zimlearngraph.duckdns.org/impact
 ```
 
-### 3.3 Impact Routes Work
+### 4.3 Impact Routes Load
 ```bash
-# Landing page
-curl -s http://impact-vault-lms.duckdns.org/ | grep -c "Impact Intelligence"
+# Landing page serves content (200, non-empty)
+curl -s -o /dev/null -w "Status: %{http_code}, Size: %{size_download} bytes\n" \
+  https://zimlearngraph.duckdns.org/impact
 
-# Dashboard
-curl -s -o /dev/null -w "%{http_code}" http://impact-vault-lms.duckdns.org/school-dashboard
-
-# Schools
-curl -s -o /dev/null -w "%{http_code}" http://impact-vault-lms.duckdns.org/schools
-
-# API
-curl -s http://impact-vault-lms.duckdns.org/api/impact/schools | grep -c "schools"
-```
-
-### 3.4 Vault Still Works
-```bash
-curl -s -o /dev/null -w "%{http_code}" http://vault-lms.duckdns.org/
-# Should return 200 (Vault main page, not Impact)
-```
-
-### 3.5 No Broken Static Assets
-```bash
-# Check for 404s in the browser console or via:
-curl -s http://impact-vault-lms.duckdns.org/ | grep -o '/_next/[^"]*' | head -5 | while read asset; do
-  status=$(curl -s -o /dev/null -w "%{http_code}" "http://impact-vault-lms.duckdns.org$asset")
-  echo "$asset → $status"
+# Sub-routes work
+for path in "/impact" "/impact/schools" "/impact/assessments" "/impact/school-dashboard"; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "https://zimlearngraph.duckdns.org$path")
+  echo "$path → $code"
 done
 ```
 
-### 3.6 Browser Test
-1. Open `http://impact-vault-lms.duckdns.org/` in a browser
-2. Verify Impact Intelligence landing page loads (not Vault)
-3. Click "View school dashboard" → should navigate within /impact/*
-4. Navigate to Classes → should show class data
-5. Verify all six workflow step buttons work
-6. Open `http://vault-lms.duckdns.org/` in another tab → Vault should load normally
+### 4.4 Vault Domain Still Works
+```bash
+for path in "/" "/impact" "/impact/schools" "/api/health" "/notebooks"; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "https://vault-lms.duckdns.org$path")
+  echo "$path → $code"
+done
+```
+
+### 4.5 Static Assets Load
+```bash
+# Extract CSS URLs from the page and check they serve 200
+curl -s https://zimlearngraph.duckdns.org/impact | \
+  grep -oP 'href="([^"]*\.css[^"]*)"' | \
+  while read attr; do
+    url=$(echo "$attr" | sed 's/href="//;s/"//')
+    code=$(curl -sI -o /dev/null -w "%{http_code}" "https://zimlearngraph.duckdns.org$url")
+    echo "$url → $code"
+  done
+```
+
+### 4.6 Browser Testing
+1. Open `https://zimlearngraph.duckdns.org/` → should redirect to `/impact`
+2. Impact Intelligence landing page loads with pilot readiness panel
+3. Click all workflow step buttons → navigate to correct pages
+4. Open `https://vault-lms.duckdns.org/` in another tab → Vault loads normally
+5. Open `https://vault-lms.duckdns.org/impact` → Impact still works at Vault subpath
+6. Check browser console for no 404/500 errors on static assets
 
 ---
 
-## 4. How to Avoid Breaking Vault
+## 5. How to Avoid Breaking Vault
 
 | Risk | Mitigation |
 |------|-----------|
-| Route clash | The standalone domain rewrites `/` → `/impact/*`. Vault's routes sit outside `/impact/`, so no clash. |
-| API CORS | The API already allows all origins in dev (`allow_origins=["*"]`). For production, ensure the impact domain is in the CORS allowlist. |
-| Auth cookies | If Vault uses cookie-based auth, the impact domain needs the same cookie. Use a shared parent domain (`.duckdns.org`) or JWT tokens. |
-| Static assets | Next.js builds a single set of `/_next/static/*` assets. They work on any domain. |
-| SEO | If both domains index, add `<link rel="canonical">` or configure robots.txt. |
+| Route clash | The standalone domain uses a simple 302 redirect for `/` and proxies everything else unchanged. No path rewriting means Vault's routes are never affected. |
+| API CORS | The API already allows all origins (`allow_origins=["*"]`). No change needed. |
+| Auth cookies | Vault's cookie-based auth is scoped to `vault-lms.duckdns.org`. On the standalone domain, auth cookies for Impact endpoints would need to either share a parent domain (`.duckdns.org`) or use token-based auth. |
+| Static assets | Next.js builds a single set of `/_next/static/*` assets. They work on any domain that proxies to the same Next.js server. |
+| Process sharing | The standalone domain and Vault share the same Next.js (port 3003) and FastAPI (port 5055) processes. Restarting affects both. |
 
 ### CORS Configuration
 
+The existing API config uses `allow_origins=["*"]` which covers all domains. No change required.
+
 ```python
-# api/main.py — add impact domain
+# api/main.py — if restrict mode is needed later
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://vault-lms.duckdns.org",
-        "https://impact-vault-lms.duckdns.org",  # ← add this
+        "https://zimlearngraph.duckdns.org",
         "http://localhost:3000",
     ],
     allow_credentials=True,
@@ -220,22 +235,89 @@ app.add_middleware(
 
 ---
 
-## 5. Rollback Plan
+## 6. Smoke Test Script
+
+Save as `scripts/smoke-test-standalone-domain.sh`:
 
 ```bash
-# Remove nginx config for impact domain
-sudo rm /etc/nginx/sites-enabled/impact-vault-lms
-sudo nginx -s reload
+#!/bin/bash
+set -euo pipefail
 
-# Or comment out the server block and reload
+DOMAIN="${1:-zimlearngraph.duckdns.org}"
+VAULT_DOMAIN="${2:-vault-lms.duckdns.org}"
+
+echo "=== Standalone Domain Smoke Test ==="
+echo "Testing: https://$DOMAIN"
+echo "Vault baseline: https://$VAULT_DOMAIN"
+echo ""
+
+# 1. DNS
+echo "1. DNS resolution..."
+dig +short "$DOMAIN" A || echo "WARN: DNS not resolving"
+
+# 2. Root redirect
+echo ""
+echo "2. Root redirect..."
+redirect=$(curl -sI -o /dev/null -w "%{http_code} %{redirect_url}" "https://$DOMAIN/")
+echo "   $redirect"
+
+# 3. Impact routes
+echo ""
+echo "3. Impact routes..."
+for path in "/impact" "/impact/schools" "/impact/assessments" "/impact/school-dashboard"; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "https://$DOMAIN$path")
+  echo "   $path → $code"
+done
+
+# 4. Vault still works
+echo ""
+echo "4. Vault domain..."
+for path in "/" "/impact" "/api/health"; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "https://$VAULT_DOMAIN$path")
+  echo "   $path → $code"
+done
+
+# 5. Static assets
+echo ""
+echo "5. Static assets..."
+curl -s "https://$DOMAIN/impact" | \
+  grep -oP 'href="([^"]*\.css[^"]*)"' | \
+  head -3 | \
+  while read attr; do
+    url=$(echo "$attr" | sed 's/href="//;s/"//')
+    code=$(curl -sI -o /dev/null -w "%{http_code}" "https://$DOMAIN$url")
+    echo "   $url → $code"
+  done
+
+echo ""
+echo "=== Done ==="
 ```
-
-Restarting the Next.js app affects both domains — the frontend process is shared.
 
 ---
 
-## 6. Future Considerations
+## 7. Rollback Plan
+
+```bash
+# Disable the standalone domain
+sudo rm /etc/nginx/sites-enabled/zimlearngraph
+sudo nginx -s reload
+
+# Full cleanup
+sudo rm /etc/nginx/sites-available/zimlearngraph
+sudo rm /etc/nginx/sites-enabled/zimlearngraph
+sudo rm -rf /etc/letsencrypt/live/zimlearngraph.duckdns.org
+
+# Verify Vault still works
+curl -sI https://vault-lms.duckdns.org/ | head -1
+```
+
+Restarting the Next.js or FastAPI process affects both domains — the services are shared.
+
+---
+
+## 8. Future Considerations
 
 - **Separate repo**: Impact Intelligence could be extracted into its own Next.js app for independent scaling, but this requires significant effort and duplication of shared components.
-- **Sub-path hosting**: Instead of a separate domain, Impact could live at `/impact` on the main domain with a prominent link. This is the current setup.
+- **Sub-path hosting**: Instead of a separate domain, Impact lives at `/impact` on the main domain. The standalone domain just adds a shortcut.
 - **SSR/SSG split**: If Impact pages need different caching strategies, consider using Next.js `export` for static generation while keeping Vault on SSR.
+- **Custom domain**: DuckDNS can be replaced with a custom domain (e.g., `impact.school.gov.zw`) by adding a CNAME record pointing to the DuckDNS hostname.
