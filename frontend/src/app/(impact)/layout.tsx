@@ -28,6 +28,10 @@ export default function ImpactRootLayout({
   useEffect(() => {
     setMounted(true)
 
+    // Enable scrolling (overrides root html/body overflow:hidden)
+    document.documentElement.classList.add('landing-page')
+    document.body.classList.add('landing-page')
+
     // Update document metadata for ZimLearnGraph Impact Intelligence
     document.title = 'Impact Intelligence — ZimLearnGraph'
     const metaDesc = document.querySelector('meta[name="description"]')
@@ -39,6 +43,11 @@ export default function ImpactRootLayout({
     const favicon = document.querySelector('link[rel="icon"]')
     if (favicon) {
       favicon.setAttribute('href', '/favicon.svg')
+    }
+
+    return () => {
+      document.documentElement.classList.remove('landing-page')
+      document.body.classList.remove('landing-page')
     }
   }, [])
 
