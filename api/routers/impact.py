@@ -1355,6 +1355,23 @@ async def delete_intervention(intervention_id: str) -> Dict[str, str]:
 # =========================================================================
 
 
+def _build_thing_conditions(
+    ids: list, table: str, field: str = "id"
+) -> str:
+    """Build SurrealDB WHERE conditions using type::thing() for RecordId comparisons.
+
+    Ensures proper RecordId comparison for SCHEMAFULL tables with record<> fields.
+    """
+    if not ids:
+        return "FALSE"
+    conds = " OR ".join(
+        f"{field} = type::thing('{table}', '{_strip_prefix(str(i))}')"
+        for i in ids
+        if i
+    )
+    return conds
+
+
 @router.get("/dashboards/school/{school_id}")
 async def get_school_dashboard(school_id: str) -> Dict[str, Any]:
     """
@@ -1402,10 +1419,16 @@ async def get_school_dashboard(school_id: str) -> Dict[str, Any]:
     assessment_ids = [a.id for a in assessments if a.id]
 
     # Fetch all marks for this school's assessments
-    marks_result = await repo_query(
-        "SELECT * FROM impact_mark_entry WHERE assessment_id INSIDE $assessment_ids",
-        {"assessment_ids": assessment_ids},
-    )
+    # NOTE: Must use type::thing() for each RecordId because SurrealDB SCHEMAFULL
+    # tables store foreign keys as record<impact_assessment>, and string comparison
+    # in INSIDE/IN clauses does NOT auto-convert.
+    if assessment_ids:
+        marks_result = await repo_query(
+            "SELECT * FROM impact_mark_entry WHERE "
+            + _build_thing_conditions(assessment_ids, "impact_assessment", "assessment_id"),
+        )
+    else:
+        marks_result = []
     marks = [ImpactMarkEntry(**r) for r in marks_result]
 
     # Calculate pass rates
@@ -1428,10 +1451,14 @@ async def get_school_dashboard(school_id: str) -> Dict[str, Any]:
     overall_pass_rate = (passed_count / total_learners_assessed * 100) if total_learners_assessed > 0 else 0
 
     # Pass rate by subject
-    subject_result = await repo_query(
-        "SELECT * FROM impact_subject WHERE id IN $subject_ids",
-        {"subject_ids": list(set(a.subject_id for a in assessments if a.subject_id))},
-    )
+    subject_ids = list(set(a.subject_id for a in assessments if a.subject_id))
+    if subject_ids:
+        subject_result = await repo_query(
+            "SELECT * FROM impact_subject WHERE "
+            + _build_thing_conditions(subject_ids, "impact_subject", "id"),
+        )
+    else:
+        subject_result = []
     subjects = [ImpactSubject(**r) for r in subject_result]
 
     pass_rate_by_subject = []
@@ -1489,10 +1516,13 @@ async def get_school_dashboard(school_id: str) -> Dict[str, Any]:
         })
 
     # Weakest topics across school
-    topics_result = await repo_query(
-        "SELECT * FROM impact_topic WHERE subject_id IN $subject_ids",
-        {"subject_ids": list(set(a.subject_id for a in assessments if a.subject_id))},
-    )
+    if subject_ids:
+        topics_result = await repo_query(
+            "SELECT * FROM impact_topic WHERE "
+            + _build_thing_conditions(subject_ids, "impact_subject", "subject_id"),
+        )
+    else:
+        topics_result = []
     topics = [ImpactTopic(**r) for r in topics_result]
 
     weakest_topics = []
@@ -1529,10 +1559,14 @@ async def get_school_dashboard(school_id: str) -> Dict[str, Any]:
     ]
 
     # Recent interventions
-    interventions_result = await repo_query(
-        "SELECT * FROM impact_intervention WHERE assessment_id IN $assessment_ids ORDER BY created DESC LIMIT 5",
-        {"assessment_ids": assessment_ids},
-    )
+    if assessment_ids:
+        interventions_result = await repo_query(
+            "SELECT * FROM impact_intervention WHERE "
+            + _build_thing_conditions(assessment_ids, "impact_assessment", "assessment_id")
+            + " ORDER BY created DESC LIMIT 5",
+        )
+    else:
+        interventions_result = []
     recent_interventions = [ImpactIntervention(**r) for r in interventions_result]
 
     return {

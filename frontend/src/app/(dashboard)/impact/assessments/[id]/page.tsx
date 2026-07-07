@@ -47,14 +47,12 @@ export default function AssessmentDetailPage({
 
   if (!assessment) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-slate-900 mb-4">Assessment not found</h1>
-            <Link href="/impact/assessments" className="text-blue-600 hover:text-blue-700">
-              ← Back to assessments
-            </Link>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-900 mb-4">Assessment not found</h1>
+          <Link href="/impact/assessments" className="text-blue-600 hover:text-blue-700">
+            ← Back to assessments
+          </Link>
         </div>
       </div>
     )
@@ -69,8 +67,7 @@ export default function AssessmentDetailPage({
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+    <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <Link href="/impact/assessments" className="text-blue-600 hover:text-blue-700 text-sm mb-2 inline-block">
@@ -208,7 +205,6 @@ export default function AssessmentDetailPage({
           )}
         </div>
       </div>
-    </div>
   )
 }
 

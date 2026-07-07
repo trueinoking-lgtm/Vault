@@ -66,14 +66,12 @@ export default function AssessmentReportPage({
 
   if (!report) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-slate-900 mb-4">Report not found</h1>
-            <Link href="/impact/assessments" className="text-blue-600 hover:text-blue-700">
-              ← Back to assessments
-            </Link>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-900 mb-4">Report not found</h1>
+          <Link href="/impact/assessments" className="text-blue-600 hover:text-blue-700">
+            ← Back to assessments
+          </Link>
         </div>
       </div>
     )

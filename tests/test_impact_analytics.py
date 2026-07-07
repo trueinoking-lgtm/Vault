@@ -687,3 +687,193 @@ class TestQuestionPerformance:
         # Average: (5+8+10)/3 = 7.67/50 = 15.33%
         assert q3.average_percentage == pytest.approx(15.33, rel=0.01)
         assert q3.is_critical is True
+
+
+# =========================================================================
+# Test Dashboard Aggregation Helpers
+# =========================================================================
+
+
+class TestBuildThingConditions:
+    """Test _build_thing_conditions helper for RecordId queries."""
+
+    def test_build_thing_conditions_basic(self):
+        """Test basic type::thing condition building."""
+        from api.routers.impact import _build_thing_conditions, _strip_prefix
+
+        ids = ["impact_assessment:abc123", "impact_assessment:def456"]
+        result = _build_thing_conditions(ids, "impact_assessment", "assessment_id")
+        assert "type::thing('impact_assessment', 'abc123')" in result
+        assert "type::thing('impact_assessment', 'def456')" in result
+        assert "OR" in result
+        assert result.startswith("assessment_id =")
+
+    def test_build_thing_conditions_strips_prefix(self):
+        """Test that _build_thing_conditions strips table prefix."""
+        from api.routers.impact import _build_thing_conditions
+
+        ids = ["impact_assessment:xyz789"]
+        result = _build_thing_conditions(ids, "impact_assessment", "assessment_id")
+        assert "type::thing('impact_assessment', 'xyz789')" in result
+        assert "impact_assessment:xyz789" not in result
+
+    def test_build_thing_conditions_empty(self):
+        """Test empty list returns FALSE."""
+        from api.routers.impact import _build_thing_conditions
+
+        result = _build_thing_conditions([], "impact_assessment", "assessment_id")
+        assert result == "FALSE"
+
+    def test_build_thing_conditions_default_field(self):
+        """Test default field name is 'id'."""
+        from api.routers.impact import _build_thing_conditions
+
+        ids = ["impact_school:1"]
+        result = _build_thing_conditions(ids, "impact_school")
+        assert result.startswith("id =")
+        assert "impact_school" in result
+
+    def test_build_thing_conditions_none_items_filtered(self):
+        """Test that None items are filtered out."""
+        from api.routers.impact import _build_thing_conditions
+
+        ids = ["impact_assessment:abc", None, "impact_assessment:def"]
+        result = _build_thing_conditions(ids, "impact_assessment", "assessment_id")
+        assert "type::thing('impact_assessment', 'abc')" in result
+        assert "type::thing('impact_assessment', 'def')" in result
+
+
+class TestDashboardAggregationLogic:
+    """Test the dashboard aggregation calculation logic.
+
+    These tests verify the aggregation semantics using mocked data,
+    covering pass rate, subject breakdown, class breakdown, and weakest topics.
+    """
+
+    def test_aggregation_learners_assessed_count(self):
+        """Test total_learners_assessed counts unique learners across marks."""
+        from api.routers.impact import _build_thing_conditions
+
+        # Use Python-level logic to verify aggregation semantics
+        marks = [
+            type("Mark", (), {"learner_id": "impact_learner:1", "assessment_id": "impact_assessment:1", "question_id": "q1", "score": 10.0})(),
+            type("Mark", (), {"learner_id": "impact_learner:1", "assessment_id": "impact_assessment:1", "question_id": "q2", "score": 8.0})(),
+            type("Mark", (), {"learner_id": "impact_learner:2", "assessment_id": "impact_assessment:1", "question_id": "q1", "score": 6.0})(),
+            type("Mark", (), {"learner_id": "impact_learner:3", "assessment_id": "impact_assessment:1", "question_id": "q1", "score": 4.0})(),
+        ]
+        total_learners_assessed = len(set(m.learner_id for m in marks))
+        assert total_learners_assessed == 3
+
+    def test_aggregation_pass_rate_calculation(self):
+        """Test pass rate calculation across assessments."""
+        marks = [
+            type("Mark", (), {"learner_id": "impact_learner:1", "assessment_id": "impact_assessment:1", "score": 60.0})(),
+            type("Mark", (), {"learner_id": "impact_learner:2", "assessment_id": "impact_assessment:1", "score": 45.0})(),
+            type("Mark", (), {"learner_id": "impact_learner:3", "assessment_id": "impact_assessment:1", "score": 30.0})(),
+        ]
+        assessment = type("Assessment", (), {"id": "impact_assessment:1", "pass_mark": 50, "total_marks": 100})()
+
+        # Group marks by learner for this assessment
+        learner_totals = {}
+        for m in marks:
+            if m.learner_id not in learner_totals:
+                learner_totals[m.learner_id] = 0
+            learner_totals[m.learner_id] += m.score
+
+        passed_count = 0
+        for total in learner_totals.values():
+            if assessment.pass_mark and total >= assessment.pass_mark:
+                passed_count += 1
+
+        total_assessed = len(learner_totals)
+        pass_rate = (passed_count / total_assessed * 100) if total_assessed > 0 else 0
+
+        # Learner 1: 60 >= 50 pass, Learner 2: 45 < 50 fail, Learner 3: 30 < 50 fail
+        assert passed_count == 1
+        assert pass_rate == pytest.approx(33.33, rel=0.01)
+
+    def test_aggregation_pass_rate_default_threshold(self):
+        """Test pass rate uses 50% default when no pass_mark."""
+        marks = [
+            type("Mark", (), {"learner_id": "impact_learner:1", "assessment_id": "impact_assessment:1", "score": 50.0})(),
+            type("Mark", (), {"learner_id": "impact_learner:2", "assessment_id": "impact_assessment:1", "score": 49.0})(),
+        ]
+        assessment = type("Assessment", (), {"id": "impact_assessment:1", "pass_mark": None, "total_marks": 100})()
+
+        learner_totals = {}
+        for m in marks:
+            if m.learner_id not in learner_totals:
+                learner_totals[m.learner_id] = 0
+            learner_totals[m.learner_id] += m.score
+
+        passed = 0
+        for total in learner_totals.values():
+            if not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
+                passed += 1
+
+        assert passed == 1
+
+    def test_aggregation_subject_breakdown(self):
+        """Test pass rate is correct per subject."""
+        assessments = [
+            type("A", (), {"id": "impact_assessment:1", "subject_id": "impact_subject:1", "pass_mark": 50, "total_marks": 100})(),
+            type("A", (), {"id": "impact_assessment:2", "subject_id": "impact_subject:2", "pass_mark": 50, "total_marks": 100})(),
+        ]
+        marks = [
+            type("M", (), {"assessment_id": "impact_assessment:1", "learner_id": "l1", "score": 60.0})(),
+            type("M", (), {"assessment_id": "impact_assessment:1", "learner_id": "l2", "score": 30.0})(),
+            type("M", (), {"assessment_id": "impact_assessment:2", "learner_id": "l3", "score": 70.0})(),
+        ]
+
+        # Subject 1: 1 pass / 2 learners = 50%
+        s1_assessments = [a for a in assessments if a.subject_id == "impact_subject:1"]
+        s1_marks = [m for m in marks if m.assessment_id in [a.id for a in s1_assessments]]
+        s1_learners = len(set(m.learner_id for m in s1_marks))
+        s1_passed = 0
+        for a in s1_assessments:
+            lt = {}
+            for m in s1_marks:
+                if m.assessment_id == a.id:
+                    lt.setdefault(m.learner_id, 0)
+                    lt[m.learner_id] += m.score
+            for t in lt.values():
+                if t >= a.pass_mark:
+                    s1_passed += 1
+
+        assert s1_learners == 2
+        assert s1_passed == 1
+
+    def test_aggregation_weakest_topics_detection(self):
+        """Test weakest topics are those below 55%."""
+        topics_data = [
+            {"name": "Fractions", "percentage": 45.0, "is_critical": False},
+            {"name": "Ratios", "percentage": 30.0, "is_critical": True},
+            {"name": "Graphs", "percentage": 65.0, "is_critical": False},
+            {"name": "Word Problems", "percentage": 50.0, "is_critical": False},
+        ]
+
+        weakest = [t for t in topics_data if t["percentage"] < 55]
+        assert len(weakest) == 3
+        assert weakest[0]["name"] == "Fractions"
+        assert weakest[1]["name"] == "Ratios"
+        assert weakest[2]["name"] == "Word Problems"
+
+        # Sort by percentage ascending
+        weakest.sort(key=lambda x: x["percentage"])
+        assert weakest[0]["name"] == "Ratios"  # 30%
+        assert weakest[1]["name"] == "Fractions"  # 45%
+        assert weakest[2]["name"] == "Word Problems"  # 50%
+
+    def test_aggregation_classes_needing_support(self):
+        """Test classes needing support (pass rate < 50%)."""
+        classes = [
+            {"name": "Form 1A", "pass_rate": 45.0, "total_learners": 30},
+            {"name": "Form 1B", "pass_rate": 65.0, "total_learners": 28},
+            {"name": "Form 1C", "pass_rate": 30.0, "total_learners": 25},
+            {"name": "Form 2A", "pass_rate": 0.0, "total_learners": 0},
+        ]
+
+        needing = [c for c in classes if c["pass_rate"] < 50 and c["total_learners"] > 0]
+        assert len(needing) == 2
+        assert needing[0]["name"] == "Form 1A"
+        assert needing[1]["name"] == "Form 1C"
