@@ -1,119 +1,96 @@
 # Impact Intelligence — Pilot Offer
 
-## Overview
-
-This document outlines the terms and deliverables for the Impact Intelligence pilot programme. The pilot is designed to validate the product in a real school environment with minimal setup overhead.
+**Product:** Impact Intelligence (ZimLearnGraph Impact)
+**Target:** Single-school pilot programme
+**Duration:** 1 diagnostic assessment + 1 follow-up assessment
+**Cost:** Free (pilot phase)
 
 ---
 
 ## Pilot Scope
 
-**Pilot Size:**
-- 1 school
-- 1 teacher
-- 1 class
-- 1 subject
-- 1 diagnostic assessment
-- 1 follow-up assessment
+| Component | Detail |
+|-----------|--------|
+| **School** | 1 school |
+| **Teacher** | 1 teacher |
+| **Class** | 1 class (up to 40 learners) |
+| **Subject** | 1 subject (e.g. Mathematics, English, Science) |
+| **Assessment 1** | Diagnostic test (teacher-designed, 8–10 questions) |
+| **Assessment 2** | Follow-up test (same topics, new questions) |
 
-**Duration:** 1 academic term (approximately 10-12 weeks)
+### What the school provides
 
----
+- School name, district, province (optional)
+- Class name and grade level
+- Subject name and curriculum
+- Learner codes only (e.g. L001–L040) — **no full names required**
+- Topic names (e.g. Fractions, Algebra, Grammar)
+- Assessment questions with max marks and topic mapping
+- Marks for each learner per question
 
-## What the School Provides
-
-| Item | Format | Example |
-|------|--------|---------|
-| School name | Text | "Pilot School" |
-| Class name | Text | "Form 1A" |
-| Subject | Text | "Mathematics" |
-| Learner codes | CSV/List | L001, L002, ... L030 |
-| Topic list | CSV/List | "Fractions, Ratios, Percentages" |
-| Assessment questions | Table with max marks | Q1: Fractions (10 marks), Q2: Ratios (10 marks) |
-| Learner marks | CSV with learner × question grid | L001: 7, 8, 5, 6, ... |
-
-**Privacy:** Learner codes (L001, L002) are sufficient. Full student names are not required for the pilot.
-
----
-
-## What the School Receives
-
-### After Diagnostic Assessment
+### What Impact Intelligence provides
 
 | Deliverable | Description |
 |-------------|-------------|
-| Teacher dashboard | Assessment analytics: class average, pass rate, weak topics, question performance, at-risk learners |
-| Intervention plan | Recommended actions for each weak topic and at-risk learner |
-| Assessment report | Print-ready assessment report with full analytics |
-| CSV export | Marks CSV and analytics CSV for offline use |
-
-### After Follow-up Assessment
-
-| Deliverable | Description |
-|-------------|-------------|
-| Impact report | Comparison between diagnostic and follow-up, showing improvement |
-| School dashboard | Aggregated view of both assessments |
-| Updated intervention plan | Revised recommendations based on progress |
-
-### During the Pilot
-
-| Feature | Available |
-|---------|-----------|
-| School dashboard | ✓ |
-| Teacher dashboard | ✓ |
-| Assessment analytics | ✓ |
-| CSV exports | ✓ |
-| Print reports | ✓ |
-| AI summaries (advisory) | Optional |
-| Ministry demo view | Preview |
+| **School dashboard** | Live view of classes, learners, assessments, pass rates |
+| **Weak-topic report** | Topics sorted by performance percentage, with critical flags |
+| **Learner risk report** | Every learner scored, with risk level (low/medium/high) |
+| **Class performance report** | Pass rate, average score, mark completion rate |
+| **Intervention recommendations** | Suggested actions for weak topics and at-risk learners |
+| **School impact report** | Print-ready PDF with all results and recommendations |
+| **Follow-up comparison** | Before/after improvement tracking |
 
 ---
 
-## Timeline
+## Pilot Timeline
 
-| Week | Activity |
-|------|----------|
-| 1 | School setup, data collection, system configuration |
-| 2 | Teacher training session (1 hour) |
-| 3 | Teacher administers diagnostic assessment |
-| 4 | Marks entered, analytics generated, dashboard review |
-| 5 | Teacher reviews weak topics, implements interventions |
-| 6-8 | Intervention period |
-| 9 | Follow-up assessment administered |
-| 10 | Impact report delivered, pilot review meeting |
+```
+Week 1 ─┬─ School registration (name, class, subject)
+         ├─ Learner codes created (L001–Lxxx)
+         ├─ Topics defined
+         ├─ Assessment designed (questions + topic mapping)
+         └─ Baseline marks entered
 
----
+Week 2 ─┬─ Weak-topic report generated
+         ├─ Learner risk report generated
+         ├─ Intervention plan generated
+         ├─ Teacher reviews findings
+         └─ Remedial teaching delivered
 
-## Support During Pilot
+Week 3 ─┬─ Follow-up assessment designed (same topics, new questions)
+         ├─ Follow-up marks entered
+         └─ Improvement comparison report generated
 
-- **Setup support:** Remote session to configure school and import data
-- **Training:** One-hour teacher walkthrough session
-- **Ongoing support:** Email/WhatsApp support during school hours
-- **Review meeting:** End-of-pilot review with school head
-
----
-
-## Success Criteria
-
-| Metric | Target |
-|--------|--------|
-| Teacher can navigate the dashboard independently | Yes |
-| Weak topics match teacher's intuition | ≥80% agreement |
-| Assessment report is useful for school head review | Teacher says yes |
-| CSV exports open cleanly | Yes |
+Week 4 ─┬─ School impact report finalised
+         ├── Pilot debrief meeting
+         └─ Decision: continue to full rollout
+```
 
 ---
 
-## After the Pilot
+## Data Privacy
 
-Based on pilot outcomes, we will discuss:
-- Expansion to additional classes and subjects
-- Multi-school deployment
-- Ministry-level integration (future roadmap)
-- Commercial licensing
+- **No learner names required** during pilot — codes only
+- No learner data is shared outside the school
+- All data stays in the school's database instance
+- Aggregated, anonymised statistics may be used for product improvement
+
+---
+
+## Post-Pilot Options
+
+| Option | Description |
+|--------|-------------|
+| **Continue pilot** | Extend to additional classes or subjects |
+| **Full rollout** | Multi-class, multi-subject subscription |
+| **Custom deployment** | On-premise or dedicated cloud instance |
+| **Discontinue** | All data exported and returned to the school |
 
 ---
 
 ## Contact
 
-**Impact Intelligence** — Part of the VaultEd platform
+Contact the Impact Intelligence team to start your pilot:
+
+- Email: [pilot@impactintelligence.com]
+- Web: [https://vault-lms.duckdns.org/impact]

@@ -1,219 +1,161 @@
-# Impact Intelligence — Demo Script
+# Impact Intelligence — Demo Script (5-Minute Flow)
 
-This script guides you through a 10-minute live demo of Impact Intelligence.
-
----
-
-## Setup (1 minute)
-
-**Before starting, ensure:**
-- SurrealDB is running on port 8000
-- Demo data is seeded (run `python scripts/seed_impact_demo.py`)
-- API server is running on port 5055
-- Frontend is running on port 3000
+**Product:** Impact Intelligence (ZimLearnGraph Impact)
+**Audience:** School principal, head of department, or teacher
+**Delivery:** Live browser demo at `https://vault-lms.duckdns.org/impact`
 
 ---
 
-## Demo Flow
+## 0. Setup (before the demo)
 
-### 1. Landing Page (30 seconds)
-
-Navigate to `/impact`
-
-**Say:** *"This is the Impact Intelligence landing page. From here, teachers can set up their school, create classes, add learners, create assessments, enter marks, and view insights."*
-
-**Show:**
-- "Create assessment" primary CTA
-- "View school dashboard" secondary CTA
-- 6 navigation cards
+- Ensure the demo seed data is loaded (Pilot School, Form 1A, 30 learners, Term 1 Diagnostic Test graded)
+- Open Chrome/Chromium in incognito mode
+- Navigate to `https://vault-lms.duckdns.org/impact`
+- Close any browser dev tools
 
 ---
 
-### 2. Assessment List (30 seconds)
+## 1. Open Impact Landing Page (30 seconds)
 
-Click **"Create assessment"** or navigate to `/impact/assessments`
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "This is **Impact Intelligence** — a tool that turns teacher-marked tests into learning evidence. No AI magic, no replacing teachers, just clear reports from the marks you already collect." | The Impact landing page with gradient header, "Impact Intelligence" title, three primary CTAs, and Pilot Readiness panel showing live data. |
 
-**Say:** *"Here is the assessment list. Our seeded demo has a Term 1 Diagnostic Test for Mathematics."*
-
-**Click on:** "Term 1 Diagnostic Test"
-
----
-
-### 3. Assessment Detail — Setup Tab (30 seconds)
-
-**Say:** *"The assessment detail page has five tabs. The Setup tab shows assessment details: type, total marks, pass mark, term, and status."*
-
-**Show:**
-- Assessment title: Term 1 Diagnostic Test
-- Type: Test, 100 marks
-- Pass mark: 50
-- Status: Graded
-- Export buttons (Marks, Analytics)
-- View Report link
+**Key points to make:**
+- No extra work for teachers — uses existing test marks
+- Everything is calculated deterministically from marks
+- Learner privacy: only codes (L001, L002), no full names required
 
 ---
 
-### 4. Assessment Detail — Questions Tab (30 seconds)
+## 2. Explain the Problem (30 seconds)
 
-Click the **Questions** tab
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "Schools test learners regularly — weekly tests, exams, diagnostics. But the data sits in a mark book. Which topics did the class struggle with? Which learners need help? Which questions were too hard? A teacher with 30+ learners can't see these patterns by hand." | Point to the "Pilot Readiness" panel on the landing page. Wave at the 6-step workflow. |
 
-**Say:** *"The Questions tab shows how each question is mapped to a topic with its max marks, skill type, and difficulty."*
-
-**Show:**
-- 8 questions mapped to 5 topics
-- Total marks assigned: 100/100
+**Transition:** "Impact Intelligence solves this. Let me show you how."
 
 ---
 
-### 5. Assessment Detail — Marks Tab (30 seconds)
+## 3. Show Pilot School Dashboard (60 seconds)
 
-Click the **Marks** tab
+Navigate to: `https://vault-lms.duckdns.org/impact/school-dashboard?school=PilotSchool`
 
-**Say:** *"The Marks tab shows the mark entry grid. Rows are learners, columns are questions. Teachers enter scores in each cell with keyboard navigation and validation."*
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "This is the **Pilot School Dashboard**. At a glance: one class, thirty learners assessed, one assessment, and an overall pass rate of 50%. Half the learners passed the diagnostic test." | Four summary cards: Classes (1), Learners Assessed (30), Assessments (1), Pass Rate (50%) |
+| "Below that, pass rate by subject — Mathematics at 50%. And pass rate by class — Form 1A, also 50%." | Pass Rate by Subject and Pass Rate by Class cards |
+| "Further down, **Topics Needing Revision**. Five topics came up as weak — Word Problems at 46%, Fractions at 46%, Percentages at 47%. This tells the teacher exactly what to re-teach." | Topics Needing Revision section with 5 topics listed |
 
-**Show:**
-- 30 learners (L001-L030) as rows
-- 8 questions as columns
-- Scores in each cell
-- Total per learner
-- Mark completion: 240/240 (100%)
-
----
-
-### 6. Assessment Detail — Results Tab (2 minutes)
-
-Click the **Results** tab
-
-**Say:** *"This is the most important tab. Results shows the analytics calculated from the marks automatically."*
-
-**Point to summary stats:**
-- **Class average:** ~45% *(point to number)*
-- **Pass rate:** ~40% *(point to number)*
-- **Failure rate:** ~60% *(point to number)*
-- **Learners assessed:** 30/30
-
-**Say:** *"All numbers are calculated deterministically from the marks. No AI is needed for these analytics."*
-
-**Point to Weak Topics:**
-- *"The system automatically identifies topics where learners scored below 55%. These need revision."*
-- Example: Fractions (35%, Critical), Word Problems (38%, Critical)
-
-**Point to Question Performance table:**
-- *"Each question shows its average score and percentage. Critical questions are flagged in red."*
-
-**Point to At-Risk Learners:**
-- *"Learners scoring below 40% are flagged as high risk. The system identifies who needs support."*
+**Key points to make:**
+- This data comes from ONE diagnostic test
+- The teacher doesn't need to guess which topics to revise
+- Everything updated automatically when marks are entered
 
 ---
 
-### 7. AI Summaries — Optional (1 minute)
+## 4. Show Form 1A Learners (30 seconds)
 
-Scroll to **AI-Generated Insights**
+Navigate to: `https://vault-lms.duckdns.org/impact/classes`
 
-**Say:** *"Optionally, teachers can generate AI summaries to help interpret the data."*
+Click into Form 1A → "Manage learners"
 
-**Click "Generate Teacher Summary":**
-- Wait for generation (few seconds)
-- *"This gives a narrative overview of the assessment results."*
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "Learners are identified by codes, not names — L001 through L030. This protects learner privacy. The teacher can add learners with a simple code in seconds." | Learners table: 30 rows of learner codes with status badges. "Add learner" button highlighted. |
 
-**Say:** *"AI summaries are advisory only. The numbers above remain the source of truth. AI never changes the pass rate or risk levels."*
-
----
-
-### 8. Interventions Tab (30 seconds)
-
-Click the **Interventions** tab
-
-**Say:** *"The Interventions tab shows recommended actions. Critical items need immediate attention."*
-
-**Show:**
-- Critical interventions (red)
-- High priority (amber)
-- Recommended actions for each
+**Key point:** "No full student names needed for the pilot."
 
 ---
 
-### 9. Exports (30 seconds)
+## 5. Show Diagnostic Assessment (30 seconds)
 
-Go back to the header, click **"Export Analytics"**
+Navigate to: `https://vault-lms.duckdns.org/impact/assessments`
 
-**Say:** *"Teachers can export marks and analytics as CSV files that open cleanly in Excel or Google Sheets."*
+Click into "Term 1 Diagnostic Test"
 
-**Also show:** "View Report" → browser Print → Save as PDF
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "This is the Term 1 Diagnostic Test — 100 marks, pass mark 50, graded. The teacher created this assessment, added 8 questions mapped to topics, entered marks for 30 learners, and the system did the rest." | Assessment detail page with tabs: Setup, Questions, Marks, Results, Interventions |
 
----
-
-### 10. School Dashboard (1 minute)
-
-Navigate to `/impact/school-dashboard` and select "Pilot School"
-
-**Say:** *"The school dashboard gives school heads an aggregated view across all assessments."*
-
-**Show:**
-- Total classes: 1
-- Learners assessed: 30
-- Overall pass rate: ~40%
-- Pass rate by subject
-- Topics needing revision
-- Classes needing support
-- Intervention priority
-
-**Say:** *"This dashboard helps school heads identify which classes and subjects need support, without requiring manual data aggregation."*
+**Navigate tabs briefly:**
+- "Questions" tab shows the 8 questions with topic mapping
+- "Marks" tab shows the mark entry grid (teacher enters scores per learner per question)
 
 ---
 
-### 11. Ministry Demo (30 seconds)
+## 6. Show Results Tab (45 seconds)
 
-Navigate to `/impact/ministry-demo`
+Click the "Results" tab
 
-**Say:** *"The ministry demo shows a high-level aggregate view suitable for education officials."*
-
-**Show:**
-- Schools, learners, assessments counts
-- Average pass rate
-- Weak topics by subject
-- Schools needing support
-- All data is aggregate — no learner names visible
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "Here are the **assessment results**. Class average: 47%. Pass rate: 50%. Failure rate: 50%. 30 out of 30 learners assessed — full completion." | Summary stats: Class Average, Pass Rate, Failure Rate, Learners Assessed |
+| "Below that, **weak topics** are highlighted — Fractions, Ratios, Percentages, Graphs, Word Problems — all below 50%. The teacher knows exactly what to re-teach." | Weak Topics section with percentage scores |
+| "**Question Performance** shows each question's average score. Q8 (Word Problems, hard, analysis) was toughest at 21%. Q1 (Fractions, easy, knowledge) was best at 67%." | Question Performance table with per-question breakdown |
+| "**At-Risk Learners** — 15 learners flagged as medium risk. Learner L001 scored 83% (pass), but learner L030 scored 21% (high risk). The teacher sees who needs help." | At-Risk Learners section |
 
 ---
 
-### 12. Closing (30 seconds)
+## 7. Show Intervention Plan (30 seconds)
 
-**Say:** *"Impact Intelligence turns marked assessments into learning evidence. Teachers get weak topic analysis, learner risk flags, and intervention recommendations — all from marks they already collect."*
+Click the "Interventions" tab
 
-**Key messages:**
-- Deterministic analytics (no AI required)
-- Teacher support tool (does not replace teachers)
-- Privacy-aware (learner codes, not names)
-- Exportable reports (CSV + PDF)
-- Ready for pilot in one school, one class, one subject
+| Narrator says | Screen shows |
+|--------------|--------------|
+| "Based on the analytics, Impact Intelligence generates **intervention recommendations**. Critical topics need re-teaching within 7 days. Weak topics need targeted revision. High-risk learners need one-on-one attention." | Interventions tab listing recommendations sorted by severity |
 
----
-
-## Demo Checklist
-
-- [ ] SurrealDB running
-- [ ] Demo data seeded
-- [ ] API server running
-- [ ] Frontend running
-- [ ] Landing page loads
-- [ ] Assessment list loads
-- [ ] Assessment detail (all 5 tabs) works
-- [ ] Results show analytics numbers
-- [ ] AI summary generates (if configured)
-- [ ] CSV export downloads
-- [ ] Print report shows clean layout
-- [ ] School dashboard loads
-- [ ] Ministry demo loads
+**Example script:**
+- "Re-teach Word Problems before moving forward — run a follow-up check within 7 days."
+- "Learner L030 is at high risk (21%). Immediate intervention required."
 
 ---
 
-## Troubleshooting During Demo
+## 8. Show School Report (30 seconds)
 
-| Problem | Fix |
-|---------|-----|
-| Page doesn't load | Check API server is running on port 5055 |
-| No data | Run `python scripts/seed_impact_demo.py` |
-| AI summary fails | "AI summaries are unavailable" — move on gracefully |
-| CSV won't download | Check browser popup blocker |
-| Print layout broken | Use Chrome/Firefox, not Safari |
+Navigate to: `https://vault-lms.duckdns.org/impact/schools/PilotSchoolId/report`
+
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "The **School Impact Report** is a print-ready document with the school name, summary stats, pass rate by class, assessment list, and interventions. Teachers can print this for staff meetings or save as PDF." | Print-friendly report page with school header, stats, tables |
+
+---
+
+## 9. Show Ministry-Style Aggregate Demo (30 seconds)
+
+Navigate to: `https://vault-lms.duckdns.org/impact/ministry-demo`
+
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "For education officials, the **Ministry Demo Dashboard** shows aggregate data across schools — without learner names. As more schools join, this view shows regional trends, weak subjects, and schools needing support." | Ministry dashboard: Schools, Learners Assessed, Assessments Captured, Average Pass Rate |
+
+**Privacy note:** "No learner names are visible at this level — just aggregate statistics."
+
+---
+
+## 10. Pilot Next Step (15 seconds)
+
+| Narrator says | Screen shows |
+|---------------|--------------|
+| "That's the 5-minute tour. The next step is the pilot: one school, one teacher, one class, one subject. We'll run a diagnostic assessment, generate the reports, then run a follow-up to measure improvement. The school gets: weak-topic report, learner risk report, intervention plan, and improvement comparison — at no cost." | Landing page (any view) |
+
+**Close:** "Questions?"
+
+---
+
+## Appendix: URL Quick Reference
+
+| Destination | URL |
+|-------------|-----|
+| Landing page | `/impact` |
+| School dashboard | `/impact/school-dashboard?school=ID` |
+| Classes | `/impact/classes` |
+| Learners | `/impact/classes/{id}/learners` |
+| Assessments | `/impact/assessments` |
+| Assessment detail | `/impact/assessments/{id}` |
+| Assessment report | `/impact/assessments/{id}/report` |
+| School report | `/impact/schools/{id}/report` |
+| Ministry demo | `/impact/ministry-demo` |
+| Schools | `/impact/schools` |
+| Subjects | `/impact/subjects` |
