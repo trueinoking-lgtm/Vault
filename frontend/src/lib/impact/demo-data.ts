@@ -63,6 +63,39 @@ const IDS = {
 // Schools
 // =========================================================================
 
+// =========================================================================
+// Deterministic PRNG
+// =========================================================================
+//
+// The demo must be *deterministic* — every reload has to show the same
+// numbers, otherwise it contradicts the product's "deterministic = truth"
+// promise. We use a seeded mulberry32 generator keyed by assessment ID.
+
+function hashSeed(str: string): number {
+  let h = 1779033703 ^ str.length
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353)
+    h = (h << 13) | (h >>> 19)
+  }
+  return h >>> 0
+}
+
+function makeRng(seed: string): () => number {
+  let a = hashSeed(seed)
+  return function () {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+// Thresholds kept in sync with vault_core/analytics/impact.py
+const CRITICAL_TOPIC_THRESHOLD = 40
+const WEAK_TOPIC_THRESHOLD = 55
+const CRITICAL_QUESTION_THRESHOLD = 35
+
 export const SEEDED_SCHOOLS: ImpactSchoolListResponse = {
   total: 3,
   schools: [
@@ -499,8 +532,8 @@ const SCHOOL_DASHBOARDS: Record<string, SchoolDashboard> = {
     ],
     weakest_topics: [
       { topic_id: IDS.topics[1], topic_name: 'Ratios', percentage: 28, is_critical: true, num_questions: 3 },
-      { topic_id: IDS.topics[2], topic_name: 'Percentages', percentage: 32, is_critical: false, num_questions: 2 },
-      { topic_id: IDS.topics[4], topic_name: 'Word Problems', percentage: 38, is_critical: false, num_questions: 2 },
+      { topic_id: IDS.topics[2], topic_name: 'Percentages', percentage: 32, is_critical: true, num_questions: 2 },
+      { topic_id: IDS.topics[4], topic_name: 'Word Problems', percentage: 38, is_critical: true, num_questions: 2 },
       { topic_id: IDS.topics[0], topic_name: 'Fractions', percentage: 55, is_critical: false, num_questions: 2 },
     ],
     classes_needing_support: [
@@ -588,8 +621,19 @@ export function getSeededAssessmentAnalytics(assessmentId: string): AssessmentAn
   const questions = questionsRes.questions
   if (questions.length === 0) return null
 
+  // Deterministic PRNG keyed by assessment id (stable across reloads)
+  const rng = makeRng(assessmentId)
+
+  // The learners actually enrolled in this assessment's class group are the
+  // population. Completion is 100% in the seed (all marks entered).
+  const classGroups = SEEDED_CLASSES.class_groups.filter((cg) => cg.school_id === assessment.school_id)
+  const classLearners = classGroups.length > 0
+    ? SEEDED_LEARNERS.learners.filter((l) => classGroups.some((cg) => cg.id === l.class_group_id))
+    : SEEDED_LEARNERS.learners.slice(0, 30)
+  const numLearners = classLearners.length || 30
+
   const qp: QuestionPerformance[] = questions.map((q) => {
-    const avgScore = Math.round(q.max_marks * (0.35 + Math.random() * 0.5))
+    const avgScore = Math.round(q.max_marks * (0.35 + rng() * 0.5))
     return {
       question_id: q.id,
       question_number: q.question_number,
@@ -598,11 +642,11 @@ export function getSeededAssessmentAnalytics(assessmentId: string): AssessmentAn
       topic_id: q.topic_id || '',
       skill_type: q.skill_type,
       difficulty: q.difficulty,
-      total_score: avgScore * 25,
-      num_learners: 25,
+      total_score: avgScore * numLearners,
+      num_learners: numLearners,
       average_score: avgScore,
       average_percentage: Math.round((avgScore / q.max_marks) * 100),
-      is_critical: (avgScore / q.max_marks) < 0.4,
+      is_critical: (avgScore / q.max_marks) < (CRITICAL_QUESTION_THRESHOLD / 100),
     }
   })
 
@@ -618,7 +662,7 @@ export function getSeededAssessmentAnalytics(assessmentId: string): AssessmentAn
         total_max_marks: 0,
         percentage: 0,
         num_questions: 0,
-        num_learners: 25,
+        num_learners: numLearners,
         is_weak: false,
         is_critical: false,
       })
@@ -627,9 +671,9 @@ export function getSeededAssessmentAnalytics(assessmentId: string): AssessmentAn
     const qpItem = qp.find((p) => p.question_id === q.id)
     if (qpItem) {
       tp.total_score += qpItem.total_score
-      tp.total_max_marks += qpItem.max_marks * 25
+      tp.total_max_marks += qpItem.max_marks * numLearners
     } else {
-      tp.total_max_marks += q.max_marks * 25
+      tp.total_max_marks += q.max_marks * numLearners
     }
     tp.num_questions++
   }
@@ -641,19 +685,14 @@ export function getSeededAssessmentAnalytics(assessmentId: string): AssessmentAn
     return {
       ...tp,
       percentage: pct,
-      is_weak: pct < 50,
-      is_critical: pct < 35,
+      is_weak: CRITICAL_TOPIC_THRESHOLD <= pct && pct < WEAK_TOPIC_THRESHOLD,
+      is_critical: pct < CRITICAL_TOPIC_THRESHOLD,
     }
   })
 
-  // Simulate learner performance
-  const classGroups = SEEDED_CLASSES.class_groups.filter((cg) => cg.school_id === assessment.school_id)
-  const classLearners = classGroups.length > 0
-    ? SEEDED_LEARNERS.learners.filter((l) => classGroups.some((cg) => cg.id === l.class_group_id))
-    : SEEDED_LEARNERS.learners.slice(0, 25)
-
-  const learnerPerformance: LearnerPerformance[] = classLearners.slice(0, 25).map((l) => {
-    const pct = 30 + Math.floor(Math.random() * 55)
+  // Simulate learner performance (deterministic, seeded by assessment id)
+  const learnerPerformance: LearnerPerformance[] = classLearners.slice(0, numLearners).map((l) => {
+    const pct = 30 + Math.floor(rng() * 55)
     return {
       learner_id: l.id,
       learner_code: l.learner_code,
@@ -661,8 +700,8 @@ export function getSeededAssessmentAnalytics(assessmentId: string): AssessmentAn
       total_score: Math.round((pct / 100) * assessment.total_marks),
       total_max_marks: assessment.total_marks,
       percentage: pct,
-      passed: pct >= 50,
-      risk_level: pct < 35 ? 'high' : pct < 50 ? 'medium' : 'low',
+      passed: pct >= (assessment.pass_mark ?? 50),
+      risk_level: pct < 40 ? 'high' : pct < (assessment.pass_mark ?? 50) ? 'medium' : 'low',
       questions_answered: questions.length,
       total_questions: questions.length,
     }
@@ -681,8 +720,8 @@ export function getSeededAssessmentAnalytics(assessmentId: string): AssessmentAn
     ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length)
     : 0
 
-  const weakTopics = topicPerformance.filter((tp) => tp.is_weak)
-  const atRiskLearners = learnerPerformance.filter((lp) => lp.risk_level === 'high')
+  const weakTopics = topicPerformance.filter((tp) => tp.is_weak || tp.is_critical)
+  const atRiskLearners = learnerPerformance.filter((lp) => lp.risk_level === 'high' || lp.risk_level === 'medium')
 
   return {
     assessment_id: assessmentId,
@@ -731,7 +770,7 @@ export const SEEDED_MINISTRY_DASHBOARD: MinistryDashboard = {
       weak_topics: [
         { topic_name: 'Ratios', percentage: 28, is_critical: true },
         { topic_name: 'Percentages', percentage: 32, is_critical: true },
-        { topic_name: 'Word Problems', percentage: 38, is_critical: false },
+        { topic_name: 'Word Problems', percentage: 38, is_critical: true },
       ],
     },
     {
