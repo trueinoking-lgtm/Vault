@@ -1,0 +1,58 @@
+# ZimLearnGraph SurrealDB — systemd Service
+#
+# Production datastore (DO NOT use the stale surreal-data/ hyphen directory):
+#   rocksdb:/root/vault-open-notebook/surreal_data/mydatabase.db
+# Bind: 127.0.0.1:8000 only (never expose SurrealDB publicly).
+# Verified command reconstructed from .run/surrealdb.log
+# (original: "Started kvs store at rocksdb:///root/vault-open-notebook/surreal_data/mydatabase.db"
+#            "Started web server on 127.0.0.1:8000").
+#
+# Install:
+#   sudo cp deploy/systemd/vault-surrealdb.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable vault-surrealdb.service
+#   sudo systemctl start vault-surrealdb.service
+
+[Unit]
+Description=ZimLearnGraph SurrealDB (production datastore)
+Documentation=https://github.com/trueinoking-lgtm/Vault
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/vault-open-notebook
+
+# Bind to loopback only — SurrealDB must never be publicly reachable.
+# Uses the verified production rocksdb datastore (real data, not empty).
+ExecStart=/root/.local/bin/surreal start \
+    --user root --pass root \
+    --bind 127.0.0.1:8000 \
+    rocksdb:/root/vault-open-notebook/surreal_data/mydatabase.db
+
+# Survive crash AND reboot.
+Restart=always
+RestartSec=5
+
+# Prevent restart storms if the store is unrecoverable.
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Logging to journald.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vault-surrealdb
+
+# Hardening. NOTE: ProtectHome=no is REQUIRED — both SurrealDB (datastore at
+# /root/vault-open-notebook/surreal_data) and uv (cache at /root/.cache/uv)
+# must write under /root. Do NOT set ProtectHome=read-only here or the
+# datastore/log writes fail with "Read-only file system".
+NoNewPrivileges=yes
+ProtectHome=no
+ProtectSystem=full
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

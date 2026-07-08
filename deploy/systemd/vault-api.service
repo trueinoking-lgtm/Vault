@@ -1,0 +1,58 @@
+# ZimLearnGraph Vault/FastAPI API — systemd Service
+#
+# Verified command (from .run/api.log): uv run --env-file .env run_api.py
+#   -> uvicorn api.main:app on 127.0.0.1:5055 (auth disabled, as configured).
+#
+# Depends on vault-surrealdb.service (must be up before the API starts).
+#
+# Install:
+#   sudo cp deploy/systemd/vault-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable vault-api.service
+#   sudo systemctl start vault-api.service
+
+[Unit]
+Description=ZimLearnGraph Vault/FastAPI API
+Documentation=https://github.com/trueinoking-lgtm/Vault
+After=network.target vault-surrealdb.service
+Wants=vault-surrealdb.service
+Requires=vault-surrealdb.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/vault-open-notebook
+
+# Load project config (SURREAL_URL=ws://127.0.0.1:8000/rpc, etc.).
+# systemd EnvironmentFile uses KEY=VALUE format — .env is compatible.
+EnvironmentFile=/root/vault-open-notebook/.env
+
+# Exact verified production start command.
+ExecStart=/usr/local/lib/hermes-agent/venv/bin/uv run \
+    --env-file /root/vault-open-notebook/.env \
+    run_api.py
+
+# Survive crash AND reboot.
+Restart=always
+RestartSec=5
+
+# Prevent restart storms if startup keeps failing.
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Logging to journald.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vault-api
+
+# Hardening. NOTE: ProtectHome=no is REQUIRED — uv writes its cache to
+# /root/.cache/uv. Do NOT set ProtectHome=read-only here or uv fails with
+# "Read-only file system" when acquiring its lock.
+NoNewPrivileges=yes
+ProtectHome=no
+ProtectSystem=full
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
