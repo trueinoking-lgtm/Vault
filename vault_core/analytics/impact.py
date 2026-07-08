@@ -140,7 +140,7 @@ class ImpactAnalyticsEngine:
 
     # Thresholds for learner risk
     HIGH_RISK_THRESHOLD = 40.0
-    MEDIUM_RISK_THRESHOLD = 100.0  # Pass mark is checked separately
+    MEDIUM_RISK_THRESHOLD = 50.0  # Default medium-risk line: below 50% of total marks when no explicit pass_mark
 
     @classmethod
     async def calculate_analytics(cls, assessment_id: str) -> AssessmentAnalytics:
@@ -168,7 +168,10 @@ class ImpactAnalyticsEngine:
         # Fetch all related data
         questions = await cls._fetch_questions(assessment_id)
         marks = await cls._fetch_marks(assessment_id)
-        learners = await cls._fetch_learners(assessment.school_id)
+        if getattr(assessment, "class_group_id", None):
+            learners = await cls._fetch_learners_by_class(assessment.class_group_id)
+        else:
+            learners = await cls._fetch_learners(assessment.school_id)
         topics = await cls._fetch_topics(assessment.subject_id)
 
         # Build lookup maps (filter out None keys)
@@ -278,6 +281,17 @@ class ImpactAnalyticsEngine:
         return [ImpactLearner(**r) for r in result]
 
     @classmethod
+    async def _fetch_learners_by_class(cls, class_group_id: str) -> List[ImpactLearner]:
+        """Fetch all learners in one class group — the correct population for a
+        single assessment (used as the completion-rate denominator)."""
+        table, rid = cls._split_record_id(class_group_id)
+        result = await repo_query(
+            "SELECT * FROM impact_learner WHERE class_group_id = type::thing($table, $id)",
+            {"table": table, "id": rid},
+        )
+        return [ImpactLearner(**r) for r in result]
+
+    @classmethod
     async def _fetch_topics(cls, subject_id: str) -> List[ImpactTopic]:
         """Fetch all topics for a subject."""
         table, rid = cls._split_record_id(subject_id)
@@ -337,12 +351,8 @@ class ImpactAnalyticsEngine:
                 # Default: pass if >= 50%
                 passed = percentage >= 50.0
 
-            # Determine risk level
-            risk_level = "low"
-            if percentage < cls.HIGH_RISK_THRESHOLD:
-                risk_level = "high"
-            elif total_score < (pass_mark or total_marks * 0.5):
-                risk_level = "medium"
+            # Determine risk level (shared helper keeps production == tested logic)
+            risk_level = cls.classify_learner_risk(percentage, total_score, pass_mark)
 
             performances.append(
                 LearnerPerformance(
@@ -476,9 +486,8 @@ class ImpactAnalyticsEngine:
             # Calculate percentage
             percentage = (total_score / total_max_marks * 100) if total_max_marks > 0 else 0.0
 
-            # Determine weakness level
-            is_critical = percentage < cls.CRITICAL_TOPIC_THRESHOLD
-            is_weak = cls.CRITICAL_TOPIC_THRESHOLD <= percentage < cls.WEAK_TOPIC_THRESHOLD
+            # Determine weakness level (shared helper keeps production == tested logic)
+            is_weak, is_critical = cls.classify_topic(percentage)
 
             performances.append(
                 TopicPerformance(
@@ -662,10 +671,16 @@ class ImpactAnalyticsEngine:
 
         Returns:
             Risk level: "low", "medium", or "high"
+
+        Rules (shared with calculate_analytics so the production path is the
+        one that is actually unit-tested):
+        - high:    percentage < HIGH_RISK_THRESHOLD
+        - medium:  total_score < (pass_mark if set, else MEDIUM_RISK_THRESHOLD% of total marks)
+        - low:     otherwise
         """
         if percentage < cls.HIGH_RISK_THRESHOLD:
             return "high"
-        elif pass_mark is not None and total_score < pass_mark:
+        medium_threshold = pass_mark if pass_mark is not None else cls.MEDIUM_RISK_THRESHOLD
+        if total_score < medium_threshold:
             return "medium"
-        else:
-            return "low"
+        return "low"
