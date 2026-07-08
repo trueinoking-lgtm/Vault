@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { ScrollProvider } from '@/lib/landing/ScrollContext';
+import { useLenis } from '@/lib/landing/useLenis';
 import ImpactNav from './ImpactNav';
 import ImpactHero from './ImpactHero';
 import ImpactProblem from './ImpactProblem';
@@ -33,6 +34,20 @@ const FixedScene = dynamic(() => import('./HeroScene'), {
 export default function ImpactLandingPage() {
   return (
     <ScrollProvider>
+      <LandingInner />
+    </ScrollProvider>
+  );
+}
+
+/**
+ * Inner content — must render inside <ScrollProvider> so useLenis() can read
+ * the shared scroll ref.
+ */
+function LandingInner() {
+  useLenis();
+
+  return (
+    <>
       {/* Fixed WebGL scene — visible behind all content */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <FixedScene />
@@ -68,6 +83,6 @@ export default function ImpactLandingPage() {
           </div>
         </footer>
       </div>
-    </ScrollProvider>
+    </>
   );
 }
