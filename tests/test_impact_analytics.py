@@ -877,3 +877,192 @@ class TestDashboardAggregationLogic:
         assert len(needing) == 2
         assert needing[0]["name"] == "Form 1A"
         assert needing[1]["name"] == "Form 1C"
+
+
+# =========================================================================
+# End-to-end calculate_analytics (the production path)
+# =========================================================================
+#
+# Before this test the suite only exercised the private helper methods
+# (classify_topic / classify_learner_risk / calculate_topic_percentage),
+# which were NOT called by calculate_analytics(). This test drives the real
+# entry point with mocked data-fetch methods and asserts the full
+# AssessmentAnalytics output, including the summary statistics and that the
+# production classification now matches the unit-tested helpers.
+
+import asyncio  # noqa: E402
+
+
+class TestCalculateAnalyticsEndToEnd:
+    """Drive ImpactAnalyticsEngine.calculate_analytics() end-to-end."""
+
+    @pytest.fixture
+    def assessment(self):
+        a = MagicMock(spec=ImpactAssessment)
+        a.id = "impact_assessment:1"
+        a.title = "Mid-Term Exam"
+        a.assessment_type = "exam"
+        a.total_marks = 100
+        a.pass_mark = 50
+        a.term = "Term 1"
+        a.school_id = "impact_school:1"
+        a.subject_id = "impact_subject:1"
+        a.class_group_id = "impact_class_group:1"
+        return a
+
+    @pytest.fixture
+    def questions(self):
+        q1 = MagicMock(spec=ImpactAssessmentQuestion)
+        q1.id = "impact_assessment_question:1"
+        q1.question_number = 1
+        q1.label = "Q1"
+        q1.max_marks = 20
+        q1.topic_id = "impact_topic:1"
+        q1.skill_type = "knowledge"
+        q1.difficulty = "easy"
+
+        q2 = MagicMock(spec=ImpactAssessmentQuestion)
+        q2.id = "impact_assessment_question:2"
+        q2.question_number = 2
+        q2.label = "Q2"
+        q2.max_marks = 30
+        q2.topic_id = "impact_topic:1"
+        q2.skill_type = "application"
+        q2.difficulty = "medium"
+
+        q3 = MagicMock(spec=ImpactAssessmentQuestion)
+        q3.id = "impact_assessment_question:3"
+        q3.question_number = 3
+        q3.label = "Q3"
+        q3.max_marks = 50
+        q3.topic_id = "impact_topic:2"
+        q3.skill_type = "application"
+        q3.difficulty = "hard"
+        return [q1, q2, q3]
+
+    @pytest.fixture
+    def topics(self):
+        t1 = MagicMock(spec=ImpactTopic)
+        t1.id = "impact_topic:1"
+        t1.name = "Algebra"
+        t1.subject_id = "impact_subject:1"
+        t2 = MagicMock(spec=ImpactTopic)
+        t2.id = "impact_topic:2"
+        t2.name = "Geometry"
+        t2.subject_id = "impact_subject:1"
+        return [t1, t2]
+
+    @pytest.fixture
+    def learners(self):
+        out = []
+        for i in (1, 2, 3):
+            l = MagicMock(spec=ImpactLearner)
+            l.id = f"impact_learner:{i}"
+            l.learner_code = f"L00{i}"
+            l.display_name = f"Learner {i}"
+            l.school_id = "impact_school:1"
+            out.append(l)
+        return out
+
+    @pytest.fixture
+    def marks(self):
+        # Learner 1: 68% (pass, low)
+        # Learner 2: 36% (fail, high risk)
+        # Learner 3: 60% (pass, low)
+        rows = [
+            ("impact_learner:1", "impact_assessment_question:1", 8.0),
+            ("impact_learner:1", "impact_assessment_question:2", 15.0),
+            ("impact_learner:1", "impact_assessment_question:3", 45.0),
+            ("impact_learner:2", "impact_assessment_question:1", 6.0),
+            ("impact_learner:2", "impact_assessment_question:2", 10.0),
+            ("impact_learner:2", "impact_assessment_question:3", 20.0),
+            ("impact_learner:3", "impact_assessment_question:1", 10.0),
+            ("impact_learner:3", "impact_assessment_question:2", 20.0),
+            ("impact_learner:3", "impact_assessment_question:3", 30.0),
+        ]
+        return [
+            MagicMock(
+                spec=ImpactMarkEntry,
+                assessment_id="impact_assessment:1",
+                question_id=qid,
+                learner_id=lid,
+                score=score,
+                max_score=None,
+            )
+            for lid, qid, score in rows
+        ]
+
+    def test_full_pipeline(self, assessment, questions, topics, learners, marks):
+        with patch("vault_core.analytics.impact.ImpactAssessment") as MockAssess, patch.object(
+            ImpactAnalyticsEngine, "_fetch_questions", return_value=questions
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_marks", return_value=marks
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_learners_by_class", return_value=learners
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_topics", return_value=topics
+        ):
+            MockAssess.get = AsyncMock(return_value=assessment)
+            result = asyncio.run(
+                ImpactAnalyticsEngine.calculate_analytics("impact_assessment:1")
+            )
+
+        # Summary statistics
+        assert result.total_learners == 3
+        assert result.learners_assessed == 3
+        assert result.mark_completion_rate == 100.0
+        assert result.pass_rate == pytest.approx(66.67, rel=0.01)
+        assert result.failure_rate == pytest.approx(33.33, rel=0.01)
+        assert result.class_average_percentage == pytest.approx(55.0, rel=0.01)
+
+        # Every learner is present and classified correctly
+        by_code = {lp.learner_code: lp for lp in result.learner_performance}
+        assert by_code["L001"].risk_level == "low"
+        assert by_code["L002"].risk_level == "high"
+        assert by_code["L003"].risk_level == "low"
+        assert len(result.at_risk_learners) == 1
+
+        # Topic aggregation: Algebra = 46% (weak), Geometry = 63% (stable)
+        by_topic = {tp.topic_id: tp for tp in result.topic_performance}
+        assert by_topic["impact_topic:1"].percentage == pytest.approx(46.0, rel=0.01)
+        assert by_topic["impact_topic:1"].is_weak is True
+        assert by_topic["impact_topic:1"].is_critical is False
+        assert by_topic["impact_topic:2"].is_weak is False
+        assert by_topic["impact_topic:2"].is_critical is False
+        # Weak topics list must include the weak Algebra topic
+        weak_ids = {t.topic_id for t in result.weak_topics}
+        assert "impact_topic:1" in weak_ids
+
+        # Interventions: 1 weak topic + 1 at-risk learner
+        assert len(result.interventions) == 2
+
+    def test_completion_rate_uses_class_population(
+        self, assessment, questions, topics, marks
+    ):
+        """Completion rate is against the assessed class group, not the whole
+        school. Here the class has 3 learners and all 3 are marked => 100%."""
+        class_learners = []
+        for i in (1, 2, 3):
+            l = MagicMock(spec=ImpactLearner)
+            l.id = f"impact_learner:{i}"
+            l.learner_code = f"L00{i}"
+            l.display_name = f"Learner {i}"
+            l.school_id = "impact_school:1"
+            class_learners.append(l)
+
+        with patch("vault_core.analytics.impact.ImpactAssessment") as MockAssess, patch.object(
+            ImpactAnalyticsEngine, "_fetch_questions", return_value=questions
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_marks", return_value=marks
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_learners_by_class", return_value=class_learners
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_topics", return_value=topics
+        ):
+            MockAssess.get = AsyncMock(return_value=assessment)
+            result = asyncio.run(
+                ImpactAnalyticsEngine.calculate_analytics("impact_assessment:1")
+            )
+
+        assert result.total_learners == 3
+        assert result.mark_completion_rate == 100.0
