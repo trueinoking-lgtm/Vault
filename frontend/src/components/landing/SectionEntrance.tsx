@@ -1,8 +1,8 @@
 'use client';
 
 import { useRef, useEffect, useState, ReactNode } from 'react';
-import { motion } from 'framer-motion';
-import { fadeUp, scaleIn, slideInLeft, slideInRight, DURATION } from '@/lib/landing/motion-config';
+import { motion, useReducedMotion } from 'framer-motion';
+import { fadeUp, scaleIn, slideInLeft, slideInRight } from '@/lib/landing/motion-config';
 
 type AnimationType = 'fadeUp' | 'scaleIn' | 'slideLeft' | 'slideRight';
 
@@ -30,10 +30,10 @@ interface SectionEntranceProps {
 }
 
 /**
- * SectionEntrance — wraps content with a scroll-triggered entrance animation.
+ * SectionEntrance — scroll-triggered entrance animation with a safety fallback.
  *
- * Uses IntersectionObserver to trigger framer-motion animations
- * when the element scrolls into view. Animates once per page load.
+ * Public landing sections should never remain invisible if IntersectionObserver,
+ * browser throttling, or reduced-motion settings prevent the animation trigger.
  */
 export default function SectionEntrance({
   children,
@@ -46,24 +46,38 @@ export default function SectionEntrance({
 }: SectionEntranceProps) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
+    if (reduceMotion) {
+      setIsVisible(true);
+      return;
+    }
+
     const el = ref.current;
     if (!el) return;
+
+    const fallbackTimer = window.setTimeout(() => {
+      setIsVisible(true);
+    }, 1200);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
           observer.unobserve(el);
+          window.clearTimeout(fallbackTimer);
         }
       },
       { threshold, rootMargin },
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold, rootMargin]);
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      observer.disconnect();
+    };
+  }, [threshold, rootMargin, reduceMotion]);
 
   const variant = variants[animation];
 
@@ -71,7 +85,7 @@ export default function SectionEntrance({
     <Tag ref={ref} className={className}>
       <motion.div
         variants={variant}
-        initial="hidden"
+        initial={reduceMotion ? false : 'hidden'}
         animate={isVisible ? 'visible' : 'hidden'}
         custom={index}
       >
@@ -88,7 +102,6 @@ export default function SectionEntrance({
 export function StaggerContainer({
   children,
   className = '',
-  staggerDelay = 0.1,
 }: {
   children: ReactNode;
   className?: string;

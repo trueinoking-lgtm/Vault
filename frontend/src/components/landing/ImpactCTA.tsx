@@ -10,12 +10,16 @@ export default function ImpactCTA() {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    const fallbackTimer = window.setTimeout(() => setVisible(true), 1200);
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true); },
       { threshold: 0.3 }
     );
     if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      observer.disconnect();
+    };
   }, []);
 
   return (

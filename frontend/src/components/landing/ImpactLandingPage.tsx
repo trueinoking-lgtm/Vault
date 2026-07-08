@@ -11,6 +11,10 @@ import ImpactMetrics from './ImpactMetrics';
 import ImpactIntervention from './ImpactIntervention';
 import ImpactPilot from './ImpactPilot';
 import ImpactCTA from './ImpactCTA';
+import ImpactEvidenceStrip from './ImpactEvidenceStrip';
+import ImpactWorkflowProof from './ImpactWorkflowProof';
+import ImpactTrustPanel from './ImpactTrustPanel';
+import ImpactReportOutputs from './ImpactReportOutputs';
 import LiveDataTicker from './LiveDataTicker';
 import SectionEntrance from './SectionEntrance';
 
@@ -41,11 +45,15 @@ export default function ImpactLandingPage() {
       <div className="relative z-10 bg-[#050814]/60 backdrop-blur-[2px]">
         <ImpactNav />
         <ImpactHero />
+        <ImpactEvidenceStrip />
+        <SectionEntrance animation="fadeUp"><ImpactWorkflowProof /></SectionEntrance>
         <SectionEntrance animation="fadeUp"><ImpactProblem /></SectionEntrance>
         <SectionEntrance animation="slideLeft"><ImpactHowItWorks /></SectionEntrance>
         <SectionEntrance animation="fadeUp"><ImpactIntelligenceLayers /></SectionEntrance>
         <SectionEntrance animation="scaleIn"><ImpactMetrics /></SectionEntrance>
         <SectionEntrance animation="slideRight"><ImpactIntervention /></SectionEntrance>
+        <SectionEntrance animation="fadeUp"><ImpactReportOutputs /></SectionEntrance>
+        <SectionEntrance animation="fadeUp"><ImpactTrustPanel /></SectionEntrance>
         <SectionEntrance animation="fadeUp"><ImpactPilot /></SectionEntrance>
         <SectionEntrance animation="fadeUp"><ImpactCTA /></SectionEntrance>
 

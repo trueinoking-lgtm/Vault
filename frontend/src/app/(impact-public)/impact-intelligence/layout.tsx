@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 
 /**
  * Layout for the Impact Intelligence public landing page.
- * Temporarily overrides the root layout's overflow:hidden to allow
- * full-page scrolling for the landing experience, and restores it on unmount.
+ * Overrides dashboard scrolling rules and protects the route from
+ * dynamic-import visibility bailouts in WebGL-constrained browsers.
  */
 export default function ImpactPublicLayout({
   children,
@@ -13,15 +13,25 @@ export default function ImpactPublicLayout({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    // Enable scrolling for the landing page
     document.documentElement.classList.add('landing-page');
     document.body.classList.add('landing-page');
+    document.body.style.backgroundColor = '#050814';
+
+    const visibilityTimer = window.setTimeout(() => {
+      document
+        .querySelectorAll<HTMLElement>('body > div[style*="visibility:hidden"]')
+        .forEach((element) => {
+          element.style.visibility = 'visible';
+        });
+    }, 500);
 
     return () => {
+      window.clearTimeout(visibilityTimer);
       document.documentElement.classList.remove('landing-page');
       document.body.classList.remove('landing-page');
+      document.body.style.backgroundColor = '';
     };
   }, []);
 
-  return <>{children}</>;
+  return <main className="min-h-[100dvh] bg-[#050814]">{children}</main>;
 }

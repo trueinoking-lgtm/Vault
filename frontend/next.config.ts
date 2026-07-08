@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   // Allow remote origins for headless browser QA
-  allowedDevOrigins: ['178.104.213.110'],
+  allowedDevOrigins: ['178.104.213.110', '127.0.0.1'],
 
   // Experimental features
   // Type assertion needed: proxyClientMaxBodySize is valid in Next.js 15 but types lag behind

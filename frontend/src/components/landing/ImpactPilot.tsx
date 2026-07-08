@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { PILOT } from '@/lib/landing/impact-copy';
-import { ArrowRight, CheckCircle2, FileText } from 'lucide-react';
+import { ArrowRight, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ImpactPilot() {
@@ -10,12 +10,16 @@ export default function ImpactPilot() {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    const fallbackTimer = window.setTimeout(() => setVisible(true), 1200);
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true); },
       { threshold: 0.15 }
     );
     if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      observer.disconnect();
+    };
   }, []);
 
   return (

@@ -128,10 +128,15 @@ check_http "$BASE_URL/login" 200 "Login page (/login)"
 check_http "$BASE_URL/teacher" 200 "Teacher dashboard (/teacher)"
 
 # Impact Intelligence routes
+check_http "$BASE_URL/impact-intelligence" 200 "Public Impact Intelligence (/impact-intelligence)"
 check_http "$BASE_URL/impact" 200 "Impact landing (/impact)"
 check_http "$BASE_URL/impact/assessments" 200 "Impact assessments (/impact/assessments)"
 check_http "$BASE_URL/impact/school-dashboard" 200 "Impact school dashboard (/impact/school-dashboard)"
 check_http "$BASE_URL/impact/ministry-demo" 200 "Impact ministry demo (/impact/ministry-demo)"
+
+# Favicon checks catch whole-frontend upstream failures on the standalone domain.
+check_asset_get "$BASE_URL/favicon.ico" "Favicon ICO (/favicon.ico)"
+check_asset_get "$BASE_URL/favicon.svg" "Favicon SVG (/favicon.svg)"
 
 # Owner gate — no cookie should redirect to /login?owner=1
 echo "  ── Owner gate check ──"
@@ -156,7 +161,7 @@ check_json_field "$BASE_URL/api/auth/status" "auth_enabled" "API auth status (/a
 echo "  ── Static asset check (multi-route, GET) ──"
 
 # Check CSS and JS assets from each route
-ROUTES=("/" "/vault" "/sources" "/notebooks" "/teacher")
+ROUTES=("/" "/vault" "/sources" "/notebooks" "/teacher" "/impact-intelligence" "/impact/school-dashboard")
 total_checked=0
 total_ok=0
 

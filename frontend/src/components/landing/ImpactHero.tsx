@@ -2,96 +2,83 @@
 
 import { useEffect, useState } from 'react';
 import { HERO } from '@/lib/landing/impact-copy';
-import { ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import EvidenceSignalPanel from './EvidenceSignalPanel';
+import MagneticButton from './MagneticButton';
 
 export default function ImpactHero() {
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => setMounted(true), []);
 
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center overflow-hidden"
+      className="relative flex min-h-[100dvh] items-center overflow-hidden"
     >
-      {/* Vignette overlays for readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#050814]/80 via-transparent to-[#050814]/40 pointer-events-none z-[1]" />
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#050814] to-transparent pointer-events-none z-[1]" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-[#050814]/88 via-[#050814]/46 to-[#050814]/20" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-44 bg-gradient-to-t from-[#050814] to-transparent" />
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12 pt-24 pb-20 lg:pt-32 lg:pb-24">
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-10 px-6 pb-16 pt-24 lg:grid-cols-[1.02fr_0.98fr] lg:px-12 lg:pb-20">
         <div className="max-w-3xl">
-          {/* Eyebrow */}
           <div
-            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-400 text-xs font-medium tracking-wider uppercase mb-6 sm:mb-8 transition-all duration-1000 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            className={`mb-6 inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-4 py-1.5 text-xs font-semibold text-cyan-100 transition-all duration-1000 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
             }`}
           >
-            <Sparkles className="w-3 h-3" />
             ZimLearnGraph Impact Intelligence
           </div>
 
-          {/* Headline */}
           <h1
-            className={`text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-white transition-all duration-1000 delay-200 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            className={`text-4xl font-bold leading-[1.03] tracking-tight text-white transition-all delay-150 duration-1000 sm:text-5xl md:text-6xl lg:text-7xl ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
             {HERO.headline}
           </h1>
 
-          {/* Subheadline */}
           <p
-            className={`mt-4 sm:mt-6 text-sm sm:text-lg md:text-xl text-slate-400 leading-relaxed max-w-2xl transition-all duration-1000 delay-400 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            className={`mt-5 max-w-2xl text-base leading-relaxed text-slate-300 transition-all delay-300 duration-1000 sm:text-lg ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
             {HERO.subheadline}
           </p>
 
-          {/* CTAs */}
           <div
-            className={`flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8 sm:mt-10 transition-all duration-1000 delay-600 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            className={`mt-8 flex flex-col gap-3 transition-all delay-500 duration-1000 sm:flex-row ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
-            <Link
-              href={HERO.ctaPrimary.href}
-              className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm sm:text-base hover:shadow-[0_0_30px_-5px_rgba(0,240,255,0.3)] transition-all duration-300"
-            >
+            <MagneticButton href={HERO.ctaPrimary.href}>
               {HERO.ctaPrimary.label}
-              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-            <Link
-              href={HERO.ctaSecondary.href}
-              className="inline-flex items-center justify-center px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl border border-white/10 text-slate-300 font-semibold text-sm sm:text-base hover:border-white/20 hover:text-white transition-all duration-300"
-            >
+              <ArrowRight className="h-4 w-4" />
+            </MagneticButton>
+            <MagneticButton href={HERO.ctaSecondary.href} variant="secondary">
               {HERO.ctaSecondary.label}
-            </Link>
+            </MagneticButton>
           </div>
-        </div>
-      </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 motion-safe:animate-bounce">
-        <span className="text-[10px] sm:text-xs text-slate-600 tracking-widest uppercase">Scroll</span>
-        <ChevronDown className="w-4 h-4 text-slate-500" />
-      </div>
-
-      {/* Trust strip */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-white/[0.03] bg-black/40 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-4">
-          <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-8 gap-y-1">
-            {HERO.trustStrip.map((item) => (
-              <span
-                key={item}
-                className="text-[10px] sm:text-sm text-slate-500 tracking-wide"
-              >
-                {item}
-              </span>
+          <div
+            className={`mt-8 grid max-w-xl grid-cols-3 gap-3 transition-all delay-700 duration-1000 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+            }`}
+            aria-label="Landing page proof points"
+          >
+            {[
+              ['30', 'learners'],
+              ['8', 'questions'],
+              ['5', 'weak topics'],
+            ].map(([value, label]) => (
+              <div key={label} className="rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3 backdrop-blur-sm">
+                <div className="font-mono text-lg font-semibold text-cyan-200">{value}</div>
+                <div className="mt-1 text-xs text-slate-500">{label}</div>
+              </div>
             ))}
           </div>
         </div>
+
+        <EvidenceSignalPanel />
       </div>
     </section>
   );

@@ -3,18 +3,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { METRICS } from '@/lib/landing/impact-copy';
 
-function AnimatedCounter({ value, suffix = '' }: { value: string; suffix?: string }) {
+function AnimatedCounter({ value }: { value: string }) {
   const [display, setDisplay] = useState('0');
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    const fallbackTimer = window.setTimeout(() => setVisible(true), 1200);
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true); },
       { threshold: 0.5 }
     );
     if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {

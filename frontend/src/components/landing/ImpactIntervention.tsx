@@ -2,19 +2,23 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { INTERVENTION } from '@/lib/landing/impact-copy';
-import { AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export default function ImpactIntervention() {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    const fallbackTimer = window.setTimeout(() => setVisible(true), 1200);
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true); },
       { threshold: 0.2 }
     );
     if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      observer.disconnect();
+    };
   }, []);
 
   return (

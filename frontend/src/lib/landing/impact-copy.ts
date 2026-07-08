@@ -1,5 +1,5 @@
 /* ============================================================
-   Impact Intelligence Landing Page — Copy Constants
+   Impact Intelligence Landing Page - Copy Constants
    All text content centralized here for easy review & editing.
    ============================================================ */
 
@@ -12,7 +12,7 @@ export const SITE = {
 export const HERO = {
   headline: 'Turn marked tests into learning intelligence.',
   subheadline:
-    'ZimLearnGraph Impact transforms teacher-marked assessments into weak-topic analysis, learner support signals, intervention plans, and school-level evidence.',
+    'ZimLearnGraph Impact transforms teacher-marked assessments into weak-topic analysis, learner support signals, and school-level evidence.',
   ctaPrimary: { label: 'View live demo', href: '/impact' },
   ctaSecondary: { label: 'Request a pilot', href: '#pilot' },
   trustStrip: [
@@ -27,8 +27,8 @@ export const HERO = {
 export const PROBLEM = {
   heading: 'The signal is already there. It just needs to be read.',
   body: [
-    'Every marked test contains critical learning signals — which questions exposed misconceptions, which topics need reteaching, which learners are falling behind. But after the score is recorded, most of that intelligence stays trapped inside paper mark books and static spreadsheets.',
-    'Impact Intelligence extracts those signals and surfaces them as actionable evidence — for teachers, school leaders, and educational stakeholders.',
+    'Every marked test contains critical learning signals: which questions exposed misconceptions, which topics need reteaching, which learners are falling behind. But after the score is recorded, most of that intelligence stays trapped inside paper mark books and static spreadsheets.',
+    'Impact Intelligence extracts those signals and surfaces them as actionable evidence for teachers, school leaders, and educational stakeholders.',
   ],
 } as const;
 
@@ -50,9 +50,8 @@ export const LAYERS = {
   layers: [
     {
       title: 'Teacher layer',
-      description: 'See weak topics, question-by-question performance, and which learners need support — all derived from marks you already entered.',
+      description: 'See weak topics, question-by-question performance, and which learners need support from marks you already entered.',
       accent: 'from-cyan-500 to-blue-600',
-      icon: '🎯',
       details: [
         'Topic-level class performance',
         'Question difficulty heatmaps',
@@ -63,7 +62,6 @@ export const LAYERS = {
       title: 'School layer',
       description: 'Compare class performance, spot subject-level trends, and track intervention effectiveness across your school.',
       accent: 'from-amber-400 to-orange-600',
-      icon: '📊',
       details: [
         'Cross-class comparisons',
         'Subject trend analysis',
@@ -74,7 +72,6 @@ export const LAYERS = {
       title: 'Stakeholder layer',
       description: 'Aggregate learning evidence across classes and grades without exposing individual learner identities.',
       accent: 'from-emerald-400 to-teal-600',
-      icon: '🔭',
       details: [
         'Anonymized aggregate views',
         'Curriculum coverage indices',
@@ -99,7 +96,7 @@ export const METRICS = {
 
 export const INTERVENTION = {
   heading: 'From dashboards to action.',
-  subheading: 'Impact Intelligence does not stop at reporting — it leads to measurable teaching interventions.',
+  subheading: 'Impact Intelligence does not stop at reporting. It leads to measurable teaching interventions.',
   example: {
     topic: 'Ratios & Proportional Reasoning',
     score: '32%',
@@ -114,16 +111,16 @@ export const INTERVENTION = {
 
 export const PILOT = {
   heading: 'Start with one controlled pilot.',
-  subheading: 'A contained, measurable first engagement — designed to demonstrate impact before commitment.',
+  subheading: 'A contained assessment cycle designed to prove value before a school commits to wider rollout.',
   scope: [
-    { item: '1 school', desc: 'Your chosen pilot site' },
-    { item: '1 teacher', desc: 'Familiar with the class and subject' },
-    { item: '1 class', desc: 'A representative learner group' },
+    { item: '1 school', desc: 'Chosen pilot site' },
+    { item: '1 class', desc: 'Representative learner group' },
     { item: '1 subject', desc: 'Mathematics or equivalent' },
-    { item: '1 diagnostic', desc: 'Baseline assessment' },
-    { item: '1 follow-up', desc: 'Measure improvement' },
+    { item: '1 assessment', desc: 'Teacher-marked baseline' },
+    { item: '1 support cycle', desc: 'Reteach and practice window' },
+    { item: '1 report', desc: 'Evidence of learning change' },
   ],
-  output: 'A school learning impact report showing weak-topic analysis, learner support needs, and intervention progress.',
+  output: 'Pilot output: weak-topic analysis, learner support summary, teacher action brief, school improvement snapshot, and a before/after evidence report.',
   ctaPrimary: { label: 'Request a pilot', href: 'mailto:impact@zimlearngraph.com' },
   ctaSecondary: { label: 'View demo dashboard', href: '/impact/school-dashboard' },
 } as const;
@@ -145,3 +142,4 @@ export const NAV = {
   ],
   cta: { label: 'View demo', href: '/impact' },
 } as const;
+

@@ -22,10 +22,10 @@ Wants=network-online.target
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/root/vault-vault/frontend
+WorkingDirectory=/root/vault-open-notebook/frontend
 
 # Node.js runtime
-ExecStart=/usr/bin/node .next/standalone/server.js
+ExecStart=/root/.hermes/node/bin/node .next/standalone/server.js
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=10
