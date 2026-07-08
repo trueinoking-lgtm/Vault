@@ -1823,17 +1823,20 @@ async def get_assessment_report(assessment_id: str) -> Dict[str, Any]:
 
     # Get school, class, subject (IDs may already be prefixed)
     school_result = await repo_query(
-        f"SELECT * FROM impact_school WHERE id = '{assessment.school_id}'"
+        "SELECT * FROM impact_school WHERE id = type::thing($table, $id)",
+        {"table": "impact_school", "id": _strip_prefix(str(assessment.school_id))},
     )
     school = ImpactSchool(**school_result[0]) if school_result else None
 
     class_result = await repo_query(
-        f"SELECT * FROM impact_class_group WHERE id = '{assessment.class_group_id}'"
+        "SELECT * FROM impact_class_group WHERE id = type::thing($table, $id)",
+        {"table": "impact_class_group", "id": _strip_prefix(str(assessment.class_group_id))},
     )
     class_group = ImpactClassGroup(**class_result[0]) if class_result else None
 
     subject_result = await repo_query(
-        f"SELECT * FROM impact_subject WHERE id = '{assessment.subject_id}'"
+        "SELECT * FROM impact_subject WHERE id = type::thing($table, $id)",
+        {"table": "impact_subject", "id": _strip_prefix(str(assessment.subject_id))},
     )
     subject = ImpactSubject(**subject_result[0]) if subject_result else None
 
@@ -2459,7 +2462,8 @@ async def generate_remedial_lesson(assessment_id: str) -> Dict[str, Any]:
     try:
         # Get assessment details for subject/class names
         assessment_result = await repo_query(
-            f"SELECT * FROM impact_assessment WHERE id = '{assessment_id}'"
+            "SELECT * FROM impact_assessment WHERE id = type::thing($table, $id)",
+            {"table": "impact_assessment", "id": _strip_prefix(str(assessment_id))},
         )
         if not assessment_result:
             raise HTTPException(status_code=404, detail="Assessment not found")
@@ -2468,13 +2472,15 @@ async def generate_remedial_lesson(assessment_id: str) -> Dict[str, Any]:
 
         # Get class name
         class_result = await repo_query(
-            f"SELECT * FROM impact_class_group WHERE id = '{assessment.class_group_id}'"
+            "SELECT * FROM impact_class_group WHERE id = type::thing($table, $id)",
+            {"table": "impact_class_group", "id": _strip_prefix(str(assessment.class_group_id))},
         )
         class_name = class_result[0].get("name", "Class") if class_result else "Class"
 
         # Get subject name
         subject_result = await repo_query(
-            f"SELECT * FROM impact_subject WHERE id = '{assessment.subject_id}'"
+            "SELECT * FROM impact_subject WHERE id = type::thing($table, $id)",
+            {"table": "impact_subject", "id": _strip_prefix(str(assessment.subject_id))},
         )
         subject_name = subject_result[0].get("name", "Subject") if subject_result else "Subject"
 
