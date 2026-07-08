@@ -2,7 +2,7 @@
 
 import { Suspense, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, AdaptiveDpr, Bvh } from '@react-three/drei';
+import { AdaptiveDpr } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { SCENE } from '@/lib/landing/impact-scene-config';
@@ -73,8 +73,6 @@ function SceneContent() {
         />
         <Vignette eskil={false} offset={0.3} darkness={0.5} />
       </EffectComposer>
-
-      <Environment preset="night" />
     </>
   );
 }
@@ -93,10 +91,10 @@ function SceneFallback() {
  */
 export default function HeroScene() {
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ width: '100vw', height: '100vh' }}>
+    <div className="fixed inset-0 h-screen w-screen pointer-events-none">
       <Suspense fallback={<SceneFallback />}>
         <Canvas
-          dpr={[1, 1.5]}
+          dpr={[1, 2]}
           camera={{
             position: SCENE.camera.position,
             fov: SCENE.camera.fov,
@@ -110,10 +108,8 @@ export default function HeroScene() {
           }}
           style={{ background: SCENE.bgColor }}
         >
-          <Bvh>
-            <SceneContent />
-          </Bvh>
-          <AdaptiveDpr pixelated />
+          <SceneContent />
+          <AdaptiveDpr />
         </Canvas>
       </Suspense>
     </div>
