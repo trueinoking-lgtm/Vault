@@ -1066,3 +1066,91 @@ class TestCalculateAnalyticsEndToEnd:
 
         assert result.total_learners == 3
         assert result.mark_completion_rate == 100.0
+
+
+class TestProductionPassMarkMediumRisk:
+    """Drive calculate_analytics() with a learner that falls into the
+    pass-mark `medium` branch: percentage >= 40 (not high) but total_score
+    below pass_mark (not low). This exercises the classify_learner_risk path
+    that only the production engine calls."""
+
+    def test_medium_risk_via_production_path(self):
+        assessment = MagicMock(spec=ImpactAssessment)
+        assessment.id = "impact_assessment:1"
+        assessment.title = "Mid-Term Exam"
+        assessment.assessment_type = "exam"
+        assessment.total_marks = 100
+        assessment.pass_mark = 50
+        assessment.term = "Term 1"
+        assessment.school_id = "impact_school:1"
+        assessment.subject_id = "impact_subject:1"
+        assessment.class_group_id = "impact_class_group:1"
+
+        q1 = MagicMock(spec=ImpactAssessmentQuestion)
+        q1.id = "impact_assessment_question:1"
+        q1.question_number = 1
+        q1.label = "Q1"
+        q1.max_marks = 50
+        q1.topic_id = "impact_topic:1"
+        q1.skill_type = "knowledge"
+        q1.difficulty = "easy"
+
+        q2 = MagicMock(spec=ImpactAssessmentQuestion)
+        q2.id = "impact_assessment_question:2"
+        q2.question_number = 2
+        q2.label = "Q2"
+        q2.max_marks = 50
+        q2.topic_id = "impact_topic:1"
+        q2.skill_type = "application"
+        q2.difficulty = "medium"
+
+        topic = MagicMock(spec=ImpactTopic)
+        topic.id = "impact_topic:1"
+        topic.name = "Algebra"
+        topic.subject_id = "impact_subject:1"
+
+        learner = MagicMock(spec=ImpactLearner)
+        learner.id = "impact_learner:1"
+        learner.learner_code = "L001"
+        learner.display_name = "Learner 1"
+        learner.school_id = "impact_school:1"
+
+        # 45/100 -> 45% (>= 40, not high) but 45 < 50 pass_mark -> medium
+        marks = [
+            MagicMock(
+                spec=ImpactMarkEntry,
+                assessment_id="impact_assessment:1",
+                question_id="impact_assessment_question:1",
+                learner_id="impact_learner:1",
+                score=25.0,
+                max_score=None,
+            ),
+            MagicMock(
+                spec=ImpactMarkEntry,
+                assessment_id="impact_assessment:1",
+                question_id="impact_assessment_question:2",
+                learner_id="impact_learner:1",
+                score=20.0,
+                max_score=None,
+            ),
+        ]
+
+        with patch("vault_core.analytics.impact.ImpactAssessment") as MockAssess, patch.object(
+            ImpactAnalyticsEngine, "_fetch_questions", return_value=[q1, q2]
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_marks", return_value=marks
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_learners_by_class", return_value=[learner]
+        ), patch.object(
+            ImpactAnalyticsEngine, "_fetch_topics", return_value=[topic]
+        ):
+            MockAssess.get = AsyncMock(return_value=assessment)
+            result = asyncio.run(
+                ImpactAnalyticsEngine.calculate_analytics("impact_assessment:1")
+            )
+
+        assert result.total_learners == 1
+        assert result.learner_performance[0].percentage == pytest.approx(45.0, rel=0.01)
+        assert result.learner_performance[0].risk_level == "medium"
+        assert result.learner_performance[0].passed is False
+        assert len(result.at_risk_learners) == 1
