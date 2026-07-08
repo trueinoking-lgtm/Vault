@@ -268,7 +268,7 @@ class ImpactAISummaryService:
                 assessment_title=analytics.assessment_title,
                 assessment_type=analytics.assessment_type,
                 total_marks=analytics.total_marks,
-                pass_mark=analytics.pass_mark or "Not set",
+                pass_mark=analytics.pass_mark if analytics.pass_mark is not None else "Not set",
                 term=analytics.term or "Not set",
                 class_average=analytics.class_average_percentage,
                 pass_rate=analytics.pass_rate,
