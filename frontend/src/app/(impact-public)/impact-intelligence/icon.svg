@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050814"/>
+      <stop offset="100%" stop-color="#0a1230"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#bg)"/>
+  <!-- data-graph nodes -->
+  <g stroke="url(#line)" stroke-width="1.4" fill="none">
+    <line x1="10" y1="10" x2="22" y2="11"/>
+    <line x1="22" y1="11" x2="21" y2="22"/>
+    <line x1="10" y1="10" x2="12" y2="22"/>
+    <line x1="12" y1="22" x2="21" y2="22"/>
+  </g>
+  <g fill="#00f0ff">
+    <circle cx="10" cy="10" r="2.6"/>
+    <circle cx="22" cy="11" r="2.6" fill="#3b82f6"/>
+    <circle cx="12" cy="22" r="2.6" fill="#f59e0b"/>
+    <circle cx="21" cy="22" r="2.6" fill="#00f0ff"/>
+  </g>
+</svg>
