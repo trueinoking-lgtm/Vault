@@ -1907,22 +1907,24 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
 
     # Get classes
     classes_result = await repo_query(
-        f"SELECT * FROM impact_class_group WHERE school_id = '{school_id}'"
+        "SELECT * FROM impact_class_group WHERE school_id = type::thing($table, $id)",
+        {"table": "impact_class_group", "id": _strip_prefix(school_id)},
     )
     classes = [ImpactClassGroup(**r) for r in classes_result]
 
     # Get assessments
     assessments_result = await repo_query(
-        f"SELECT * FROM impact_assessment WHERE school_id = '{school_id}'"
+        "SELECT * FROM impact_assessment WHERE school_id = type::thing($table, $id)",
+        {"table": "impact_assessment", "id": _strip_prefix(school_id)},
     )
     assessments = [ImpactAssessment(**a) for a in assessments_result]
 
     # Get all marks for school assessments
     assessment_ids = [str(a.id) for a in assessments]
     if assessment_ids:
-        quoted_ids = ','.join(['"' + aid + '"' for aid in assessment_ids])
         marks_result = await repo_query(
-            f"SELECT * FROM impact_mark_entry WHERE assessment_id IN [{quoted_ids}]"
+            "SELECT * FROM impact_mark_entry WHERE assessment_id IN $ids",
+            {"ids": assessment_ids},
         )
     else:
         marks_result = []
@@ -1930,7 +1932,8 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
 
     # Get learners
     learners_result = await repo_query(
-        f"SELECT * FROM impact_learner WHERE school_id = '{school_id}'"
+        "SELECT * FROM impact_learner WHERE school_id = type::thing($table, $id)",
+        {"table": "impact_learner", "id": _strip_prefix(school_id)},
     )
     learners = [ImpactLearner(**r) for r in learners_result]
 
@@ -1940,31 +1943,41 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
 
     for cls in classes:
         class_learners = [l for l in learners if l.class_group_id == cls.id]
-        class_marks = [m for m in marks if m.learner_id in [l.id for l in class_learners]]
-        class_learners_assessed = len(set(m.learner_id for m in class_marks))
-        total_learners_assessed += class_learners_assessed
+        class_learner_ids = {l.id for l in class_learners}
+        class_marks = [m for m in marks if m.learner_id in class_learner_ids]
+        assessed_ids = {m.learner_id for m in class_marks}
+        total_learners_assessed += len(assessed_ids)
 
+        # Aggregate each learner's total score per assessment they attempted.
+        learner_totals: Dict[str, Dict[str, float]] = {}
+        for mark in class_marks:
+            aid = mark.assessment_id or ""
+            learner_totals.setdefault(mark.learner_id, {})
+            learner_totals[mark.learner_id][aid] = (
+                learner_totals[mark.learner_id].get(aid, 0.0) + mark.score
+            )
+
+        cls_assessments = [a for a in assessments if a.class_group_id == cls.id]
         class_passed = 0
-        for assessment in [a for a in assessments if a.class_group_id == cls.id]:
-            assessment_marks = [m for m in class_marks if m.assessment_id == assessment.id]
-            learner_totals: Dict[str, float] = {}
-            for mark in assessment_marks:
-                if mark.learner_id not in learner_totals:
-                    learner_totals[mark.learner_id] = 0
-                learner_totals[mark.learner_id] += mark.score
+        for learner_id, per_assessment in learner_totals.items():
+            # A learner "passed" the class if they passed every assessment attempted.
+            passed_all = True
+            for assessment in cls_assessments:
+                total = per_assessment.get(assessment.id or "", 0.0)
+                if assessment.pass_mark:
+                    if total < assessment.pass_mark:
+                        passed_all = False
+                elif assessment.total_marks and (total / assessment.total_marks * 100) < 50:
+                    passed_all = False
+            if passed_all and per_assessment:
+                class_passed += 1
 
-            for total in learner_totals.values():
-                if assessment.pass_mark and total >= assessment.pass_mark:
-                    class_passed += 1
-                elif not assessment.pass_mark and (total / assessment.total_marks * 100) >= 50:
-                    class_passed += 1
-
-        class_pass_rate = (class_passed / class_learners_assessed * 100) if class_learners_assessed > 0 else 0
+        class_pass_rate = (class_passed / len(assessed_ids) * 100) if assessed_ids else 0
 
         pass_rate_by_class.append({
             "class_id": _strip_prefix(str(cls.id or "")),
             "class_name": cls.name,
-            "total_learners": class_learners_assessed,
+            "total_learners": len(assessed_ids),
             "pass_rate": round(class_pass_rate, 2),
         })
 
@@ -1977,9 +1990,9 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
     overall_pass_rate = (total_passed / total_learners_assessed * 100) if total_learners_assessed > 0 else 0
 
     # Recent interventions
-    quoted_class_ids_interventions = ','.join(['"' + str(cls.id) + '"' for cls in classes]) if classes else ''
     interventions_result = await repo_query(
-        f"SELECT * FROM impact_intervention WHERE class_group_id IN [{quoted_class_ids_interventions}] ORDER BY created DESC LIMIT 10"
+        "SELECT * FROM impact_intervention WHERE class_group_id IN $ids ORDER BY created DESC LIMIT 10",
+        {"ids": [str(c.id) for c in classes]},
     ) if classes else []
     recent_interventions = [
         {
@@ -2196,8 +2209,7 @@ async def export_assessment_analytics_csv(assessment_id: str) -> StreamingRespon
     for topic_id, stats in topic_stats.items():
         topic = next((t for t in topics if t.id == topic_id), None)
         percentage = (stats["score"] / stats["max"] * 100) if stats["max"] > 0 else 0
-        is_weak = percentage < 55
-        is_critical = percentage < 40
+        is_weak, is_critical = ImpactAnalyticsEngine.classify_topic(percentage)
 
         writer.writerow([
             topic.name if topic else topic_id,
@@ -2216,7 +2228,8 @@ async def export_assessment_analytics_csv(assessment_id: str) -> StreamingRespon
 
     # Get learners
     learners_result = await repo_query(
-        f"SELECT * FROM impact_learner WHERE class_group_id = '{assessment.class_group_id}'"
+        "SELECT * FROM impact_learner WHERE class_group_id = type::thing($table, $id)",
+        {"table": "impact_class_group", "id": _strip_prefix(str(assessment.class_group_id))},
     )
     learners = [ImpactLearner(**r) for r in learners_result]
 
@@ -2227,12 +2240,9 @@ async def export_assessment_analytics_csv(assessment_id: str) -> StreamingRespon
         percentage = (total_score / total_max * 100) if total_max > 0 else 0
         passed = percentage >= 50 if not assessment.pass_mark else total_score >= assessment.pass_mark
 
-        if percentage < 40:
-            risk_level = "High"
-        elif percentage < 55:
-            risk_level = "Medium"
-        else:
-            risk_level = "Low"
+        risk_level = ImpactAnalyticsEngine.classify_learner_risk(
+            percentage, total_score, assessment.pass_mark
+        ).capitalize()
 
         writer.writerow([
             learner.learner_code,
@@ -2281,9 +2291,9 @@ async def export_school_report_csv(school_id: str) -> StreamingResponse:
 
     # Get all marks for school assessments
     assessment_ids = [str(a.id) for a in assessments]
-    quoted_ids = ','.join(['"' + aid + '"' for aid in assessment_ids])
     marks_result = await repo_query(
-        f"SELECT * FROM impact_mark_entry WHERE assessment_id IN [{quoted_ids}]"
+        "SELECT * FROM impact_mark_entry WHERE assessment_id IN $ids",
+        {"ids": assessment_ids},
     )
     marks = [ImpactMarkEntry(**m) for m in marks_result]
 
@@ -2307,7 +2317,8 @@ async def export_school_report_csv(school_id: str) -> StreamingResponse:
 
     for cls in classes:
         class_learners_result = await repo_query(
-            f"SELECT * FROM impact_learner WHERE class_group_id = '{cls.id}'"
+            "SELECT * FROM impact_learner WHERE class_group_id = type::thing($table, $id)",
+            {"table": "impact_class_group", "id": _strip_prefix(str(cls.id))},
         )
         class_learners = [ImpactLearner(**l) for l in class_learners_result]
         class_learners_assessed = len(set(
@@ -2347,9 +2358,9 @@ async def export_school_report_csv(school_id: str) -> StreamingResponse:
     writer.writerow(["Recent Interventions"])
     writer.writerow(["Severity", "Recommendation", "Status", "Date"])
 
-    quoted_class_ids = ','.join(['"' + str(cls.id) + '"' for cls in classes])
     interventions_result = await repo_query(
-        f"SELECT * FROM impact_intervention WHERE class_group_id IN [{quoted_class_ids}]"
+        "SELECT * FROM impact_intervention WHERE class_group_id IN $ids",
+        {"ids": [str(cls.id) for cls in classes]},
     )
     for intervention_data in interventions_result:
         intervention = ImpactIntervention(**intervention_data)
@@ -2410,11 +2421,19 @@ async def generate_teacher_summary(assessment_id: str) -> Dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Failed to generate teacher summary: {e}")
-        # Return graceful fallback - no provider/model details exposed
+        # Distinguish a never-configured model from a transient failure so the
+        # UI can tell teachers "AI is off" vs "AI is temporarily down".
+        reason = "not_configured" if "not configured" in str(e).lower() else "unavailable"
+        message = (
+            "AI summaries are not configured. Assessment analytics are still available."
+            if reason == "not_configured"
+            else "AI summaries are temporarily unavailable. Assessment analytics are still available."
+        )
         return {
-            "summary": "AI summaries are unavailable. Assessment analytics are still available.",
+            "summary": message,
             "revision_sequence": "",
             "source": "fallback",
+            "reason": reason,
         }
 
 
@@ -2447,9 +2466,16 @@ async def generate_intervention_plan(assessment_id: str) -> Dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Failed to generate intervention plan: {e}")
+        reason = "not_configured" if "not configured" in str(e).lower() else "unavailable"
+        message = (
+            "AI intervention plan is not configured. Assessment analytics are still available."
+            if reason == "not_configured"
+            else "AI intervention plan is temporarily unavailable. Assessment analytics are still available."
+        )
         return {
-            "plan": "AI summaries are unavailable. Assessment analytics are still available.",
+            "plan": message,
             "source": "fallback",
+            "reason": reason,
         }
 
 
@@ -2514,8 +2540,15 @@ async def generate_remedial_lesson(assessment_id: str) -> Dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Failed to generate remedial lesson: {e}")
+        reason = "not_configured" if "not configured" in str(e).lower() else "unavailable"
+        message = (
+            "AI remedial lesson is not configured. Assessment analytics are still available."
+            if reason == "not_configured"
+            else "AI remedial lesson is temporarily unavailable. Assessment analytics are still available."
+        )
         return {
-            "outline": "AI summaries are unavailable. Assessment analytics are still available.",
+            "outline": message,
             "mini_test_idea": "",
             "source": "fallback",
+            "reason": reason,
         }
