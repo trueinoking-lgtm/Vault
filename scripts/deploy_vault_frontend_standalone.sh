@@ -22,8 +22,11 @@
 #   ./scripts/deploy_vault_frontend_standalone.sh [--restart] [--restart-systemd] [--smoke]
 #
 # Flags:
-#   --restart          After building, restart Vault frontend via nohup (default)
-#   --restart-systemd  After building, restart Vault frontend via systemctl
+#   --restart          After building, restart the Vault frontend. If the
+#                      vault-frontend.service systemd unit is installed it is
+#                      restarted via systemctl; otherwise falls back to nohup.
+#   --restart-systemd  After building, force restart via systemctl (error if
+#                      the unit is not installed).
 #   --smoke            After building (and optionally restarting), run smoke tests
 #   -h, --help         Show this help message
 #
@@ -56,7 +59,13 @@ NC='\033[0m' # No Color
 
 info()  { echo -e "${GREEN}[INFO]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
-error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+error() { echo -e "${RED}[ERROR]${NC} $*"; }
+
+# Returns 0 if the systemd unit is installed (so we can manage the frontend
+# via systemctl instead of nohup).
+systemd_service_installed() {
+    systemctl list-unit-files "${SYSTEMD_SERVICE_NAME}" 2>/dev/null | grep -q "${SYSTEMD_SERVICE_NAME}"
+}
 
 # ---- Usage ------------------------------------------------------------------
 usage() {
@@ -165,20 +174,40 @@ fi
 # CRITICAL: npm run build deletes .next/standalone/ entirely. If the process
 # is still running, its CWD becomes "(deleted)" and static serving breaks.
 info "Stopping old frontend process (if any) before build…"
-OLD_PID="$(ss -tlnp | grep ":${VAULT_PORT} " | grep -oP 'pid=\K[0-9]+' | head -1 || true)"
-if [[ -n "$OLD_PID" ]]; then
-    info "Found existing process (PID: $OLD_PID) on port $VAULT_PORT — stopping…"
-    kill -TERM "$OLD_PID" 2>/dev/null || true
+
+if systemd_service_installed; then
+    # Prefer stopping the managed unit. This is SAFER than a raw port-kill:
+    # with Restart=always, a port-kill would make systemd immediately
+    # re-spawn the process into the deleted .next/standalone directory mid-build,
+    # reintroducing the very stale-chunk bug this script exists to prevent.
+    info "vault-frontend.service detected — stopping via systemctl (prevents restart-loop into deleted dir)…"
+    systemctl stop "$SYSTEMD_SERVICE_NAME" 2>/dev/null || true
+    # Belt-and-suspenders: clear any stale non-systemd process (old nohup) too.
     sleep 2
-    # Force kill if still alive after graceful stop
-    if kill -0 "$OLD_PID" 2>/dev/null; then
-        warn "Process still running after SIGTERM — sending SIGKILL…"
-        kill -KILL "$OLD_PID" 2>/dev/null || true
-        sleep 1
+    OLD_PID="$(ss -tlnp | grep ":${VAULT_PORT} " | grep -oP 'pid=\K[0-9]+' | head -1 || true)"
+    if [[ -n "$OLD_PID" ]]; then
+        warn "Stale non-systemd process (PID: $OLD_PID) still on port $VAULT_PORT — killing…"
+        kill -TERM "$OLD_PID" 2>/dev/null || true
+        sleep 2
+        kill -0 "$OLD_PID" 2>/dev/null && kill -KILL "$OLD_PID" 2>/dev/null || true
     fi
-    info "Old process stopped."
+    info "Old frontend stopped."
 else
-    info "No existing process found on port $VAULT_PORT."
+    OLD_PID="$(ss -tlnp | grep ":${VAULT_PORT} " | grep -oP 'pid=\K[0-9]+' | head -1 || true)"
+    if [[ -n "$OLD_PID" ]]; then
+        info "Found existing process (PID: $OLD_PID) on port $VAULT_PORT — stopping…"
+        kill -TERM "$OLD_PID" 2>/dev/null || true
+        sleep 2
+        # Force kill if still alive after graceful stop
+        if kill -0 "$OLD_PID" 2>/dev/null; then
+            warn "Process still running after SIGTERM — sending SIGKILL…"
+            kill -KILL "$OLD_PID" 2>/dev/null || true
+            sleep 1
+        fi
+        info "Old process stopped."
+    else
+        info "No existing process found on port $VAULT_PORT."
+    fi
 fi
 
 # ---- Step 5: Build ----------------------------------------------------------
@@ -284,74 +313,61 @@ info "Standalone server entry point: .next/standalone/server.js"
 
 cd "$REPO_ROOT"
 
-# ---- Step 14a: Optional restart via systemd --------------------------------
-if [[ "$RESTART_SYSTEMD" == true ]]; then
-    info "systemd restart flag set — restarting via systemctl…"
+# ---- Step 14: Restart the frontend (systemd preferred) ----------------------
+# If the systemd unit is installed we ALWAYS manage the frontend through
+# systemctl — never nohup — so future deploys never leave an orphaned process.
+# Falls back to nohup only when the unit is not installed.
+if [[ "$RESTART" == true || "$RESTART_SYSTEMD" == true ]]; then
+    if systemd_service_installed; then
+        info "vault-frontend.service installed — restarting via systemctl…"
+        if systemctl restart "$SYSTEMD_SERVICE_NAME"; then
+            echo ""
+            info "═══════════════════════════════════════════════════════════════"
+            info "  Vault frontend restarted via systemd ($SYSTEMD_SERVICE_NAME)"
+            info "  Listening on http://$VAULT_HOSTNAME:$VAULT_PORT"
+            info "  Logs: sudo journalctl -fu $SYSTEMD_SERVICE_NAME"
+            info "═══════════════════════════════════════════════════════════════"
 
-    # Check if the service unit is installed
-    if ! systemctl list-unit-files "$SYSTEMD_SERVICE_NAME" &>/dev/null \
-         || ! systemctl list-unit-files "$SYSTEMD_SERVICE_NAME" | grep -q "$SYSTEMD_SERVICE_NAME"; then
-        error "Service $SYSTEMD_SERVICE_NAME not found in systemd."
-        error ""
-        error "To install it:"
-        error "  sudo cp deploy/systemd/$SYSTEMD_SERVICE_NAME /etc/systemd/system/"
-        error "  sudo systemctl daemon-reload"
-        error "  sudo systemctl enable $SYSTEMD_SERVICE_NAME"
-        error ""
-        error "Then re-run with --restart-systemd, or use --restart for nohup-based restart."
-        exit 1
-    fi
-
-    info "Found $SYSTEMD_SERVICE_NAME — restarting…"
-    if systemctl restart "$SYSTEMD_SERVICE_NAME"; then
-        echo ""
-        info "═══════════════════════════════════════════════════════════════"
-        info "  Vault frontend restarted via systemd ($SYSTEMD_SERVICE_NAME)"
-        info "  Listening on http://$VAULT_HOSTNAME:$VAULT_PORT"
-        info "  Logs: sudo journalctl -fu $SYSTEMD_SERVICE_NAME"
-        info "═══════════════════════════════════════════════════════════════"
-
-        sleep 2
-
-        # Verify the service is active
-        if systemctl is-active --quiet "$SYSTEMD_SERVICE_NAME"; then
-            info "Service is active (running)."
+            sleep 2
+            if systemctl is-active --quiet "$SYSTEMD_SERVICE_NAME"; then
+                info "Service is active (running)."
+            else
+                warn "Service is not active after restart — check logs:"
+                warn "  sudo journalctl -u $SYSTEMD_SERVICE_NAME -n 30 --no-pager"
+            fi
         else
-            warn "Service is not active after restart — check logs:"
-            warn "  sudo journalctl -u $SYSTEMD_SERVICE_NAME -n 30 --no-pager"
+            error "systemctl restart failed. Check the service status:"
+            error "  sudo systemctl status $SYSTEMD_SERVICE_NAME"
+            exit 1
         fi
     else
-        error "systemctl restart failed. Check the service status:"
-        error "  sudo systemctl status $SYSTEMD_SERVICE_NAME"
-        exit 1
-    fi
-fi
+        # ---- Fallback: nohup restart (unit not installed) ----
+        warn "vault-frontend.service NOT installed — falling back to nohup restart."
+        warn "For a supervised service, install the unit:"
+        warn "  sudo cp deploy/systemd/$SYSTEMD_SERVICE_NAME /etc/systemd/system/"
+        warn "  sudo systemctl daemon-reload && sudo systemctl enable $SYSTEMD_SERVICE_NAME"
+        info "Starting Vault frontend (port $VAULT_PORT) via nohup…"
 
-# ---- Step 14b: Optional restart via nohup ----------------------------------
-if [[ "$RESTART" == true ]]; then
-    info "Restart flag set — starting Vault frontend (port $VAULT_PORT) via nohup…"
+        cd "$VAULT_FRONTEND_DIR"
+        PORT="$VAULT_PORT" HOSTNAME="$VAULT_HOSTNAME" \
+            nohup node .next/standalone/server.js \
+            > /var/log/vault-frontend.log 2>&1 &
+        NEW_PID=$!
+        cd "$REPO_ROOT"
 
-    # Start new process
-    cd "$VAULT_FRONTEND_DIR"
-    PORT="$VAULT_PORT" HOSTNAME="$VAULT_HOSTNAME" \
-        nohup node .next/standalone/server.js \
-        > /var/log/vault-frontend.log 2>&1 &
-    NEW_PID=$!
-    cd "$REPO_ROOT"
+        echo ""
+        info "═══════════════════════════════════════════════════════════════"
+        info "  Vault frontend started (PID: $NEW_PID)"
+        info "  Listening on http://$VAULT_HOSTNAME:$VAULT_PORT"
+        info "  Log file: /var/log/vault-frontend.log"
+        info "═══════════════════════════════════════════════════════════════"
 
-    echo ""
-    info "═══════════════════════════════════════════════════════════════"
-    info "  Vault frontend started (PID: $NEW_PID)"
-    info "  Listening on http://$VAULT_HOSTNAME:$VAULT_PORT"
-    info "  Log file: /var/log/vault-frontend.log"
-    info "═══════════════════════════════════════════════════════════════"
-
-    # Brief wait + process liveness check
-    sleep 3
-    if kill -0 "$NEW_PID" 2>/dev/null; then
-        info "Process confirmed running."
-    else
-        warn "Process exited within 3 seconds — check log file for errors."
+        sleep 3
+        if kill -0 "$NEW_PID" 2>/dev/null; then
+            info "Process confirmed running."
+        else
+            warn "Process exited within 3 seconds — check log file for errors."
+        fi
     fi
 fi
 
@@ -376,8 +392,27 @@ if [[ "$SMOKE" == true ]]; then
         fi
     }
 
-    # Routes that should return 200
-    check_http "$VAULT_BASE_URL/"        200 "Root (/)"
+    # Root "/" is expected to 302-redirect to /impact-intelligence (intentional).
+    # Verify the redirect target and that the landing route serves 200.
+    root_code="$(curl -s -o /dev/null -w '%{http_code}' "$VAULT_BASE_URL/" 2>/dev/null || echo '000')"
+    root_location="$(curl -s -o /dev/null -w '%{redirect_url}' "$VAULT_BASE_URL/" 2>/dev/null || true)"
+    if [[ "$root_code" == "302" || "$root_code" == "301" ]]; then
+        if echo "$root_location" | grep -qE '/impact-intelligence$|/impact-intelligence[?/]'; then
+            info "  ✅ Root (/) — HTTP $root_code → $root_location"
+        else
+            error "  ❌ Root (/) — redirects to '$root_location', expected /impact-intelligence"
+            ((errors++))
+        fi
+    elif [[ "$root_code" == "200" ]]; then
+        info "  ✅ Root (/) — HTTP 200"
+    else
+        error "  ❌ Root (/) — expected 200 or 302→/impact-intelligence, got HTTP $root_code"
+        ((errors++))
+    fi
+
+    # Landing route must serve 200
+    check_http "$VAULT_BASE_URL/impact-intelligence" 200 "Impact landing (/impact-intelligence)"
+    # Other app routes (smoke subset)
     check_http "$VAULT_BASE_URL/vault"   200 "Vault dashboard (/vault)"
     check_http "$VAULT_BASE_URL/sources" 200 "Sources list (/sources)"
     check_http "$VAULT_BASE_URL/notebooks" 200 "Notebooks list (/notebooks)"

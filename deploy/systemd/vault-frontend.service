@@ -1,50 +1,24 @@
-# Vault Next.js Frontend — systemd Service
-#
-# Installation:
-#   sudo cp deploy/systemd/vault-frontend.service /etc/systemd/system/
-#   sudo systemctl daemon-reload
-#   sudo systemctl enable vault-frontend.service
-#   sudo systemctl start vault-frontend.service
-#
-# After building (deploy_vault_frontend_standalone.sh --restart-systemd
-# calls this automatically):
-#   sudo systemctl restart vault-frontend.service
-#
-# See docs/runbooks/vault_frontend_systemd.md for full runbook.
-
 [Unit]
-Description=Vault Next.js Frontend (standalone)
+Description=ZimLearnGraph Vault Frontend (Next.js standalone production server)
 Documentation=https://github.com/trueinoking-lgtm/Vault
-After=network.target
+After=network-online.target
 Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 Type=simple
-User=root
-Group=root
-WorkingDirectory=/root/vault-open-notebook/frontend
-
-# Node.js runtime
-ExecStart=/root/.hermes/node/bin/node .next/standalone/server.js
-Restart=on-failure
-RestartSec=5
-TimeoutStopSec=10
-
-# Environment
+WorkingDirectory=/root/vault-open-notebook/frontend/.next/standalone
+ExecStart=/root/.hermes/node/bin/node server.js
 Environment=NODE_ENV=production
 Environment=PORT=3003
-Environment=HOSTNAME=0.0.0.0
-
-# Logging — everything goes to journald
+Environment=HOSTNAME=127.0.0.1
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=vault-frontend
-
-# Security hardening (optional; relax if Paths conflict with your setup)
-NoNewPrivileges=yes
-ProtectHome=read-only
-ProtectSystem=full
-PrivateTmp=yes
 
 [Install]
 WantedBy=multi-user.target
