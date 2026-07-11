@@ -303,6 +303,31 @@ if [[ -d "public" ]] && [[ -n "$(ls -A public 2>/dev/null)" ]]; then
     info "Public assets copied."
 fi
 
+# ---- Step 12b: Sync static into the nginx-readable direct-serve dir --------
+# Nginx serves /_next/static/* directly from /var/www/zimlearngraph-static/
+# (see deploy/nginx/impact-standalone.conf). The repo .next tree lives under
+# /root, which www-data cannot traverse, so the static dir must be copied to a
+# path nginx can read. This MUST run after the standalone static copy above so
+# the alias target is always repopulated before the service restarts.
+NGINX_STATIC_DIR="/var/www/zimlearngraph-static"
+if [[ -d "$STANDALONE_STATIC" ]]; then
+    info "Syncing static → nginx direct-serve dir ($NGINX_STATIC_DIR) …"
+    mkdir -p "$NGINX_STATIC_DIR"
+    rm -rf "${NGINX_STATIC_DIR:?}/"*
+    cp -r "$STANDALONE_STATIC/." "$NGINX_STATIC_DIR/"
+    # Ensure www-data (nginx worker) can read + traverse the whole tree.
+    chmod -R a+rX "$NGINX_STATIC_DIR"
+    NGINX_STATIC_COUNT=$(find "$NGINX_STATIC_DIR" -type f 2>/dev/null | wc -l)
+    if [[ "$NGINX_STATIC_COUNT" -lt 1 ]]; then
+        error "Nginx static sync FAILED — $NGINX_STATIC_DIR is empty."
+        error "Direct static serving will 403/404 in production."
+        exit 1
+    fi
+    info "Nginx direct-serve static synced: $NGINX_STATIC_COUNT files"
+else
+    warn "Skipping nginx static sync — $STANDALONE_STATIC missing."
+fi
+
 # ---- Step 13: Verify standalone server entry point exists -------------------
 if [[ ! -f ".next/standalone/server.js" ]]; then
     error ".next/standalone/server.js not found — standalone build incomplete."
@@ -435,6 +460,26 @@ if [[ "$SMOKE" == true ]]; then
         error "  ❌ API auth status (/api/auth/status) — unexpected response:"
         error "     $api_status"
         ((errors++))
+    fi
+
+    # Direct static serving (Nginx alias → /var/www/zimlearngraph-static).
+    # Extract one /_next/static asset referenced by the live landing HTML and
+    # confirm it returns 200 with a stable Content-Length (proves it is served
+    # by Nginx, not the Node proxy).
+    LIVE_HTML="$(curl -s "$VAULT_BASE_URL/impact-intelligence" 2>/dev/null || true)"
+    STATIC_ASSET="$(echo "$LIVE_HTML" | grep -oE '/_next/static/[^"'\'' ]+\.(js|css)' | head -1 || true)"
+    if [[ -n "$STATIC_ASSET" ]]; then
+        asset_url="$VAULT_BASE_URL$STATIC_ASSET"
+        asset_code="$(curl -s -o /dev/null -w '%{http_code}' "$asset_url" 2>/dev/null || echo '000')"
+        asset_clen="$(curl -sI "$asset_url" 2>/dev/null | grep -i '^content-length:' | awk '{print $2}' | tr -d '\r' || true)"
+        if [[ "$asset_code" == "200" && -n "$asset_clen" ]]; then
+            info "  ✅ Direct static ($STATIC_ASSET) — HTTP 200, Content-Length: $asset_clen"
+        else
+            error "  ❌ Direct static ($STATIC_ASSET) — expected HTTP 200 + Content-Length, got HTTP $asset_code"
+            ((errors++))
+        fi
+    else
+        warn "  ⚠️ Could not extract a static asset from live HTML — skipping direct-static smoke check"
     fi
 
     if [[ "$errors" -eq 0 ]]; then
