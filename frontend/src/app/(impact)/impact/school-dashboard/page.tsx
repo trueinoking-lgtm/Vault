@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useCallback } from 'react'
+import { Suspense } from 'react'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useSchoolDashboard, useImpactSchools } from '@/lib/hooks/use-impact'
 
@@ -11,8 +12,26 @@ import { useSchoolDashboard, useImpactSchools } from '@/lib/hooks/use-impact'
  *
  * Shows school-level analytics. Defaults to Pilot School.
  * When backend is offline, displays seeded demo dashboard data.
+ *
+ * useSearchParams() must sit below a <Suspense> boundary, otherwise the
+ * static prerender bails out (build error). The outer default export
+ * provides that boundary; the inner component reads the param.
  */
 export default function SchoolDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[50vh] flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      }
+    >
+      <SchoolDashboardContent />
+    </Suspense>
+  )
+}
+
+function SchoolDashboardContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const schoolId = searchParams.get('school')

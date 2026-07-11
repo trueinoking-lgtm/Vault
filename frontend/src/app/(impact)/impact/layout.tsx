@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
@@ -17,6 +18,17 @@ export default function ImpactLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+
+  // Enable scrolling (overrides root html/body overflow:hidden).
+  // Moved here from the server route-group layout, which cannot use effects.
+  useEffect(() => {
+    document.documentElement.classList.add('landing-page')
+    document.body.classList.add('landing-page')
+    return () => {
+      document.documentElement.classList.remove('landing-page')
+      document.body.classList.remove('landing-page')
+    }
+  }, [])
 
   const isActive = (href: string) => {
     if (href === '/impact') {
