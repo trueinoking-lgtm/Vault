@@ -35,6 +35,11 @@ export const caES = {
     quickActions: "Accions ràpides",
     quickActionsDesc: "Navegació, cerca, preguntes, tema",
     appName: "Vault",
+    // Hidden build marker — intentionally unused in UI. Changes the compiled
+    // i18n catalog so the shared locale chunk re-hashes to a new filename,
+    // bypassing any poisoned immutable browser cache for the prior chunk.
+    cacheBust: "zimlearngraph-public-demo-stable-v0.4-cachebust-20260711",
+
     add: "Afegeix",
     remove: "Elimina",
     confirm: "Confirma",

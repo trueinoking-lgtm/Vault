@@ -18,6 +18,7 @@ import ImpactTrustPanel from './ImpactTrustPanel';
 import ImpactReportOutputs from './ImpactReportOutputs';
 import LiveDataTicker from './LiveDataTicker';
 import SectionEntrance from './SectionEntrance';
+import { IMPACT_LANDING_BUILD } from '@/lib/landing/landing-build';
 
 const FixedScene = dynamic(() => import('./HeroScene'), {
   ssr: false,
@@ -57,7 +58,10 @@ function LandingInner() {
       <LiveDataTicker />
 
       {/* Content overlay — scrolls normally with semi-transparent background */}
-      <div className="relative z-10 bg-[#050814]/60 backdrop-blur-[2px]">
+      <div
+        className="relative z-10 bg-[#050814]/60 backdrop-blur-[2px]"
+        data-impact-build={IMPACT_LANDING_BUILD}
+      >
         <ImpactNav />
         <ImpactHero />
         <ImpactEvidenceStrip />

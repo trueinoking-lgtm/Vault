@@ -35,6 +35,8 @@ export const zhCN = {
     quickActions: "快捷操作",
     quickActionsDesc: "导航、搜索、提问、主题",
     appName: "Vault",
+    // Hidden build marker — intentionally unused in UI. Changes the compiled\n    // i18n catalog so the shared locale chunk re-hashes to a new filename,\n    // bypassing any poisoned immutable browser cache for the prior chunk.\n    cacheBust: "zimlearngraph-public-demo-stable-v0.4-cachebust-20260711",
+
     add: "添加",
     remove: "移除",
     confirm: "确认",
