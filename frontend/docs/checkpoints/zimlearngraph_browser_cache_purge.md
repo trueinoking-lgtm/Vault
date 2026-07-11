@@ -120,3 +120,27 @@ ChunkLoadError is gone.
 - `/api/*` not affected.
 - `nginx -t` OK, `systemctl reload nginx` clean.
 - Frontend service unchanged (still `vault-frontend.service`, active).
+
+## STATUS: REMOVED (2026-07-11, after verification)
+
+The temporary purge was removed once the root cause was fixed structurally by
+serving `/_next/static/*` directly from Nginx
+(`ops: serve zimlearngraph next static assets directly`, `4a5d905`).
+
+Commit `ops: remove temporary zimlearngraph cache purge` removed:
+- `add_header Clear-Site-Data "cache" always;` from `location /`
+- `add_header Cache-Control "no-store, must-revalidate" always;` from `location /`
+- `proxy_hide_header Cache-Control;` from `location /`
+- the TEMPORARY comment block describing the purge
+
+After removal:
+- Document routes now pass through Next.js's own `Cache-Control`
+  (`s-maxage=31536000`) with no `no-store` override and no `Clear-Site-Data`.
+- `/_next/static/*` still served directly by Nginx from
+  `/var/www/zimlearngraph-static/` with `immutable` caching (unchanged).
+- `/api/` unaffected.
+- `/impact-intelligence` → 200; static asset → 200 with real `Content-Length`;
+  browser console clean (no ChunkLoadError, no ERR_INCOMPLETE_CHUNKED_ENCODING).
+
+The purge is no longer needed: the truncation failure mode is eliminated at the
+Nginx layer, so there is no poisoned chunk for browsers to hold.

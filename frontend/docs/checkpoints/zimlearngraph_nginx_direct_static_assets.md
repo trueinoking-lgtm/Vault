@@ -178,3 +178,11 @@ always gets the full file.
   It is independent of the static change and does not affect `/_next/static/`.
 - `immutable` on hashed static assets is correct and is preserved; no
   weakening of caching for `_next/static` (per requirement).
+
+## UPDATE (2026-07-11): temporary cache purge removed
+
+The temporary `Clear-Site-Data` + `no-store` document-route purge
+(`42a1c4f`) was removed in `ops: remove temporary zimlearngraph cache purge`
+once this direct-static fix was verified. It is no longer needed — the
+truncation failure mode is gone at the Nginx layer, so browsers have nothing
+poisoned to evict. `/_next/static/*` direct serving is unchanged.
