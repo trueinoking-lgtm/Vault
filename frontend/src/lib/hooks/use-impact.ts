@@ -23,22 +23,30 @@ import {
 import type {
   ImpactSchoolCreate,
   ImpactSchoolUpdate,
+  ImpactSchoolListResponse,
   ImpactClassGroupCreate,
   ImpactClassGroupUpdate,
+  ImpactClassGroupListResponse,
   ImpactLearnerCreate,
   ImpactLearnerUpdate,
+  ImpactLearnerListResponse,
   ImpactSubjectCreate,
   ImpactSubjectUpdate,
+  ImpactSubjectListResponse,
   ImpactTopicCreate,
   ImpactTopicUpdate,
+  ImpactTopicListResponse,
   ImpactAssessmentCreate,
   ImpactAssessmentUpdate,
+  ImpactAssessmentListResponse,
   ImpactAssessmentQuestionCreate,
   ImpactAssessmentQuestionUpdate,
   ImpactMarkEntryCreate,
   ImpactMarkEntryUpdate,
   ImpactInterventionCreate,
   ImpactInterventionUpdate,
+  ImpactInterventionListResponse,
+  SchoolDashboard,
 } from '@/lib/types/impact'
 import {
   SEEDED_SCHOOLS,
@@ -89,19 +97,45 @@ export const impactKeys = {
 // =========================================================================
 
 /**
- * Wraps a query function to fall back to seeded data on error.
- * When the backend is offline, the hooks return seeded demo data
- * so the app remains fully navigable and populated.
+ * Wraps a query function to fall back to seeded demo data.
+ *
+ * Falls back in TWO cases (pre-pilot / public-demo contract):
+ *   1. The API call throws (backend unreachable, network error).
+ *   2. The API call SUCCEEDS but returns an empty list/dashboard
+ *      (a live backend with no seeded Impact data yet, e.g.
+ *      `200 { schools: [], total: 0 }`).
+ *
+ * The `isEmpty` predicate declares what "empty" means for each shape.
+ * Without it, only thrown errors trigger the fallback — which left the
+ * public demo showing "No schools yet" against a healthy-but-empty
+ * backend.
  */
-function withFallback<T>(queryFn: () => Promise<T>, fallback: T): () => Promise<T> {
+function withFallback<T>(
+  queryFn: () => Promise<T>,
+  fallback: T,
+  isEmpty?: (data: T) => boolean,
+): () => Promise<T> {
   return async () => {
     try {
-      return await queryFn()
+      const data = await queryFn()
+      if (isEmpty && isEmpty(data)) return fallback
+      return data
     } catch {
       return fallback
     }
   }
 }
+
+// Empty predicates for each list/dashboard response shape.
+const isEmptySchools = (r: ImpactSchoolListResponse) => !r || r.schools.length === 0
+const isEmptyClassGroups = (r: ImpactClassGroupListResponse) => !r || r.class_groups.length === 0
+const isEmptyLearners = (r: ImpactLearnerListResponse) => !r || r.learners.length === 0
+const isEmptySubjects = (r: ImpactSubjectListResponse) => !r || r.subjects.length === 0
+const isEmptyTopics = (r: ImpactTopicListResponse) => !r || r.topics.length === 0
+const isEmptyAssessments = (r: ImpactAssessmentListResponse) => !r || r.assessments.length === 0
+const isEmptyInterventions = (r: ImpactInterventionListResponse) => !r || r.interventions.length === 0
+const isEmptySchoolDashboard = (d: SchoolDashboard | null) =>
+  !d || (d.total_classes === 0 && d.total_learners_assessed === 0 && d.recent_interventions.length === 0)
 
 // =========================================================================
 // Schools Hooks
@@ -110,7 +144,7 @@ function withFallback<T>(queryFn: () => Promise<T>, fallback: T): () => Promise<
 export function useImpactSchools() {
   return useQuery({
     queryKey: impactKeys.schools(),
-    queryFn: withFallback(() => impactSchoolsApi.list(), SEEDED_SCHOOLS),
+    queryFn: withFallback(() => impactSchoolsApi.list(), SEEDED_SCHOOLS, isEmptySchools),
   })
 }
 
@@ -161,7 +195,7 @@ export function useDeleteImpactSchool() {
 export function useImpactClassGroups(schoolId?: string) {
   return useQuery({
     queryKey: impactKeys.classGroups(schoolId),
-    queryFn: withFallback(() => impactClassGroupsApi.list(schoolId), SEEDED_CLASSES),
+    queryFn: withFallback(() => impactClassGroupsApi.list(schoolId), SEEDED_CLASSES, isEmptyClassGroups),
   })
 }
 
@@ -220,6 +254,7 @@ export function useImpactLearners(classGroupId?: string) {
             learners: SEEDED_LEARNERS.learners.filter((l) => l.class_group_id === classGroupId),
           }
         : SEEDED_LEARNERS,
+      isEmptyLearners,
     ),
   })
 }
@@ -270,7 +305,7 @@ export function useDeleteImpactLearner() {
 export function useImpactSubjects() {
   return useQuery({
     queryKey: impactKeys.subjects(),
-    queryFn: withFallback(() => impactSubjectsApi.list(), SEEDED_SUBJECTS),
+    queryFn: withFallback(() => impactSubjectsApi.list(), SEEDED_SUBJECTS, isEmptySubjects),
   })
 }
 
@@ -328,6 +363,7 @@ export function useImpactTopics(subjectId?: string) {
             topics: SEEDED_TOPICS.topics.filter((t) => t.subject_id === subjectId),
           }
         : SEEDED_TOPICS,
+      isEmptyTopics,
     ),
   })
 }
@@ -379,7 +415,7 @@ export function useDeleteImpactTopic() {
 export function useImpactAssessments(params?: { class_group_id?: string; subject_id?: string }) {
   return useQuery({
     queryKey: impactKeys.assessments(params),
-    queryFn: withFallback(() => impactAssessmentsApi.list(params), SEEDED_ASSESSMENTS),
+    queryFn: withFallback(() => impactAssessmentsApi.list(params), SEEDED_ASSESSMENTS, isEmptyAssessments),
   })
 }
 
@@ -429,6 +465,7 @@ export function useAssessmentAnalytics(id: string) {
     queryFn: withFallback(
       () => impactAssessmentsApi.getAnalytics(id),
       getSeededAssessmentAnalytics(id) as any,
+      (d) => !d,
     ),
     enabled: !!id,
   })
@@ -546,7 +583,7 @@ export function useDeleteImpactMark() {
 export function useImpactInterventions(params?: { class_group_id?: string; severity?: string }) {
   return useQuery({
     queryKey: impactKeys.interventions(params),
-    queryFn: withFallback(() => impactInterventionsApi.list(params), SEEDED_INTERVENTIONS),
+    queryFn: withFallback(() => impactInterventionsApi.list(params), SEEDED_INTERVENTIONS, isEmptyInterventions),
   })
 }
 
@@ -599,7 +636,21 @@ export function useSchoolDashboard(schoolId: string) {
     queryKey: [...impactKeys.all, 'dashboard', 'school', schoolId],
     queryFn: withFallback(
       () => impactDashboardsApi.getSchoolDashboard(schoolId),
-      getSeededSchoolDashboard(schoolId) || { school_id: '', school_name: '', total_classes: 0, total_learners: 0, total_learners_assessed: 0, total_assessments: 0, overall_pass_rate: 0, pass_rate_by_subject: [], pass_rate_by_class: [], weakest_topics: [], classes_needing_support: [], recent_interventions: [] },
+      getSeededSchoolDashboard(schoolId) || {
+        school_id: schoolId,
+        school_name: 'Pilot School',
+        total_classes: 0,
+        total_learners: 0,
+        total_learners_assessed: 0,
+        total_assessments: 0,
+        overall_pass_rate: 0,
+        pass_rate_by_subject: [],
+        pass_rate_by_class: [],
+        weakest_topics: [],
+        classes_needing_support: [],
+        recent_interventions: [],
+      },
+      isEmptySchoolDashboard,
     ),
     enabled: !!schoolId,
   })
@@ -611,6 +662,7 @@ export function useMinistryDashboard() {
     queryFn: withFallback(
       () => impactDashboardsApi.getMinistryDashboard(),
       SEEDED_MINISTRY_DASHBOARD,
+      (d) => !d || (d.total_schools === 0 && d.total_learners_assessed === 0),
     ),
   })
 }
