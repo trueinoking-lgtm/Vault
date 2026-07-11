@@ -488,23 +488,26 @@ The codebase has **two independent school data models** that share no data, no f
 | `/impact/assessments` | Loads 6 assessment cards with learner/question/pass/weak-topic statistics | Seeded demonstration; strongest browse surface |
 | `/impact/assessments/assess-math-term1` | **Fails with “Assessment not found”** | Broken public demo path; P0 |
 | `/impact/school-dashboard` | Loads school selector and five dashboard sections | Seeded demonstration; chart values need accessible text/table equivalents |
+| `/impact/schools/school-pilot/report` | **Fails with “Report not found”** | Broken primary CTA; P0 |
 | `/impact/ministry-demo` | Redirects to `/impact` | Legacy route only; do not describe as an aggregate ministry product |
 | `/owner/*` | Existing internal Vault operator area | Operational but separate from Impact school domain |
 | `/teacher/*` | Existing Vault teacher surface | Operational Vault capability, not an Impact-integrated teacher workspace |
 
 ### 11.2 Credibility defects
 
-1. **Contradictory landing metrics (P0):** the visible landing surfaces present mutually inconsistent demo states:
+1. **Contradictory and unstable landing metrics (P0):** the visible landing surfaces present mutually inconsistent demo states:
    - top strip: `18 learners`, `3 schools`, `3 assessments`, `6% pass rate`;
    - hero proof points: `30 learners`, `8 questions`, `5 weak topics`;
    - actual seeded platform: `180 learners`, `3 schools`, `6 assessments`;
    - an animated metrics section initially exposes zero values in the accessibility tree.
 
+   The independent browser audit also observed transient top-strip values such as 42, 96 and 180 learners across page loads/animation states. Even if these are animation frames rather than new datasets, the presentation allows users and assistive technology to read them as evidence. Metrics must resolve from one canonical source and expose a stable final value.
+
    The source confirms one-school legacy copy in `frontend/src/lib/landing/impact-copy.ts`, while the application now uses the newer multi-school seed. This is not cosmetic: it undermines trust in an evidence product.
 
 2. **Unsupported longitudinal claim (P0):** the landing says “Progress is measured over time. Follow-up assessments confirm recovery,” but the current model has no intervention-to-follow-up link or longitudinal outcome workflow. Rephrase as a pilot/roadmap capability until built.
 
-3. **Broken assessment evidence chain (P0):** list hooks fall back to seeded assessments, but `useImpactAssessment(id)` calls only the backend. When the live API returns no seeded record, the detail route fails instead of resolving the matching fallback object. The same pattern must be audited for report, analytics and question-detail hooks.
+3. **Broken primary evidence CTAs (P0):** assessment cards lead to “Assessment not found,” and the school dashboard’s “View Full Report” CTA leads to “Report not found.” List hooks fall back to seeded entities, but detail/report hooks call backend-only records. When the live API has no matching seeded record, the detail surfaces fail instead of resolving the corresponding fallback object. The same pattern must be audited for analytics and question-detail hooks.
 
 4. **Ambiguous demo labelling (P0):** pages use credible school names and operational language without a persistent, explicit “seeded demonstration data” marker. The landing mentions a live demo but does not consistently distinguish synthetic proof from verified pilot evidence.
 
