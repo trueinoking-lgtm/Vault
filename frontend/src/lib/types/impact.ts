@@ -502,6 +502,20 @@ export interface SchoolReport {
   total_learners: number
   total_learners_assessed: number
   overall_pass_rate: number
+  subjects: ImpactSubject[]
+  weak_topics: WeakTopic[]
+  support_indicators: {
+    learners_needing_support: number
+    classes_needing_support: number
+    open_interventions: number
+  }
+  data_quality: {
+    status: 'ready' | 'review'
+    mark_completion_rate: number
+    mapped_question_rate: number
+  }
+  disclosure: string
+  limitations: string[]
 }
 
 // =========================================================================

@@ -5,8 +5,10 @@ import { HERO } from '@/lib/landing/impact-copy';
 import { ArrowRight } from 'lucide-react';
 import EvidenceSignalPanel from './EvidenceSignalPanel';
 import MagneticButton from './MagneticButton';
+import { getCanonicalDemoStats } from '@/lib/impact/demo-data';
 
 export default function ImpactHero() {
+  const stats = getCanonicalDemoStats();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -66,9 +68,9 @@ export default function ImpactHero() {
             aria-label="Landing page proof points"
           >
             {[
-              ['30', 'learners'],
-              ['8', 'questions'],
-              ['5', 'weak topics'],
+              [String(stats.schools), 'schools'],
+              [String(stats.learners), 'learners'],
+              [String(stats.assessments), 'assessments'],
             ].map(([value, label]) => (
               <div key={label} className="rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3 backdrop-blur-sm">
                 <div className="font-mono text-lg font-semibold text-cyan-200">{value}</div>

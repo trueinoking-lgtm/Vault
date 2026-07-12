@@ -34,7 +34,14 @@ import type {
   QuestionPerformance,
   TopicPerformance,
   LearnerPerformance,
+  ImpactAssessment,
+  ImpactClassGroup,
+  ImpactSchool,
+  AssessmentReport,
+  SchoolReport,
 } from '@/lib/types/impact'
+
+export const DEMO_DISCLOSURE = 'Seeded multi-school demonstration data. No learner identities. Not verified pilot evidence.'
 
 // =========================================================================
 // IDs (deterministic)
@@ -626,9 +633,9 @@ export function getSeededAssessmentAnalytics(assessmentId: string): AssessmentAn
 
   // The learners actually enrolled in this assessment's class group are the
   // population. Completion is 100% in the seed (all marks entered).
-  const classGroups = SEEDED_CLASSES.class_groups.filter((cg) => cg.school_id === assessment.school_id)
-  const classLearners = classGroups.length > 0
-    ? SEEDED_LEARNERS.learners.filter((l) => classGroups.some((cg) => cg.id === l.class_group_id))
+  const classGroup = SEEDED_CLASSES.class_groups.find((cg) => cg.id === assessment.class_group_id)
+  const classLearners = classGroup
+    ? SEEDED_LEARNERS.learners.filter((l) => l.class_group_id === classGroup.id)
     : SEEDED_LEARNERS.learners.slice(0, 30)
   const numLearners = classLearners.length || 30
 
@@ -797,6 +804,128 @@ export const SEEDED_MINISTRY_DASHBOARD: MinistryDashboard = {
     { class_id: IDS.classes[1], class_name: 'Form 1B', school_id: IDS.schools[0], pass_rate: 42, total_learners: 30 },
     { class_id: IDS.classes[2], class_name: 'Form 1A', school_id: IDS.schools[1], pass_rate: 55, total_learners: 29 },
   ],
+}
+
+// =========================================================================
+// Canonical public-demo selectors and report builders
+// =========================================================================
+
+export function getSeededSchool(id: string): ImpactSchool | null {
+  return SEEDED_SCHOOLS.schools.find((school) => school.id === id) || null
+}
+
+export function getSeededClassGroup(id: string): ImpactClassGroup | null {
+  return SEEDED_CLASSES.class_groups.find((classGroup) => classGroup.id === id) || null
+}
+
+export function getSeededAssessment(id: string): ImpactAssessment | null {
+  return SEEDED_ASSESSMENTS.assessments.find((assessment) => assessment.id === id) || null
+}
+
+export function getSeededAssessmentReport(assessmentId: string): AssessmentReport | null {
+  const assessment = getSeededAssessment(assessmentId)
+  const analytics = getSeededAssessmentAnalytics(assessmentId)
+  if (!assessment || !analytics) return null
+
+  return {
+    assessment,
+    questions: getSeededQuestions(assessmentId).questions,
+    learners: SEEDED_LEARNERS.learners.filter((learner) => learner.class_group_id === assessment.class_group_id),
+    analytics,
+    school: getSeededSchool(assessment.school_id) || undefined,
+    class_group: getSeededClassGroup(assessment.class_group_id) || undefined,
+    subject: SEEDED_SUBJECTS.subjects.find((subject) => subject.id === assessment.subject_id),
+  }
+}
+
+export function getSeededSchoolReport(schoolId: string): SchoolReport | null {
+  const school = getSeededSchool(schoolId)
+  const dashboard = getSeededSchoolDashboard(schoolId)
+  if (!school || !dashboard) return null
+
+  const classes = SEEDED_CLASSES.class_groups.filter((classGroup) => classGroup.school_id === schoolId)
+  const assessments = SEEDED_ASSESSMENTS.assessments.filter((assessment) => assessment.school_id === schoolId)
+  const subjectIds = new Set(assessments.map((assessment) => assessment.subject_id))
+  const subjects = SEEDED_SUBJECTS.subjects.filter((subject) => subjectIds.has(subject.id))
+  const classIds = new Set(classes.map((classGroup) => classGroup.id))
+  const interventions = SEEDED_INTERVENTIONS.interventions.filter((item) => classIds.has(item.class_group_id))
+  const analyticsRows = assessments
+    .map((assessment) => getSeededAssessmentAnalytics(assessment.id))
+    .filter((analytics): analytics is AssessmentAnalytics => analytics !== null)
+  const learnersNeedingSupport = new Set(
+    analyticsRows.flatMap((analytics) => analytics.at_risk_learners.map((learner) => learner.learner_id)),
+  ).size
+  const questions = assessments.flatMap((assessment) => getSeededQuestions(assessment.id).questions)
+
+  return {
+    school,
+    classes,
+    assessments,
+    subjects,
+    pass_rate_by_class: dashboard.pass_rate_by_class,
+    recent_interventions: interventions.map((item) => ({
+      id: item.id,
+      severity: item.severity,
+      recommendation: item.recommendation,
+      status: item.status,
+      created: item.created,
+    })),
+    total_learners: dashboard.total_learners,
+    total_learners_assessed: dashboard.total_learners_assessed,
+    overall_pass_rate: dashboard.overall_pass_rate,
+    weak_topics: dashboard.weakest_topics,
+    support_indicators: {
+      learners_needing_support: learnersNeedingSupport,
+      classes_needing_support: dashboard.classes_needing_support.length,
+      open_interventions: interventions.filter((item) => item.status !== 'completed' && item.status !== 'dismissed').length,
+    },
+    data_quality: {
+      status: questions.length > 0 && questions.every((question) => Boolean(question.topic_id)) ? 'ready' : 'review',
+      mark_completion_rate: analyticsRows.length > 0
+        ? Math.round(analyticsRows.reduce((sum, item) => sum + item.mark_completion_rate, 0) / analyticsRows.length)
+        : 0,
+      mapped_question_rate: questions.length > 0
+        ? Math.round((questions.filter((question) => Boolean(question.topic_id)).length / questions.length) * 100)
+        : 0,
+    },
+    disclosure: DEMO_DISCLOSURE,
+    limitations: [
+      'Illustrative seeded records demonstrate the evidence workflow; they are not verified school or pilot results.',
+      'Support indicators require teacher review and are not diagnoses or automated decisions.',
+      'Longitudinal improvement requires future follow-up assessments collected during a governed pilot.',
+    ],
+  }
+}
+
+export function getCanonicalDemoStats() {
+  const reports = SEEDED_ASSESSMENTS.assessments
+    .map((assessment) => getSeededAssessmentReport(assessment.id))
+    .filter((report): report is AssessmentReport => report !== null)
+  const questions = reports.reduce((sum, report) => sum + report.questions.length, 0)
+  const marks = reports.reduce((sum, report) => sum + report.questions.length * report.learners.length, 0)
+  const schoolPassRates = IDS.schools
+    .map((schoolId) => getSeededSchoolDashboard(schoolId)?.overall_pass_rate)
+    .filter((rate): rate is number => rate !== undefined)
+  const supportLearners = new Set(
+    reports.flatMap((report) => report.analytics.at_risk_learners.map((learner) => learner.learner_id)),
+  )
+
+  return {
+    schools: SEEDED_SCHOOLS.total,
+    classes: SEEDED_CLASSES.total,
+    learners: SEEDED_LEARNERS.total,
+    assessments: SEEDED_ASSESSMENTS.total,
+    questions,
+    marks,
+    learnersAssessedPerAssessmentAverage: questions > 0 ? marks / questions : 0,
+    averagePassRate: schoolPassRates.length > 0
+      ? Math.round(schoolPassRates.reduce((sum, rate) => sum + rate, 0) / schoolPassRates.length)
+      : 0,
+    weakTopics: new Set(reports.flatMap((report) => report.analytics.weak_topics.map((topic) => topic.topic_id))).size,
+    learnerSupportSignals: supportLearners.size,
+    interventions: SEEDED_INTERVENTIONS.total,
+    activeInterventions: SEEDED_INTERVENTIONS.interventions.filter((item) => item.status !== 'completed' && item.status !== 'dismissed').length,
+  }
 }
 
 // =========================================================================

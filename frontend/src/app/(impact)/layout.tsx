@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: '%s · ZimLearnGraph Impact',
   },
   description:
-    'ZimLearnGraph Impact Intelligence — turn teacher-marked assessments into structured learning evidence. Weak-topic analysis, learner risk signals, and school-level analytics.',
+    'ZimLearnGraph Impact Intelligence — turn teacher-marked assessments into structured learning evidence. Weak-topic analysis, learner-support signals, and school-level analytics.',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',

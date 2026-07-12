@@ -118,7 +118,7 @@ export default function ImpactSchoolsPage() {
                       <p className="text-sm font-semibold text-amber-600">{weakTopics}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">At risk</p>
+                      <p className="text-xs text-slate-500">Support signals</p>
                       <p className="text-sm font-semibold text-rose-600">{atRisk}</p>
                     </div>
                   </div>

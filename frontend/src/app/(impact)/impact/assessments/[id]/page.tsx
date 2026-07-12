@@ -89,46 +89,7 @@ export default function AssessmentDetailPage({
               >
                 View Report
               </Link>
-              <button
-                onClick={async () => {
-                  try {
-                    const blob = await impactReportsApi.exportMarksCsv(id)
-                    const url = window.URL.createObjectURL(blob)
-                    const a = document.createElement('a')
-                    a.href = url
-                    a.download = `marks_${assessment.title.replace(/\s+/g, '_')}.csv`
-                    document.body.appendChild(a)
-                    a.click()
-                    window.URL.revokeObjectURL(url)
-                    document.body.removeChild(a)
-                  } catch (error) {
-                    console.error('Failed to export marks CSV:', error)
-                  }
-                }}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-              >
-                Export Marks
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const blob = await impactReportsApi.exportAnalyticsCsv(id)
-                    const url = window.URL.createObjectURL(blob)
-                    const a = document.createElement('a')
-                    a.href = url
-                    a.download = `analytics_${assessment.title.replace(/\s+/g, '_')}.csv`
-                    document.body.appendChild(a)
-                    a.click()
-                    window.URL.revokeObjectURL(url)
-                    document.body.removeChild(a)
-                  } catch (error) {
-                    console.error('Failed to export analytics CSV:', error)
-                  }
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-              >
-                Export Analytics
-              </button>
+
               <span
                 className={`px-3 py-1 text-sm font-medium rounded-full ${
                   assessment.status === 'graded'
@@ -434,10 +395,10 @@ function ResultsTab({
         </div>
       )}
 
-      {/* At-Risk Learners */}
+      {/* Learner support signals */}
       {analytics.at_risk_learners.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-md font-semibold text-slate-900 mb-4">At-Risk Learners</h3>
+          <h3 className="text-md font-semibold text-slate-900 mb-4">Learners Needing Support</h3>
           <div className="space-y-3">
             {analytics.at_risk_learners.map((learner: any) => (
               <div
@@ -464,7 +425,7 @@ function ResultsTab({
                         : 'bg-amber-100 text-amber-800'
                     }`}
                   >
-                    {learner.risk_level} risk
+                    {learner.risk_level} support priority
                   </span>
                 </div>
               </div>

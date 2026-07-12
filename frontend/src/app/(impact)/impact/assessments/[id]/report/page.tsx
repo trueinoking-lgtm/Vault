@@ -4,7 +4,17 @@ import { use } from 'react'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useAssessmentReport } from '@/lib/hooks/use-impact'
-import { impactReportsApi } from '@/lib/api/impact'
+import { DEMO_DISCLOSURE } from '@/lib/impact/demo-data'
+
+function downloadCsv(filename: string, rows: Array<Array<string | number>>) {
+  const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n')
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
 
 /**
  * Print-friendly Assessment Report Page
@@ -20,36 +30,20 @@ export default function AssessmentReportPage({
   const { id } = use(params)
   const { data: report, isLoading } = useAssessmentReport(id)
 
-  const handleExportMarksCsv = async () => {
-    try {
-      const blob = await impactReportsApi.exportMarksCsv(id)
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `marks_${report?.assessment.title.replace(/\s+/g, '_') || 'assessment'}.csv`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-    } catch (error) {
-      console.error('Failed to export marks CSV:', error)
-    }
+  const handleExportMarksCsv = () => {
+    if (!report) return
+    downloadCsv(`learner_summary_${report.assessment.title.replace(/\s+/g, '_')}.csv`, [
+      ['Learner Code', 'Score', 'Maximum', 'Percentage', 'Support Priority'],
+      ...report.analytics.learner_performance.map((learner) => [learner.learner_code, learner.total_score, learner.total_max_marks, learner.percentage, learner.risk_level]),
+    ])
   }
 
-  const handleExportAnalyticsCsv = async () => {
-    try {
-      const blob = await impactReportsApi.exportAnalyticsCsv(id)
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `analytics_${report?.assessment.title.replace(/\s+/g, '_') || 'assessment'}.csv`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-    } catch (error) {
-      console.error('Failed to export analytics CSV:', error)
-    }
+  const handleExportAnalyticsCsv = () => {
+    if (!report) return
+    downloadCsv(`question_analysis_${report.assessment.title.replace(/\s+/g, '_')}.csv`, [
+      ['Question', 'Topic ID', 'Average percentage', 'Priority indicator'],
+      ...report.analytics.question_performance.map((question) => [question.label || question.question_number, question.topic_id || '', question.average_percentage, question.is_critical ? 'priority' : 'reviewed']),
+    ])
   }
 
   const handlePrint = () => {
@@ -256,17 +250,17 @@ export default function AssessmentReportPage({
           </div>
         )}
 
-        {/* At-Risk Learners */}
+        {/* Learner support signals */}
         {analytics.at_risk_learners.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">At-Risk Learners</h2>
+            <h2 className="text-lg font-bold text-slate-900 mb-4">Learners Needing Support</h2>
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-2 border-slate-300">
                   <th className="text-left py-2 px-4 text-sm font-bold">Learner</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Score</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">%</th>
-                  <th className="text-left py-2 px-4 text-sm font-bold">Risk Level</th>
+                  <th className="text-left py-2 px-4 text-sm font-bold">Support Priority</th>
                 </tr>
               </thead>
               <tbody>
@@ -277,7 +271,7 @@ export default function AssessmentReportPage({
                     <td className="py-2 px-4 text-sm">{learner.percentage}%</td>
                     <td className="py-2 px-4 text-sm">
                       <span className={`font-bold ${learner.risk_level === 'high' ? 'text-red-600' : 'text-amber-600'}`}>
-                        {learner.risk_level} risk
+                        {learner.risk_level} priority
                       </span>
                     </td>
                   </tr>
@@ -309,6 +303,10 @@ export default function AssessmentReportPage({
           </div>
         )}
 
+        <section className="mb-8 border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="font-bold">{DEMO_DISCLOSURE}</p>
+          <p className="mt-2">Limitations: support indicators require teacher verification. Follow-up evidence is illustrative; longitudinal improvement has not been established.</p>
+        </section>
         {/* Footer */}
         <div className="border-t border-slate-300 pt-4 mt-8 text-sm text-slate-600">
           <p>Generated by Impact Intelligence · {new Date().toLocaleDateString()}</p>

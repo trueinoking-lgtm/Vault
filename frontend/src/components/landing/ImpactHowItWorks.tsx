@@ -7,7 +7,7 @@ const stageVisuals = [
   { label: 'Marks', tone: 'cyan', grid: 'grid-cols-5' },
   { label: 'Questions', tone: 'blue', grid: 'grid-cols-4' },
   { label: 'Topics', tone: 'amber', grid: 'grid-cols-3' },
-  { label: 'Risk', tone: 'orange', grid: 'grid-cols-4' },
+  { label: 'Support', tone: 'orange', grid: 'grid-cols-4' },
   { label: 'Actions', tone: 'emerald', grid: 'grid-cols-3' },
   { label: 'Evidence', tone: 'cyan', grid: 'grid-cols-5' },
 ] as const;
@@ -118,7 +118,7 @@ export default function ImpactHowItWorks() {
 
               <div className="mt-7 rounded-2xl border border-cyan-300/12 bg-cyan-300/[0.045] p-4">
                 <p className="text-sm leading-relaxed text-cyan-50/86">
-                  The visual language should always map to the real product journey: record, structure, detect, support, and prove improvement.
+                  The visual language maps to the intended product journey: record, structure, identify support signals, guide teacher review, and prepare follow-up evidence.
                 </p>
               </div>
             </div>

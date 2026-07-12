@@ -3,48 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { METRICS } from '@/lib/landing/impact-copy';
 
-function AnimatedCounter({ value }: { value: string }) {
-  const [display, setDisplay] = useState('0');
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const fallbackTimer = window.setTimeout(() => setVisible(true), 1200);
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.5 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => {
-      window.clearTimeout(fallbackTimer);
-      observer.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!visible) return;
-    const num = parseFloat(value.replace(/[^0-9.]/g, ''));
-    if (isNaN(num)) { setDisplay(value); return; }
-
-    const isPercent = value.includes('%');
-    const steps = 30;
-    let step = 0;
-
-    const interval = setInterval(() => {
-      step++;
-      const progress = step / steps;
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-      const current = Math.round(eased * num);
-      setDisplay(isPercent ? `${current}%` : String(current));
-      if (step >= steps) clearInterval(interval);
-    }, 40);
-
-    return () => clearInterval(interval);
-  }, [visible, value]);
-
-  return <span ref={ref}>{display}</span>;
-}
-
 export default function ImpactMetrics() {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
@@ -98,7 +56,7 @@ export default function ImpactMetrics() {
               style={{ transitionDelay: `${200 + i * 100}ms` }}
             >
               <div className={`text-3xl sm:text-4xl lg:text-5xl font-bold tabular-nums ${metric.color}`}>
-                <AnimatedCounter value={metric.value} />
+                <span>{metric.value}</span>
               </div>
               <div className="mt-2 text-xs sm:text-sm text-slate-500 leading-tight">
                 {metric.label}

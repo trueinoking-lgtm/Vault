@@ -27,7 +27,7 @@ export const HERO = {
 export const PROBLEM = {
   heading: 'The signal is already there. It just needs to be read.',
   body: [
-    'Every marked test contains critical learning signals: which questions exposed misconceptions, which topics need reteaching, which learners are falling behind. But after the score is recorded, most of that intelligence stays trapped inside paper mark books and static spreadsheets.',
+    'Every marked test contains useful learning signals: which questions may indicate misconceptions, which topics may need reteaching, and which learners may benefit from support. Teacher verification remains essential, but much of this evidence otherwise stays trapped inside paper mark books and static spreadsheets.',
     'Impact Intelligence extracts those signals and surfaces them as actionable evidence for teachers, school leaders, and educational stakeholders.',
   ],
 } as const;
@@ -38,9 +38,9 @@ export const HOW_IT_WORKS = {
     { number: '01', title: 'Record marks', description: 'Teachers enter or upload raw assessment scores. No complex setup.' },
     { number: '02', title: 'Map to topics', description: 'Questions are linked to curriculum topics. The structure mirrors what was taught.' },
     { number: '03', title: 'Detect weaknesses', description: 'The system identifies topic-level gaps across the class and flags systemic issues.' },
-    { number: '04', title: 'Flag risk', description: 'Learners requiring targeted support are surfaced programmatically.' },
+    { number: '04', title: 'Surface support signals', description: 'Learners who may benefit from targeted support are surfaced for teacher verification.' },
     { number: '05', title: 'Recommend interventions', description: 'Actionable remediation plans are generated for each identified weakness.' },
-    { number: '06', title: 'Track improvement', description: 'Progress is measured over time. Follow-up assessments confirm recovery.' },
+    { number: '06', title: 'Prepare follow-up evidence', description: 'The pilot is designed to compare future follow-up assessments. Any recovery signal requires teacher verification and longitudinal evidence.' },
   ],
 } as const;
 
@@ -82,15 +82,15 @@ export const LAYERS = {
 } as const;
 
 export const METRICS = {
-  heading: 'Anchored in real assessment data.',
-  subheading: 'The live demo is seeded with structured diagnostic data from a standard mathematics assessment.',
+  heading: 'Anchored in structured assessment data.',
+  subheading: 'The demo is seeded with structured, multi-school assessment data across Mathematics, English, and Combined Science.',
   items: [
-    { value: '30', label: 'Learners assessed', color: 'text-cyan-400' },
-    { value: '8', label: 'Questions analysed', color: 'text-blue-400' },
-    { value: '50%', label: 'Pass rate', color: 'text-amber-400' },
+    { value: '180', label: 'Learners assessed', color: 'text-violet-400' },
+    { value: '39', label: 'Questions analysed', color: 'text-blue-400' },
+    { value: '57%', label: 'Average school pass rate', color: 'text-emerald-400' },
     { value: '5', label: 'Weak topics identified', color: 'text-amber-400' },
-    { value: '15', label: 'Learners flagged for support', color: 'text-red-400' },
-    { value: '240', label: 'Marked data points processed', color: 'text-cyan-400' },
+    { value: '39', label: 'Learner support signals', color: 'text-red-400' },
+    { value: '1,166', label: 'Marked data points processed', color: 'text-cyan-400' },
   ],
 } as const;
 

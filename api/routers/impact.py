@@ -13,9 +13,11 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from loguru import logger
+from surrealdb import RecordID
 
 from api.models import (
     AssessmentAnalyticsResponse,
+    ImpactAssessmentReportResponse,
     ImpactAssessmentCreate,
     ImpactAssessmentListResponse,
     ImpactAssessmentQuestionCreate,
@@ -44,6 +46,7 @@ from api.models import (
     ImpactSchoolListResponse,
     ImpactSchoolResponse,
     ImpactSchoolUpdate,
+    ImpactSchoolReportResponse,
     ImpactSubjectCreate,
     ImpactSubjectListResponse,
     ImpactSubjectResponse,
@@ -75,13 +78,24 @@ from vault_core.exceptions import NotFoundError
 router = APIRouter(prefix="/impact", tags=["impact"])
 
 
+def _normalize_api_value(value):
+    """Create a JSON-safe boundary copy without mutating domain RecordIDs."""
+    if isinstance(value, RecordID):
+        return f"{value.table_name}:{value.id}"
+    if isinstance(value, dict):
+        return {key: _normalize_api_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_normalize_api_value(item) for item in value]
+    return value
+
+
 # ---------------------------------------------------------------------------
 # Helper: strip table prefix from a SurrealDB record ID string
 # ---------------------------------------------------------------------------
 def _strip_prefix(value: str) -> str:
     if ":" in value:
-        return value.split(":", 1)[1]
-    return value
+        value = value.split(":", 1)[1]
+    return value.strip("⟨⟩")
 
 
 # ---------------------------------------------------------------------------
@@ -1786,7 +1800,7 @@ async def get_ministry_dashboard() -> Dict[str, Any]:
 # =========================================================================
 
 
-@router.get("/reports/assessment/{assessment_id}")
+@router.get("/reports/assessment/{assessment_id}", response_model=ImpactAssessmentReportResponse)
 async def get_assessment_report(assessment_id: str) -> Dict[str, Any]:
     """Get comprehensive assessment report data."""
     # Get assessment (use raw ID since get handles it)
@@ -1894,7 +1908,7 @@ async def get_assessment_report(assessment_id: str) -> Dict[str, Any]:
     }
 
 
-@router.get("/reports/school/{school_id}")
+@router.get("/reports/school/{school_id}", response_model=ImpactSchoolReportResponse)
 async def get_school_report(school_id: str) -> Dict[str, Any]:
     """Get comprehensive school report data."""
     # Normalize ID prefix
@@ -1908,14 +1922,14 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
     # Get classes
     classes_result = await repo_query(
         "SELECT * FROM impact_class_group WHERE school_id = type::thing($table, $id)",
-        {"table": "impact_class_group", "id": _strip_prefix(school_id)},
+        {"table": "impact_school", "id": _strip_prefix(school_id)},
     )
     classes = [ImpactClassGroup(**r) for r in classes_result]
 
     # Get assessments
     assessments_result = await repo_query(
         "SELECT * FROM impact_assessment WHERE school_id = type::thing($table, $id)",
-        {"table": "impact_assessment", "id": _strip_prefix(school_id)},
+        {"table": "impact_school", "id": _strip_prefix(school_id)},
     )
     assessments = [ImpactAssessment(**a) for a in assessments_result]
 
@@ -1923,8 +1937,8 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
     assessment_ids = [str(a.id) for a in assessments]
     if assessment_ids:
         marks_result = await repo_query(
-            "SELECT * FROM impact_mark_entry WHERE assessment_id IN $ids",
-            {"ids": assessment_ids},
+            "SELECT * FROM impact_mark_entry WHERE "
+            + _build_thing_conditions(assessment_ids, "impact_assessment", "assessment_id"),
         )
     else:
         marks_result = []
@@ -1933,7 +1947,7 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
     # Get learners
     learners_result = await repo_query(
         "SELECT * FROM impact_learner WHERE school_id = type::thing($table, $id)",
-        {"table": "impact_learner", "id": _strip_prefix(school_id)},
+        {"table": "impact_school", "id": _strip_prefix(school_id)},
     )
     learners = [ImpactLearner(**r) for r in learners_result]
 
@@ -1990,13 +2004,15 @@ async def get_school_report(school_id: str) -> Dict[str, Any]:
     overall_pass_rate = (total_passed / total_learners_assessed * 100) if total_learners_assessed > 0 else 0
 
     # Recent interventions
+    class_ids = [str(c.id) for c in classes]
     interventions_result = await repo_query(
-        "SELECT * FROM impact_intervention WHERE class_group_id IN $ids ORDER BY created DESC LIMIT 10",
-        {"ids": [str(c.id) for c in classes]},
+        "SELECT * FROM impact_intervention WHERE "
+        + _build_thing_conditions(class_ids, "impact_class_group", "class_group_id")
+        + " ORDER BY created DESC LIMIT 10",
     ) if classes else []
     recent_interventions = [
         {
-            "id": _strip_prefix(str(InterventionRecommendationResponse(**i).id or "")),
+            "id": _strip_prefix(str(i.get("id") or "")),
             "severity": i.get("severity", "low"),
             "recommendation": i.get("recommendation", ""),
             "status": i.get("status", "pending"),

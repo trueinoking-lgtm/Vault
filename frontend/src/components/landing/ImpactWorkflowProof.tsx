@@ -59,7 +59,7 @@ export default function ImpactWorkflowProof() {
               Show the journey from a mark book to a support plan.
             </h2>
             <p className="mt-5 text-base leading-relaxed text-slate-400">
-              The landing page now proves the product instead of only describing it: marked evidence moves through a clear school workflow with teacher judgement kept at the center.
+              The seeded demonstration shows the intended workflow: marked evidence moves through a clear school process with teacher judgement kept at the center.
             </p>
           </div>
 

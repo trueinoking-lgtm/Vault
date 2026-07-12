@@ -35,12 +35,12 @@ export const enUS = {
     quickActions: "Quick actions",
     quickActionsDesc: "Navigation, search, ask, theme",
     appName: "Vault",
-    // Hidden build marker — intentionally unused in UI. Changes the compiled\n    // i18n catalog so the shared locale chunk re-hashes to a new filename,\n    // bypassing any poisoned immutable browser cache for the prior chunk.\n    cacheBust: "zimlearngraph-public-demo-stable-v0.4-cachebust-20260711",
+    // Hidden build marker — intentionally unused in UI. Changes the compiled\n    // i18n catalog so the shared locale chunk re-hashes to a new filename,\n    // bypassing any poisoned immutable browser cache for the prior chunk.\n
 
     // Hidden build marker — intentionally unused in UI. Changes the compiled
     // i18n catalog so the shared locale chunk re-hashes to a new filename,
     // bypassing any poisoned immutable browser cache for the prior chunk.
-    cacheBust: "zimlearngraph-public-demo-stable-v0.4-cachebust-20260711",
+
     add: "Add",
     remove: "Remove",
     confirm: "Confirm",

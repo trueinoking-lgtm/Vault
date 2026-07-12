@@ -36,7 +36,7 @@ export const bnIN = {
     quickActionsDesc: "নেভিগেশন, অনুসন্ধান, প্রশ্ন, থিম",
     appName: "ওপেন নোটবুক",
     // Hidden build marker — intentionally unused in UI.
-    cacheBust: "zimlearngraph-public-demo-stable-v0.4-cachebust-20260711",
+
 
     add: "যোগ করুন",
     remove: "সরান",

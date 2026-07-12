@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { DEMO_DISCLOSURE } from '@/lib/impact/demo-data'
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/impact' },
@@ -104,6 +105,9 @@ export default function ImpactLayout({
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
+      <aside className="sticky bottom-0 z-30 border-t border-amber-300/30 bg-amber-50/95 px-4 py-2 text-center text-xs font-medium text-amber-950 backdrop-blur dark:bg-amber-950/95 dark:text-amber-100" aria-label="Demonstration data disclosure">
+        {DEMO_DISCLOSURE}
+      </aside>
     </div>
   )
 }

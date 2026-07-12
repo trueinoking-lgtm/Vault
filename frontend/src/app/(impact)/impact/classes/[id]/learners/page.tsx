@@ -87,12 +87,7 @@ export default function ClassLearnersPage({
                 .join(' · ')}
             </p>
           </div>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Add learner
-          </button>
+          <span className="text-sm text-slate-500">Read-only seeded evidence view</span>
         </div>
 
         {/* Learners List */}

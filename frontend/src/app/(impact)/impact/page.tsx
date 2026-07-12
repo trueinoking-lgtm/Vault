@@ -10,6 +10,7 @@ import {
   useImpactLearners,
   useImpactInterventions,
 } from '@/lib/hooks/use-impact'
+import { getCanonicalDemoStats, getSeededSchoolDashboard } from '@/lib/impact/demo-data'
 
 /**
  * Impact Intelligence — Main landing page (Overview)
@@ -34,6 +35,7 @@ export default function ImpactHome() {
   const interventions = interventionsRes?.interventions ?? []
 
   const usingSeeded = schools.length === 3 && schools[0]?.id === 'school-pilot'
+  const canonicalStats = getCanonicalDemoStats()
   const isLoading = schoolsLoading || classesLoading || assessmentsLoading || learnersLoading
 
   // ── Derived stats ────────────────────────────────────────
@@ -44,7 +46,7 @@ export default function ImpactHome() {
   const completedAssessments = assessments.filter((a) => a.status === 'graded').length
   const pendingInterventions = interventions.filter((i) => i.status !== 'completed').length
 
-  const avgPassRate = schools.length > 0
+  const avgPassRate = usingSeeded ? canonicalStats.averagePassRate : schools.length > 0
     ? Math.round(
         schools
           .filter((s) => s.id === 'school-pilot' || s.id === 'school-mbare' || s.id === 'school-chitungwiza')
@@ -56,12 +58,12 @@ export default function ImpactHome() {
     : 0
 
   // Show seeded weak topics aggregate
-  const weakTopicsCount = 5
-  const atRiskCount = 12
+  const weakTopicsCount = usingSeeded ? canonicalStats.weakTopics : 0
+  const atRiskCount = usingSeeded ? canonicalStats.learnerSupportSignals : 0
 
   // Schools needing support (pass rate < 60)
   const schoolsNeedingSupport = schools.filter((s) => {
-    const rate = s.id === 'school-pilot' ? 50 : s.id === 'school-mbare' ? 57 : 63
+    const rate = usingSeeded ? (getSeededSchoolDashboard(s.id)?.overall_pass_rate ?? 0) : 0
     return rate < 60
   })
 
@@ -143,7 +145,7 @@ export default function ImpactHome() {
         <MetricCard label="Learners Assessed" value={String(totalLearners)} accent="from-violet-400 to-purple-600" />
         <MetricCard label="Assessments" value={String(completedAssessments)} accent="from-amber-400 to-orange-500" />
         <MetricCard label="Pass Rate" value={`${avgPassRate}%`} accent="from-emerald-400 to-green-500" />
-        <MetricCard label="At-Risk" value={String(atRiskCount)} accent="from-rose-400 to-red-500" />
+        <MetricCard label="Support Signals" value={String(atRiskCount)} accent="from-rose-400 to-red-500" />
       </div>
 
       {/* ── Schools Needing Support ──────────────────────────────────────── */}
@@ -155,9 +157,10 @@ export default function ImpactHome() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {schoolsNeedingSupport.map((school) => {
-              const rate = school.id === 'school-pilot' ? 50 : school.id === 'school-mbare' ? 57 : 63
-              const atRisk = school.id === 'school-pilot' ? 15 : school.id === 'school-mbare' ? 12 : 9
-              const weakTopics = school.id === 'school-pilot' ? 5 : school.id === 'school-mbare' ? 4 : 3
+              const dashboard = getSeededSchoolDashboard(school.id)
+              const rate = dashboard?.overall_pass_rate ?? 0
+              const atRisk = dashboard?.classes_needing_support.reduce((sum, item) => sum + item.total_learners, 0) ?? 0
+              const weakTopics = dashboard?.weakest_topics.length ?? 0
               return (
                 <Link
                   key={school.id}

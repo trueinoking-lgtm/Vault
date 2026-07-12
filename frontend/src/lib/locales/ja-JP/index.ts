@@ -35,7 +35,7 @@ export const jaJP = {
     quickActions: "クイックアクション",
     quickActionsDesc: "ナビゲーション、検索、質問、テーマ",
     appName: "Vault",
-    // Hidden build marker — intentionally unused in UI. Changes the compiled\n    // i18n catalog so the shared locale chunk re-hashes to a new filename,\n    // bypassing any poisoned immutable browser cache for the prior chunk.\n    cacheBust: "zimlearngraph-public-demo-stable-v0.4-cachebust-20260711",
+    // Hidden build marker — intentionally unused in UI. Changes the compiled\n    // i18n catalog so the shared locale chunk re-hashes to a new filename,\n    // bypassing any poisoned immutable browser cache for the prior chunk.\n
 
     add: "追加",
     remove: "削除",

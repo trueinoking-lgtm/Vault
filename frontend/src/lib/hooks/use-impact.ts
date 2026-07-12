@@ -59,6 +59,11 @@ import {
   getSeededQuestions,
   getSeededSchoolDashboard,
   getSeededAssessmentAnalytics,
+  getSeededAssessment,
+  getSeededAssessmentReport,
+  getSeededClassGroup,
+  getSeededSchool,
+  getSeededSchoolReport,
   SEEDED_MINISTRY_DASHBOARD,
 } from '@/lib/impact/demo-data'
 
@@ -110,7 +115,7 @@ export const impactKeys = {
  * public demo showing "No schools yet" against a healthy-but-empty
  * backend.
  */
-function withFallback<T>(
+export function withFallback<T>(
   queryFn: () => Promise<T>,
   fallback: T,
   isEmpty?: (data: T) => boolean,
@@ -151,7 +156,7 @@ export function useImpactSchools() {
 export function useImpactSchool(id: string) {
   return useQuery({
     queryKey: impactKeys.school(id),
-    queryFn: () => impactSchoolsApi.get(id),
+    queryFn: withFallback(() => impactSchoolsApi.get(id), getSeededSchool(id)!, (data) => !data),
     enabled: !!id,
   })
 }
@@ -202,7 +207,7 @@ export function useImpactClassGroups(schoolId?: string) {
 export function useImpactClassGroup(id: string) {
   return useQuery({
     queryKey: impactKeys.classGroup(id),
-    queryFn: () => impactClassGroupsApi.get(id),
+    queryFn: withFallback(() => impactClassGroupsApi.get(id), getSeededClassGroup(id)!, (data) => !data),
     enabled: !!id,
   })
 }
@@ -422,7 +427,7 @@ export function useImpactAssessments(params?: { class_group_id?: string; subject
 export function useImpactAssessment(id: string) {
   return useQuery({
     queryKey: impactKeys.assessment(id),
-    queryFn: () => impactAssessmentsApi.get(id),
+    queryFn: withFallback(() => impactAssessmentsApi.get(id), getSeededAssessment(id)!, (data) => !data),
     enabled: !!id,
   })
 }
@@ -464,7 +469,7 @@ export function useAssessmentAnalytics(id: string) {
     queryKey: impactKeys.analytics(id),
     queryFn: withFallback(
       () => impactAssessmentsApi.getAnalytics(id),
-      getSeededAssessmentAnalytics(id) as any,
+      getSeededAssessmentAnalytics(id)!,
       (d) => !d,
     ),
     enabled: !!id,
@@ -481,6 +486,7 @@ export function useImpactQuestions(assessmentId: string) {
     queryFn: withFallback(
       () => impactQuestionsApi.list(assessmentId),
       getSeededQuestions(assessmentId),
+      (data) => !data || data.questions.length === 0,
     ),
     enabled: !!assessmentId,
   })
@@ -674,7 +680,11 @@ export function useMinistryDashboard() {
 export function useAssessmentReport(assessmentId: string) {
   return useQuery({
     queryKey: [...impactKeys.all, 'reports', 'assessment', assessmentId],
-    queryFn: () => impactReportsApi.getAssessmentReport(assessmentId),
+    queryFn: withFallback(
+      () => impactReportsApi.getAssessmentReport(assessmentId),
+      getSeededAssessmentReport(assessmentId)!,
+      (data) => !data,
+    ),
     enabled: !!assessmentId,
   })
 }
@@ -682,7 +692,11 @@ export function useAssessmentReport(assessmentId: string) {
 export function useSchoolReport(schoolId: string) {
   return useQuery({
     queryKey: [...impactKeys.all, 'reports', 'school', schoolId],
-    queryFn: () => impactReportsApi.getSchoolReport(schoolId),
+    queryFn: withFallback(
+      () => impactReportsApi.getSchoolReport(schoolId),
+      getSeededSchoolReport(schoolId)!,
+      (data) => !data,
+    ),
     enabled: !!schoolId,
   })
 }

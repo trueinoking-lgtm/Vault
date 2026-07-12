@@ -19,6 +19,7 @@ import ImpactReportOutputs from './ImpactReportOutputs';
 import LiveDataTicker from './LiveDataTicker';
 import SectionEntrance from './SectionEntrance';
 import { IMPACT_LANDING_BUILD } from '@/lib/landing/landing-build';
+import { DEMO_DISCLOSURE } from '@/lib/impact/demo-data';
 
 const FixedScene = dynamic(() => import('./HeroScene'), {
   ssr: false,
@@ -56,6 +57,9 @@ function LandingInner() {
 
       {/* Live data ticker — always visible at top */}
       <LiveDataTicker />
+      <aside className="fixed bottom-0 left-0 right-0 z-50 border-t border-amber-300/20 bg-amber-950/95 px-4 py-2 text-center text-xs font-medium text-amber-100 backdrop-blur" aria-label="Demonstration data disclosure">
+        {DEMO_DISCLOSURE}
+      </aside>
 
       {/* Content overlay — scrolls normally with semi-transparent background */}
       <div

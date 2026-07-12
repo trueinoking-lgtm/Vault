@@ -1618,3 +1618,35 @@ class AssessmentAnalyticsResponse(BaseModel):
     weak_topics: List[TopicPerformanceResponse]
     at_risk_learners: List[LearnerPerformanceResponse]
     interventions: List[InterventionRecommendationResponse]
+
+
+class ImpactReportEntitySnapshot(BaseModel):
+    """Typed report snapshot with audit fields intentionally omitted."""
+
+    model_config = ConfigDict(extra="allow")
+    id: str
+
+
+class ImpactAssessmentReportResponse(BaseModel):
+    """Validated assessment report assembled at the API boundary."""
+
+    assessment: ImpactReportEntitySnapshot
+    questions: List[ImpactReportEntitySnapshot]
+    learners: List[ImpactReportEntitySnapshot]
+    analytics: AssessmentAnalyticsResponse
+    school: Optional[ImpactReportEntitySnapshot] = None
+    class_group: Optional[ImpactReportEntitySnapshot] = None
+    subject: Optional[ImpactReportEntitySnapshot] = None
+
+
+class ImpactSchoolReportResponse(BaseModel):
+    """Validated school aggregate report assembled at the API boundary."""
+
+    school: ImpactReportEntitySnapshot
+    classes: List[ImpactReportEntitySnapshot]
+    assessments: List[ImpactReportEntitySnapshot]
+    pass_rate_by_class: List[dict]
+    recent_interventions: List[ImpactReportEntitySnapshot]
+    total_learners: int
+    total_learners_assessed: int
+    overall_pass_rate: float

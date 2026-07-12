@@ -59,8 +59,8 @@ export default function EvidenceSignalPanel() {
         <div className="mt-4 grid grid-cols-3 gap-2 text-center">
           {[
             ["5", "weak topics"],
-            ["15", "support flags"],
-            ["240", "mark nodes"],
+            ["39", "support signals"],
+            ["1,166", "mark nodes"],
           ].map(([value, label]) => (
             <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.025] p-3">
               <div className="font-mono text-lg font-semibold text-cyan-200">{value}</div>
