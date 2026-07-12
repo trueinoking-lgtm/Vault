@@ -40,7 +40,7 @@ export default function ImpactOverviewPage() {
 
       <section aria-labelledby="system-metrics-heading">
         <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-teal-700">Canonical demonstration baseline</p><h2 id="system-metrics-heading" className="mt-1 text-xl font-black tracking-[-0.02em] text-slate-950">The complete evidence system at a glance</h2></div><span className="hidden text-xs font-semibold text-slate-500 sm:block">No unexplained zero values</span></div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-4 xl:grid-cols-4">
           <MetricCard label="Schools" value={stats.schools} detail="Seeded institutions" icon={Building2} />
           <MetricCard label="Classes" value={stats.classes} detail="Across 3 schools" icon={GraduationCap} tone="blue" />
           <MetricCard label="Learners" value={stats.learners} detail="Anonymous codes" icon={UsersRound} tone="violet" />
@@ -53,7 +53,7 @@ export default function ImpactOverviewPage() {
       </section>
 
       <SectionCard title="Follow the evidence workflow" description="Every step opens a real ZimLearnGraph route with traceable seeded evidence." action={<SecondaryAction href="/impact/stakeholder-demo">Open stakeholder demo</SecondaryAction>}>
-        <ol id="guided-workflow" className="grid scroll-mt-28 gap-3 md:grid-cols-2 xl:grid-cols-7">
+        <ol id="guided-workflow" className="grid scroll-mt-28 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
           {OVERVIEW_WORKFLOW.map((item) => (
             <li key={item.step} className="min-w-0">
               <a href={item.href} className="group flex h-full min-h-44 flex-col rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
