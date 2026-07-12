@@ -1,209 +1,48 @@
 'use client'
 
-import { use, useState } from 'react'
-import Link from 'next/link'
-import { LoadingSpinner } from '@/components/common/LoadingSpinner'
-import {
-  useImpactClassGroup,
-  useImpactLearners,
-  useCreateImpactLearner,
-} from '@/lib/hooks/use-impact'
+import { use, useMemo, useState } from 'react'
+import { Plus, X } from 'lucide-react'
+import { PageHeader, ProductState, SectionCard, StatusBadge } from '@/components/impact/ProductUI'
+import { useCreateImpactLearner, useImpactAssessments, useImpactClassGroup, useImpactLearners } from '@/lib/hooks/use-impact'
+import { getSeededAssessmentAnalytics } from '@/lib/impact/demo-data'
 
-/**
- * Impact Intelligence — Class Learners Page
- *
- * Lists learners enrolled in a class and allows adding new learner codes.
- */
-export default function ClassLearnersPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default function ClassLearnersPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const { data: classGroup, isLoading: classLoading } = useImpactClassGroup(id)
-  const { data: learnersData, isLoading: learnersLoading } = useImpactLearners(id)
+  const classQuery = useImpactClassGroup(id)
+  const learnersQuery = useImpactLearners(id)
+  const assessmentsQuery = useImpactAssessments({ class_group_id: id })
   const createLearner = useCreateImpactLearner()
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [open, setOpen] = useState(false)
   const [learnerCode, setLearnerCode] = useState('')
-  const [displayName, setDisplayName] = useState('')
+  const [success, setSuccess] = useState('')
+  const cls = classQuery.data
+  const learners = learnersQuery.data?.learners ?? []
+  const assessments = assessmentsQuery.data?.assessments ?? []
+  const supportIds = useMemo(() => new Set(assessments.flatMap((item) => getSeededAssessmentAnalytics(item.id)?.at_risk_learners.map((learner) => learner.learner_id) ?? [])), [assessments])
 
-  const isLoading = classLoading || learnersLoading
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!learnerCode || !classGroup) return
-
-    await createLearner.mutateAsync({
-      school_id: classGroup.school_id,
-      class_group_id: id,
-      learner_code: learnerCode,
-      display_name: displayName || undefined,
-    })
-
-    setLearnerCode('')
-    setDisplayName('')
-    setShowAddForm(false)
+  async function submit(event: React.FormEvent) {
+    event.preventDefault()
+    if (!cls || !learnerCode.trim()) return
+    try {
+      await createLearner.mutateAsync({ school_id: cls.school_id, class_group_id: id, learner_code: learnerCode.trim() })
+      setSuccess(`${learnerCode.trim()} was added successfully.`)
+      setLearnerCode('')
+      setOpen(false)
+    } catch {
+      // The mutation hook presents the API error toast; keep the form open for retry.
+    }
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  if (classQuery.isLoading || learnersQuery.isLoading || assessmentsQuery.isLoading) return <ProductState type="loading" title="Loading learner codes" description="Preparing anonymous participation and support indicators." />
+  if (!cls) return <ProductState type="error" title="Class not found" description="Return to the class directory and select a canonical class." />
 
-  if (!classGroup) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-200 text-center">
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Class not found</h2>
-          <Link href="/impact/classes" className="text-blue-600 hover:text-blue-700 text-sm">
-            ← Back to classes
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  return <div className="space-y-6">
+    <PageHeader eyebrow="Learner management" title={`${cls.name} learner codes`} description="Anonymous learner codes with assessment participation and teacher-verified support indicators. No learner names are used in this demonstration." breadcrumbs={[{ label: 'Classes', href: '/impact/classes' }, { label: cls.name, href: `/impact/classes/${id}` }, { label: 'Learners' }]} actions={<button type="button" onClick={() => setOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#0b4f5c] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#083d47] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"><Plus aria-hidden="true" className="h-4 w-4" />Add learner code</button>} />
+    {success && <div role="status" className="flex items-center justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900"><span>{success}</span><button type="button" aria-label="Dismiss success message" onClick={() => setSuccess('')} className="rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"><X aria-hidden="true" className="h-4 w-4" /></button></div>}
+    <SectionCard title="Class learner evidence" description={`${learners.length} anonymous learner codes · ${assessments.length} recent assessments`}>
+      {learners.length === 0 ? <ProductState type="empty" title="No learner codes yet" description="Add an anonymous code such as L001 to begin assessment participation tracking." /> : <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[720px] border-collapse text-left"><thead className="bg-slate-50"><tr>{['Learner code', 'Status', 'Assessment participation', 'Support indicator', 'Required action'].map((label) => <th key={label} className="px-4 py-3 text-[11px] font-black uppercase tracking-[0.09em] text-slate-500">{label}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{learners.map((learner) => { const needsReview = supportIds.has(learner.id); return <tr key={learner.id} className="hover:bg-slate-50/70"><td className="px-4 py-3 font-mono text-sm font-black text-slate-950">{learner.learner_code}</td><td className="px-4 py-3"><StatusBadge tone="success">{learner.status}</StatusBadge></td><td className="px-4 py-3 text-sm text-slate-700">{assessments.length} of {assessments.length} seeded assessments</td><td className="px-4 py-3"><StatusBadge tone={needsReview ? 'attention' : 'neutral'}>{needsReview ? 'Support indicator' : 'No current indicator'}</StatusBadge></td><td className="px-4 py-3 text-sm font-semibold text-slate-700">{needsReview ? 'Needs teacher review' : 'Continue monitoring'}</td></tr> })}</tbody></table></div>}
+    </SectionCard>
 
-  const learners = learnersData?.learners ?? []
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Link
-              href="/impact/classes"
-              className="text-blue-600 hover:text-blue-700 text-sm mb-2 inline-block"
-            >
-              ← Back to classes
-            </Link>
-            <h1 className="text-3xl font-bold text-slate-900">{classGroup.name}</h1>
-            <p className="text-slate-600 mt-1">
-              {[classGroup.grade_level, classGroup.academic_year, classGroup.teacher_name]
-                .filter(Boolean)
-                .join(' · ')}
-            </p>
-          </div>
-          <span className="text-sm text-slate-500">Read-only seeded evidence view</span>
-        </div>
-
-        {/* Learners List */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          {learners.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No learners yet</h3>
-              <p className="text-slate-600 mb-4">
-                No learners yet. Add learners using codes like L001, L002, L003.
-              </p>
-            </div>
-          ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-500 uppercase tracking-wider">
-                    Learner Code
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-500 uppercase tracking-wider">
-                    Display Name
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {learners.map((learner) => (
-                  <tr key={learner.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 text-sm font-mono text-slate-900">
-                      {learner.learner_code}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {learner.display_name || '—'}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          learner.status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : learner.status === 'inactive'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {learner.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Add Learner Form Modal */}
-        {showAddForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">Add learner</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Learner code *
-                  </label>
-                  <input
-                    type="text"
-                    value={learnerCode}
-                    onChange={(e) => setLearnerCode(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. L001"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Display name
-                  </label>
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. John Doe"
-                  />
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddForm(false)
-                      setLearnerCode('')
-                      setDisplayName('')
-                    }}
-                    className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={createLearner.isPending}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                  >
-                    {createLearner.isPending ? 'Adding...' : 'Add learner'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+    {open && <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4 backdrop-blur-sm"><button type="button" aria-label="Close add learner dialog backdrop" onClick={() => setOpen(false)} className="absolute inset-0" /><section role="dialog" aria-modal="true" aria-labelledby="add-learner-title" className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><h2 id="add-learner-title" className="text-xl font-black text-slate-950">Add learner code</h2><p className="mt-2 text-sm leading-6 text-slate-600">Use an anonymous school code. Do not enter a learner name.</p></div><button type="button" aria-label="Close add learner dialog" onClick={() => setOpen(false)} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"><X aria-hidden="true" className="h-4 w-4" /></button></div><form onSubmit={submit} className="mt-6"><label htmlFor="learner-code" className="text-sm font-bold text-slate-800">Learner code</label><input id="learner-code" value={learnerCode} onChange={(event) => setLearnerCode(event.target.value)} placeholder="e.g. L031" required autoFocus className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500" /><p className="mt-2 text-xs text-slate-500">Teacher verification required before linking this code to assessment evidence.</p><div className="mt-6 flex gap-3"><button type="button" onClick={() => setOpen(false)} className="min-h-11 flex-1 rounded-xl border border-slate-300 px-4 text-sm font-bold text-slate-700">Cancel</button><button type="submit" disabled={createLearner.isPending || !learnerCode.trim()} className="min-h-11 flex-1 rounded-xl bg-[#0b4f5c] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">{createLearner.isPending ? 'Adding…' : 'Add code'}</button></div></form></section></div>}
+  </div>
 }

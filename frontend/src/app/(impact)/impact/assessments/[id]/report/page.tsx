@@ -228,7 +228,7 @@ export default function AssessmentReportPage({
           </div>
         )}
 
-        {/* Weak Topics */}
+        {/* Topics needing attention */}
         {analytics.weak_topics.length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-bold text-slate-900 mb-4">Topics Needing Revision</h2>

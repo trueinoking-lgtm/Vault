@@ -208,7 +208,7 @@ export default function SchoolReportPage({
             </ul>
           </section>
           <section>
-            <h2 className="mb-3 text-lg font-bold text-slate-900">Weak Topics</h2>
+            <h2 className="mb-3 text-lg font-bold text-slate-900">Topics needing attention</h2>
             <ul className="list-disc pl-5 text-sm">
               {report.weak_topics.map((topic) => <li key={topic.topic_id}>{topic.topic_name}: {topic.percentage}%</li>)}
             </ul>

@@ -1,467 +1,71 @@
 'use client'
 
-import { use, useState } from 'react'
-import Link from 'next/link'
-import { LoadingSpinner } from '@/components/common/LoadingSpinner'
-import { QuestionMapBuilder } from '@/components/impact/QuestionMapBuilder'
-import { MarkEntryGrid } from '@/components/impact/MarkEntryGrid'
-import { InterventionPanel } from '@/components/impact/InterventionPanel'
+import { use, useEffect, useState } from 'react'
+import { BarChart3, ClipboardCheck, FileText, ListChecks, Target, UsersRound } from 'lucide-react'
 import { AISummaryPanel } from '@/components/impact/AISummaryPanel'
-import {
-  useImpactAssessment,
-  useAssessmentAnalytics,
-  useImpactQuestions,
-  useImpactLearners,
-} from '@/lib/hooks/use-impact'
-import { impactReportsApi } from '@/lib/api/impact'
+import { MarkEntryGrid } from '@/components/impact/MarkEntryGrid'
+import { QuestionMapBuilder } from '@/components/impact/QuestionMapBuilder'
+import { MetricCard, PageHeader, PrimaryAction, ProductState, SectionCard, StatusBadge } from '@/components/impact/ProductUI'
+import { useAssessmentAnalytics, useImpactAssessment, useImpactLearners, useImpactQuestions } from '@/lib/hooks/use-impact'
+import type { AssessmentAnalytics, InterventionRecommendation, LearnerPerformance, QuestionPerformance, TopicPerformance } from '@/lib/types/impact'
 
-type Tab = 'setup' | 'questions' | 'marks' | 'results' | 'interventions'
+type Tab = 'overview' | 'questions' | 'marks' | 'results' | 'support' | 'report'
+const TABS: { id: Tab; label: string }[] = [{ id: 'overview', label: 'Overview' }, { id: 'questions', label: 'Questions and topics' }, { id: 'marks', label: 'Marks' }, { id: 'results', label: 'Results' }, { id: 'support', label: 'Support' }, { id: 'report', label: 'Report' }]
 
-/**
- * Impact Intelligence — Assessment Detail & Workflow Page
- *
- * Tabs: Setup, Questions, Marks, Results, Interventions
- */
-export default function AssessmentDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default function AssessmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const [activeTab, setActiveTab] = useState<Tab>('setup')
+  const [tab, setTab] = useState<Tab>('overview')
+  const assessmentQuery = useImpactAssessment(id)
+  const analyticsQuery = useAssessmentAnalytics(id)
+  const questionsQuery = useImpactQuestions(id)
+  const learnersQuery = useImpactLearners(assessmentQuery.data?.class_group_id)
+  const assessment = assessmentQuery.data
+  const analytics = analyticsQuery.data
+  const questions = questionsQuery.data?.questions ?? []
+  const learners = learnersQuery.data?.learners ?? []
 
-  const { data: assessment, isLoading: assessmentLoading } = useImpactAssessment(id)
-  const { data: analytics, isLoading: analyticsLoading } = useAssessmentAnalytics(id)
-  const { data: questionsData, isLoading: questionsLoading } = useImpactQuestions(id)
-  const { data: learnersData, isLoading: learnersLoading } = useImpactLearners(
-    assessment?.class_group_id
-  )
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('view')
+    if (requested && TABS.some((item) => item.id === requested)) setTab(requested as Tab)
+  }, [])
 
-  if (assessmentLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
+  function selectTab(next: Tab) {
+    setTab(next)
+    const url = new URL(window.location.href)
+    if (next === 'overview') url.searchParams.delete('view'); else url.searchParams.set('view', next)
+    window.history.replaceState({}, '', url)
   }
 
-  if (!assessment) {
-    return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">Assessment not found</h1>
-          <Link href="/impact/assessments" className="text-blue-600 hover:text-blue-700">
-            ← Back to assessments
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  if (assessmentQuery.isLoading) return <ProductState type="loading" title="Loading assessment workflow" description="Preparing assessment setup, marks and deterministic analytics." />
+  if (!assessment) return <ProductState type="error" title="Assessment not found" description="Return to Assessments and select one of the six canonical records." />
 
-  const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'setup', label: 'Setup', icon: '⚙️' },
-    { id: 'questions', label: 'Questions', icon: '📝' },
-    { id: 'marks', label: 'Marks', icon: '📊' },
-    { id: 'results', label: 'Results', icon: '📈' },
-    { id: 'interventions', label: 'Interventions', icon: '🎯' },
-  ]
+  return <div className="space-y-6">
+    <PageHeader eyebrow="Assessment intelligence" title={assessment.title} description={`${assessment.assessment_type} · ${assessment.total_marks} marks · pass mark ${assessment.pass_mark ?? 'not set'} · ${assessment.term ?? 'term not recorded'}`} breadcrumbs={[{ label: 'Assessments', href: '/impact/assessments' }, { label: assessment.title }]} actions={<PrimaryAction href={`/impact/assessments/${id}/report`}>Open report</PrimaryAction>} />
+    <div className="overflow-x-auto border-b border-slate-200" role="tablist" aria-label="Assessment workflow"><div className="flex min-w-max gap-1">{TABS.map((item) => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} aria-controls={`panel-${item.id}`} onClick={() => selectTab(item.id)} className={`min-h-11 rounded-t-xl border-b-2 px-4 py-3 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${tab === item.id ? 'border-teal-700 bg-white text-teal-900' : 'border-transparent text-slate-500 hover:bg-white/60 hover:text-slate-900'}`}>{item.label}</button>)}</div></div>
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link href="/impact/assessments" className="text-blue-600 hover:text-blue-700 text-sm mb-2 inline-block">
-            ← Back to assessments
-          </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">{assessment.title}</h1>
-              <p className="text-slate-600 mt-1">
-                {assessment.assessment_type} · {assessment.total_marks} marks
-                {assessment.pass_mark && ` · Pass mark: ${assessment.pass_mark}`}
-                {assessment.term && ` · ${assessment.term}`}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/impact/assessments/${id}/report`}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-              >
-                View Report
-              </Link>
+    <section id={`panel-${tab}`} role="tabpanel" className="min-w-0">
+      {tab === 'overview' && <div className="space-y-5"><div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><MetricCard label="Status" value={assessment.status} detail="Assessment state" icon={ClipboardCheck} /><MetricCard label="Learners assessed" value={analytics ? `${analytics.learners_assessed}/${analytics.total_learners}` : '—'} detail="Mark completion" icon={UsersRound} tone="violet" /><MetricCard label="Questions" value={questions.length} detail="Mapped evidence points" icon={ListChecks} tone="blue" /><MetricCard label="Pass rate" value={analytics ? `${analytics.pass_rate}%` : '—'} detail="Deterministic result" icon={BarChart3} tone="amber" /></div><SectionCard title="Assessment workflow" description="Use the tabs in order or open the relevant evidence directly."><div className="grid gap-3 sm:grid-cols-3">{TABS.slice(1).map((item, index) => <button key={item.id} type="button" onClick={() => selectTab(item.id)} className="rounded-xl border border-slate-200 p-4 text-left hover:border-teal-300 hover:bg-teal-50/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"><span className="text-[10px] font-black uppercase tracking-[0.1em] text-teal-700">Step {index + 1}</span><p className="mt-2 text-sm font-extrabold text-slate-950">{item.label}</p></button>)}</div></SectionCard></div>}
 
-              <span
-                className={`px-3 py-1 text-sm font-medium rounded-full ${
-                  assessment.status === 'graded'
-                    ? 'bg-green-100 text-green-800'
-                    : assessment.status === 'published'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-slate-100 text-slate-800'
-                }`}
-              >
-                {assessment.status}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="border-b border-slate-200 mb-6">
-          <nav className="flex gap-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          {activeTab === 'setup' && (
-            <SetupTab assessment={assessment} />
-          )}
-
-          {activeTab === 'questions' && (
-            <QuestionsTab
-              assessmentId={id}
-              totalMarks={assessment.total_marks}
-              isLoading={questionsLoading}
-              questions={questionsData?.questions || []}
-            />
-          )}
-
-          {activeTab === 'marks' && (
-            <MarksTab
-              assessmentId={id}
-              assessment={assessment}
-              isLoading={learnersLoading || questionsLoading}
-              learners={learnersData?.learners || []}
-              questions={questionsData?.questions || []}
-            />
-          )}
-
-          {activeTab === 'results' && (
-            <ResultsTab
-              isLoading={analyticsLoading}
-              analytics={analytics}
-              assessmentId={id}
-            />
-          )}
-
-          {activeTab === 'interventions' && (
-            <InterventionsTab
-              isLoading={analyticsLoading}
-              analytics={analytics}
-            />
-          )}
-        </div>
-      </div>
-  )
+      {tab === 'questions' && <SectionCard title="Questions and topics" description="Map every question to a topic before interpreting results.">{questionsQuery.isLoading ? <ProductState type="loading" title="Loading questions" description="Preparing question-to-topic mappings." /> : <QuestionMapBuilder assessmentId={id} totalMarks={assessment.total_marks} questions={questions} />}</SectionCard>}
+      {tab === 'marks' && <SectionCard title="Marks" description="Teacher-entered marks remain the source evidence for all deterministic analytics.">{questionsQuery.isLoading || learnersQuery.isLoading ? <ProductState type="loading" title="Loading mark entry" description="Preparing learner codes and question columns." /> : <div className="overflow-x-auto"><MarkEntryGrid assessmentId={id} assessment={assessment} learners={learners} questions={questions} /></div>}</SectionCard>}
+      {tab === 'results' && <Results analytics={analytics} loading={analyticsQuery.isLoading} assessmentId={id} />}
+      {tab === 'support' && <Support analytics={analytics} loading={analyticsQuery.isLoading} />}
+      {tab === 'report' && <SectionCard title="Print-ready assessment report" description="The report keeps deterministic metrics, limitations and the seeded-data disclosure together."><div className="rounded-2xl bg-slate-50 p-6"><FileText aria-hidden="true" className="h-8 w-8 text-teal-800" /><h2 className="mt-4 text-xl font-black text-slate-950">Assessment evidence report</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Review question performance, topic evidence, support indicators and deterministic interventions in a print-friendly format.</p><a href={`/impact/assessments/${id}/report`} className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-[#0b4f5c] px-4 py-2 text-sm font-bold text-white">View and print report</a></div></SectionCard>}
+    </section>
+  </div>
 }
 
-// =========================================================================
-// Setup Tab
-// =========================================================================
-
-function SetupTab({ assessment }: { assessment: any }) {
-  return (
-    <div>
-      <h2 className="text-lg font-semibold text-slate-900 mb-4">Assessment Setup</h2>
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Title</h3>
-          <p className="text-slate-900">{assessment.title}</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Type</h3>
-          <p className="text-slate-900 capitalize">{assessment.assessment_type}</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Total Marks</h3>
-          <p className="text-slate-900">{assessment.total_marks}</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Pass Mark</h3>
-          <p className="text-slate-900">{assessment.pass_mark || 'Not set'}</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Term</h3>
-          <p className="text-slate-900">{assessment.term || 'Not set'}</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Status</h3>
-          <p className="text-slate-900 capitalize">{assessment.status}</p>
-        </div>
-      </div>
-    </div>
-  )
+function Results({ analytics, loading, assessmentId }: { analytics: AssessmentAnalytics | undefined; loading: boolean; assessmentId: string }) {
+  if (loading) return <ProductState type="loading" title="Calculating deterministic results" description="Aggregating marks by learner, question and topic." />
+  if (!analytics) return <ProductState type="empty" title="Results are not available yet" description="Enter marks to calculate deterministic assessment intelligence." />
+  return <div className="space-y-5"><div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><MetricCard label="Class average" value={`${analytics.class_average_percentage}%`} detail="Across assessed learners" icon={BarChart3} /><MetricCard label="Pass rate" value={`${analytics.pass_rate}%`} detail="Against the set pass mark" icon={ClipboardCheck} tone="blue" /><MetricCard label="Questions" value={analytics.question_performance.length} detail="Performance rows" icon={ListChecks} tone="violet" /><MetricCard label="Support indicators" value={analytics.at_risk_learners.length} detail="Teacher review required" icon={UsersRound} tone="amber" /></div>
+    <div className="grid gap-5 xl:grid-cols-2"><SectionCard title="Topic performance" description="Topics below the configured threshold are labelled for review, not diagnosis."><div className="space-y-3">{analytics.weak_topics.map((topic: TopicPerformance) => <div key={topic.topic_id} className="flex items-center justify-between gap-4 rounded-xl bg-amber-50/70 p-4"><div><p className="text-sm font-extrabold text-slate-950">{topic.topic_name}</p><p className="mt-1 text-xs text-slate-600">{topic.num_questions} mapped questions</p></div><StatusBadge tone="attention">{topic.percentage}% · review</StatusBadge></div>)}</div></SectionCard><SectionCard title="Question performance" description="Question-level evidence remains traceable to entered marks."><div className="overflow-x-auto"><table className="w-full min-w-[520px] text-left"><thead><tr>{['Question', 'Average', 'Performance', 'Indicator'].map((label) => <th key={label} className="border-b border-slate-200 px-3 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-slate-500">{label}</th>)}</tr></thead><tbody>{analytics.question_performance.map((q: QuestionPerformance) => <tr key={q.question_id} className="border-b border-slate-100"><td className="px-3 py-3 text-sm font-bold text-slate-950">Q{q.question_number}</td><td className="px-3 py-3 text-sm text-slate-700">{q.average_score}/{q.max_marks}</td><td className="px-3 py-3 text-sm text-slate-700">{q.average_percentage}%</td><td className="px-3 py-3"><StatusBadge tone={q.is_critical ? 'attention' : 'success'}>{q.is_critical ? 'Needs review' : 'Monitoring'}</StatusBadge></td></tr>)}</tbody></table></div></SectionCard></div>
+    <SectionCard title="Optional AI explanation" description="Secondary, manually generated content only. Deterministic metrics above remain the source of truth."><AISummaryPanel assessmentId={assessmentId} /></SectionCard>
+  </div>
 }
 
-// =========================================================================
-// Questions Tab
-// =========================================================================
-
-function QuestionsTab({
-  assessmentId,
-  totalMarks,
-  isLoading,
-  questions,
-}: {
-  assessmentId: string
-  totalMarks: number
-  isLoading: boolean
-  questions: any[]
-}) {
-  if (isLoading) {
-    return <LoadingSpinner />
-  }
-
-  return (
-    <QuestionMapBuilder
-      assessmentId={assessmentId}
-      totalMarks={totalMarks}
-      questions={questions}
-    />
-  )
-}
-
-// =========================================================================
-// Marks Tab
-// =========================================================================
-
-function MarksTab({
-  assessmentId,
-  assessment,
-  isLoading,
-  learners,
-  questions,
-}: {
-  assessmentId: string
-  assessment: any
-  isLoading: boolean
-  learners: any[]
-  questions: any[]
-}) {
-  if (isLoading) {
-    return <LoadingSpinner />
-  }
-
-  return (
-    <MarkEntryGrid
-      assessmentId={assessmentId}
-      assessment={assessment}
-      learners={learners}
-      questions={questions}
-    />
-  )
-}
-
-// =========================================================================
-// Results Tab
-// =========================================================================
-
-function ResultsTab({
-  isLoading,
-  analytics,
-  assessmentId,
-}: {
-  isLoading: boolean
-  analytics: any
-  assessmentId: string
-}) {
-  if (isLoading) {
-    return <LoadingSpinner />
-  }
-
-  if (!analytics) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-slate-600">No analytics available yet. Enter marks to see results.</p>
-      </div>
-    )
-  }
-
-  return (
-    <div>
-      <h2 className="text-lg font-semibold text-slate-900 mb-6">Assessment Results</h2>
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-slate-50 rounded-lg p-4">
-          <p className="text-sm text-slate-600 mb-1">Class Average</p>
-          <p className="text-2xl font-bold text-slate-900">{analytics.class_average_percentage}%</p>
-        </div>
-        <div className="bg-green-50 rounded-lg p-4">
-          <p className="text-sm text-slate-600 mb-1">Pass Rate</p>
-          <p className="text-2xl font-bold text-green-600">{analytics.pass_rate}%</p>
-        </div>
-        <div className="bg-red-50 rounded-lg p-4">
-          <p className="text-sm text-slate-600 mb-1">Failure Rate</p>
-          <p className="text-2xl font-bold text-red-600">{analytics.failure_rate}%</p>
-        </div>
-        <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-sm text-slate-600 mb-1">Learners Assessed</p>
-          <p className="text-2xl font-bold text-blue-600">
-            {analytics.learners_assessed} / {analytics.total_learners}
-          </p>
-        </div>
-      </div>
-
-      {/* Weak Topics */}
-      {analytics.weak_topics.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-md font-semibold text-slate-900 mb-4">Weak Topics</h3>
-          <div className="space-y-3">
-            {analytics.weak_topics.map((topic: any) => (
-              <div
-                key={topic.topic_id}
-                className={`p-4 rounded-lg ${
-                  topic.is_critical ? 'bg-red-50 border border-red-200' : 'bg-amber-50 border border-amber-200'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-slate-900">{topic.topic_name}</p>
-                    <p className="text-sm text-slate-600">
-                      {topic.percentage}% · {topic.num_questions} questions
-                    </p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      topic.is_critical
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}
-                  >
-                    {topic.is_critical ? 'Critical' : 'Weak'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Question Performance */}
-      {analytics.question_performance.length > 0 && (
-        <div>
-          <h3 className="text-md font-semibold text-slate-900 mb-4">Question Performance</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Q#</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Label</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Max</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Avg</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">%</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.question_performance.map((q: any) => (
-                  <tr key={q.question_id} className="border-b border-slate-100">
-                    <td className="py-3 px-4 text-sm text-slate-900">{q.question_number}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{q.label || '-'}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{q.max_marks}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{q.average_score}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{q.average_percentage}%</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          q.is_critical
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}
-                      >
-                        {q.is_critical ? 'Critical' : 'OK'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Learner support signals */}
-      {analytics.at_risk_learners.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-md font-semibold text-slate-900 mb-4">Learners Needing Support</h3>
-          <div className="space-y-3">
-            {analytics.at_risk_learners.map((learner: any) => (
-              <div
-                key={learner.learner_id}
-                className={`p-4 rounded-lg ${
-                  learner.risk_level === 'high'
-                    ? 'bg-red-50 border border-red-200'
-                    : 'bg-amber-50 border border-amber-200'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-slate-900">
-                      {learner.display_name || learner.learner_code}
-                    </p>
-                    <p className="text-sm text-slate-600">
-                      {learner.percentage}% · {learner.total_score} / {learner.total_max_marks}
-                    </p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      learner.risk_level === 'high'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}
-                  >
-                    {learner.risk_level} support priority
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* AI Summary Panel */}
-      <AISummaryPanel assessmentId={assessmentId} />
-    </div>
-  )
-}
-
-// =========================================================================
-// Interventions Tab
-// =========================================================================
-
-function InterventionsTab({
-  isLoading,
-  analytics,
-}: {
-  isLoading: boolean
-  analytics: any
-}) {
-  if (isLoading) {
-    return <LoadingSpinner />
-  }
-
-  if (!analytics) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-slate-600">No interventions available yet. Enter marks to see recommendations.</p>
-      </div>
-    )
-  }
-
-  return <InterventionPanel interventions={analytics.interventions} />
+function Support({ analytics, loading }: { analytics: AssessmentAnalytics | undefined; loading: boolean }) {
+  if (loading) return <ProductState type="loading" title="Loading support indicators" description="Preparing learner-code and intervention evidence." />
+  if (!analytics) return <ProductState type="empty" title="No support evidence available" description="Enter marks to calculate support indicators." />
+  return <div className="grid gap-5 xl:grid-cols-2"><SectionCard title="Learner-support signals" description="Anonymous codes only. Every indicator requires teacher verification."><div className="space-y-3">{analytics.at_risk_learners.map((learner: LearnerPerformance) => <div key={learner.learner_id} className="rounded-xl border border-amber-200 bg-amber-50/70 p-4"><div className="flex items-center justify-between gap-4"><div><p className="font-mono text-sm font-black text-slate-950">{learner.learner_code}</p><p className="mt-1 text-xs text-slate-600">{learner.percentage}% assessment result</p></div><StatusBadge tone="attention">Needs teacher review</StatusBadge></div><p className="mt-3 text-xs font-semibold text-amber-950">Additional support may be helpful. Teacher verification required.</p></div>)}</div></SectionCard><SectionCard title="Deterministic interventions" description="Rule-based suggestions derived from topic evidence; teachers decide what to apply."><div className="space-y-3">{analytics.interventions.map((item: InterventionRecommendation, index: number) => <div key={`${item.entity_id}-${index}`} className="rounded-xl border border-slate-200 p-4"><div className="flex items-start gap-3"><Target aria-hidden="true" className="mt-0.5 h-4 w-4 text-teal-700" /><div><p className="text-sm font-bold text-slate-950">{item.recommendation}</p><p className="mt-1 text-xs text-slate-500">Teacher verification required</p></div></div></div>)}</div></SectionCard></div>
 }

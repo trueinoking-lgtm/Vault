@@ -2,18 +2,10 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { ProductState } from '@/components/impact/ProductUI'
 
-/**
- * Redirect /impact/ministry-demo to /impact.
- * The "Ministry Demo" label has been removed from navigation.
- * Aggregate insights are available via the Overview page.
- */
 export default function MinistryDemoRedirect() {
   const router = useRouter()
-
-  useEffect(() => {
-    router.replace('/impact')
-  }, [router])
-
-  return null
+  useEffect(() => { router.replace('/impact/stakeholder-demo') }, [router])
+  return <ProductState type="loading" title="Opening stakeholder demonstration" description="This illustrative view is not connected to Ministry systems." />
 }

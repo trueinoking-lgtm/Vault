@@ -1,350 +1,81 @@
 'use client'
+/* eslint-disable @next/next/no-html-link-for-pages -- Product shell uses hard navigations to avoid router corruption on tall evidence pages. */
 
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { LoadingSpinner } from '@/components/common/LoadingSpinner'
-import {
-  useImpactSchools,
-  useImpactClassGroups,
-  useImpactAssessments,
-  useImpactLearners,
-  useImpactInterventions,
-} from '@/lib/hooks/use-impact'
-import { getCanonicalDemoStats, getSeededSchoolDashboard } from '@/lib/impact/demo-data'
+import { ArrowRight, BarChart3, Building2, ClipboardCheck, GraduationCap, ListChecks, Target, UsersRound } from 'lucide-react'
+import { MetricCard, PageHeader, PrimaryAction, ProductState, SecondaryAction, SectionCard } from '@/components/impact/ProductUI'
+import { useImpactAssessments, useImpactClassGroups, useImpactInterventions, useImpactLearners, useImpactSchools } from '@/lib/hooks/use-impact'
+import { getCanonicalDemoStats } from '@/lib/impact/demo-data'
+import { OVERVIEW_WORKFLOW } from '@/lib/impact/product-navigation'
 
-/**
- * Impact Intelligence — Main landing page (Overview)
- *
- * Shows aggregated data from all seeded schools when the backend is offline.
- * Once live API data becomes available, it seamlessly transitions.
- */
-export default function ImpactHome() {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
+export default function ImpactOverviewPage() {
+  const schools = useImpactSchools()
+  const classes = useImpactClassGroups()
+  const assessments = useImpactAssessments()
+  const learners = useImpactLearners()
+  const interventions = useImpactInterventions()
+  const isLoading = schools.isLoading || classes.isLoading || assessments.isLoading || learners.isLoading || interventions.isLoading
+  const error = schools.error || classes.error || assessments.error || learners.error || interventions.error
+  const stats = getCanonicalDemoStats()
 
-  const { data: schoolsRes, isLoading: schoolsLoading } = useImpactSchools()
-  const { data: classesRes, isLoading: classesLoading } = useImpactClassGroups()
-  const { data: assessmentsRes, isLoading: assessmentsLoading } = useImpactAssessments()
-  const { data: learnersRes, isLoading: learnersLoading } = useImpactLearners()
-  const { data: interventionsRes } = useImpactInterventions()
-
-  const schools = schoolsRes?.schools ?? []
-  const classGroups = classesRes?.class_groups ?? []
-  const assessments = assessmentsRes?.assessments ?? []
-  const learners = learnersRes?.learners ?? []
-  const interventions = interventionsRes?.interventions ?? []
-
-  const usingSeeded = schools.length === 3 && schools[0]?.id === 'school-pilot'
-  const canonicalStats = getCanonicalDemoStats()
-  const isLoading = schoolsLoading || classesLoading || assessmentsLoading || learnersLoading
-
-  // ── Derived stats ────────────────────────────────────────
-  const totalSchools = schools.length
-  const totalClasses = classGroups.length
-  const totalLearners = learners.length
-  const totalAssessments = assessments.length
-  const completedAssessments = assessments.filter((a) => a.status === 'graded').length
-  const pendingInterventions = interventions.filter((i) => i.status !== 'completed').length
-
-  const avgPassRate = usingSeeded ? canonicalStats.averagePassRate : schools.length > 0
-    ? Math.round(
-        schools
-          .filter((s) => s.id === 'school-pilot' || s.id === 'school-mbare' || s.id === 'school-chitungwiza')
-          .reduce((sum, s) => sum + (
-            s.id === 'school-pilot' ? 50 :
-            s.id === 'school-mbare' ? 57 : 63
-          ), 0) / schools.length
-      )
-    : 0
-
-  // Show seeded weak topics aggregate
-  const weakTopicsCount = usingSeeded ? canonicalStats.weakTopics : 0
-  const atRiskCount = usingSeeded ? canonicalStats.learnerSupportSignals : 0
-
-  // Schools needing support (pass rate < 60)
-  const schoolsNeedingSupport = schools.filter((s) => {
-    const rate = usingSeeded ? (getSeededSchoolDashboard(s.id)?.overall_pass_rate ?? 0) : 0
-    return rate < 60
-  })
-
-  // Top weak topics (from seeded data)
-  const weakTopics = [
-    { name: 'Ratios', percentage: 28, critical: true, subject: 'Mathematics' },
-    { name: 'Summary Writing', percentage: 30, critical: true, subject: 'English' },
-    { name: 'Percentages', percentage: 32, critical: true, subject: 'Mathematics' },
-    { name: 'Comprehension', percentage: 35, critical: true, subject: 'English' },
-    { name: 'Word Problems', percentage: 38, critical: false, subject: 'Mathematics' },
-  ]
-
-  const recentAssessments = [...assessments].slice(0, 3)
-
-  const activeInterventions = interventions.filter((i) => i.status !== 'completed').slice(0, 4)
-
-  if (!mounted || isLoading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  if (isLoading) return <ProductState type="loading" title="Preparing the school intelligence workspace" description="Loading the canonical demonstration schools, classes, assessments and interventions." />
+  if (error) return <ProductState type="error" title="The overview could not be loaded" description="The seeded evidence remains unchanged. Retry the data request to continue." onRetry={() => { void schools.refetch(); void classes.refetch(); void assessments.refetch(); void learners.refetch(); void interventions.refetch() }} />
 
   return (
-    <div className="space-y-10 pb-12">
-      {/* ── Premium Hero Band ─────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#050814] via-[#0a0f2e] to-[#050814] p-8 sm:p-12 lg:p-16">
-        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-cyan-500/10 blur-[100px]" />
-        <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-blue-600/10 blur-[100px]" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(0,240,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-xs font-medium tracking-wider uppercase">
-              ZimLearnGraph Impact Intelligence
-            </div>
-            {usingSeeded && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400 text-xs font-medium">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                Demo data
-              </span>
-            )}
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight">
-            From marked tests to<br />
-            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">learning evidence.</span>
-          </h1>
-
-          <p className="mt-4 text-base sm:text-lg text-slate-400 max-w-2xl leading-relaxed">
-            Impact Intelligence turns teacher-marked assessments into weak-topic analysis,
-            learner support signals, and school-level evidence — without adding work for teachers.
-          </p>
-
-          <div className="flex flex-wrap gap-3 mt-8">
-            <Link
-              href="/impact/school-dashboard?school=school-pilot"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm hover:shadow-[0_0_30px_-5px_rgba(0,240,255,0.3)] transition-all duration-300"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              Start pilot demo
-            </Link>
-            <Link
-              href="/impact/schools"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/10 text-slate-300 font-semibold text-sm hover:border-white/20 hover:text-white transition-all duration-300"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-              View schools
-            </Link>
+    <div className="space-y-8 pb-8">
+      <section className="relative overflow-hidden rounded-[28px] bg-[#09283f] px-6 py-10 text-white shadow-[0_20px_60px_rgba(9,40,63,0.18)] sm:px-10 sm:py-14 lg:px-14">
+        <div aria-hidden="true" className="absolute -right-20 -top-20 h-72 w-72 rounded-full border border-cyan-300/10 bg-cyan-300/5" />
+        <div aria-hidden="true" className="absolute bottom-0 right-0 h-44 w-1/2 bg-[radial-gradient(circle_at_bottom_right,rgba(45,212,191,0.18),transparent_65%)]" />
+        <div className="relative max-w-3xl">
+          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Assessment and learning intelligence for schools</p>
+          <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] sm:text-5xl lg:text-6xl">ZimLearnGraph</h1>
+          <p className="mt-4 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">Turn marked assessments into learning evidence.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">Turn teacher-marked assessments into evidence that helps schools identify learning gaps, support learners, and track interventions.</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <a href="#guided-workflow" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal-300 px-5 py-3 text-sm font-black text-[#082b37] transition hover:bg-teal-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Explore demo <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+            <a href="/impact/schools" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">View schools</a>
+            <a href="/impact/assessments" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">View assessment intelligence</a>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── Aggregate Metrics ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <MetricCard label="Schools" value={String(totalSchools)} accent="from-cyan-500 to-blue-600" />
-        <MetricCard label="Classes" value={String(totalClasses)} accent="from-emerald-400 to-teal-500" />
-        <MetricCard label="Learners Assessed" value={String(totalLearners)} accent="from-violet-400 to-purple-600" />
-        <MetricCard label="Assessments" value={String(completedAssessments)} accent="from-amber-400 to-orange-500" />
-        <MetricCard label="Pass Rate" value={`${avgPassRate}%`} accent="from-emerald-400 to-green-500" />
-        <MetricCard label="Support Signals" value={String(atRiskCount)} accent="from-rose-400 to-red-500" />
-      </div>
-
-      {/* ── Schools Needing Support ──────────────────────────────────────── */}
-      {schoolsNeedingSupport.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            Schools Needing Support
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {schoolsNeedingSupport.map((school) => {
-              const dashboard = getSeededSchoolDashboard(school.id)
-              const rate = dashboard?.overall_pass_rate ?? 0
-              const atRisk = dashboard?.classes_needing_support.reduce((sum, item) => sum + item.total_learners, 0) ?? 0
-              const weakTopics = dashboard?.weakest_topics.length ?? 0
-              return (
-                <Link
-                  key={school.id}
-                  href={`/impact/school-dashboard?school=${school.id}`}
-                  className="group relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md transition-all duration-300"
-                >
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-500 opacity-70" />
-                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{school.name}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">{school.district} · {school.school_type}</p>
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                    <div>
-                      <p className="text-lg font-bold text-slate-900 dark:text-white">{rate}%</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Pass</p>
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-amber-600">{weakTopics}</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Weak</p>
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-rose-600">{atRisk}</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">At Risk</p>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
+      <section aria-labelledby="system-metrics-heading">
+        <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-teal-700">Canonical demonstration baseline</p><h2 id="system-metrics-heading" className="mt-1 text-xl font-black tracking-[-0.02em] text-slate-950">The complete evidence system at a glance</h2></div><span className="hidden text-xs font-semibold text-slate-500 sm:block">No unexplained zero values</span></div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+          <MetricCard label="Schools" value={stats.schools} detail="Seeded institutions" icon={Building2} />
+          <MetricCard label="Classes" value={stats.classes} detail="Across 3 schools" icon={GraduationCap} tone="blue" />
+          <MetricCard label="Learners" value={stats.learners} detail="Anonymous codes" icon={UsersRound} tone="violet" />
+          <MetricCard label="Assessments" value={stats.assessments} detail="Teacher-marked" icon={ClipboardCheck} />
+          <MetricCard label="Pass rate" value={`${stats.averagePassRate}%`} detail="Average school rate" icon={BarChart3} tone="blue" />
+          <MetricCard label="Topics" value={stats.weakTopics} detail="Needing attention" icon={ListChecks} tone="amber" />
+          <MetricCard label="Support signals" value={stats.learnerSupportSignals} detail="Teacher review required" icon={UsersRound} tone="amber" />
+          <MetricCard label="Active actions" value={stats.activeInterventions} detail="Teacher-led interventions" icon={Target} tone="teal" />
         </div>
-      )}
+      </section>
 
-      {/* ── Top Weak Topics ───────────────────────────────────────────────── */}
-      <div>
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-rose-500" />
-          Top Weak Topics
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {weakTopics.map((topic) => (
-            <div
-              key={topic.name}
-              className={`rounded-xl border p-4 ${
-                topic.critical
-                  ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
-                  : 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-slate-500 font-medium">{topic.subject}</span>
-                <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
-                  topic.critical
-                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                }`}>
-                  {topic.critical ? 'Priority' : 'Review'}
-                </span>
-              </div>
-              <p className="font-medium text-slate-900 dark:text-white text-sm">{topic.name}</p>
-              <div className="mt-2 flex items-center gap-2">
-                <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${topic.critical ? 'bg-red-500' : 'bg-amber-500'}`}
-                    style={{ width: `${topic.percentage}%` }}
-                  />
-                </div>
-                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{topic.percentage}%</span>
-              </div>
-            </div>
+      <SectionCard title="Follow the evidence workflow" description="Every step opens a real ZimLearnGraph route with traceable seeded evidence." action={<SecondaryAction href="/impact/stakeholder-demo">Open stakeholder demo</SecondaryAction>}>
+        <ol id="guided-workflow" className="grid scroll-mt-28 gap-3 md:grid-cols-2 xl:grid-cols-7">
+          {OVERVIEW_WORKFLOW.map((item) => (
+            <li key={item.step} className="min-w-0">
+              <a href={item.href} className="group flex h-full min-h-44 flex-col rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-[#0b4f5c] text-xs font-black text-white">{item.step}</span>
+                <h3 className="mt-4 text-sm font-extrabold text-slate-950">{item.label}</h3>
+                <p className="mt-2 flex-1 text-xs leading-5 text-slate-600">{item.description}</p>
+                <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-teal-800">Open step <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" /></span>
+              </a>
+            </li>
           ))}
-        </div>
-      </div>
+        </ol>
+      </SectionCard>
 
-      {/* ── Recent Assessments ────────────────────────────────────────────── */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-500" />
-            Recent Assessments
-          </h2>
-          <Link href="/impact/assessments" className="text-xs text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 font-medium">
-            View all →
-          </Link>
-        </div>
-        <div className="space-y-3">
-          {recentAssessments.map((a) => {
-            const school = schools.find((s) => s.id === a.school_id)
-            const cls = classGroups.find((c) => c.id === a.class_group_id)
-            return (
-              <Link
-                key={a.id}
-                href={`/impact/assessments/${a.id}`}
-                className="block rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 hover:shadow-md transition-all duration-200"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 dark:text-white truncate">{a.title}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {school?.name} · {cls?.name} · {a.subject_id === 'subj-math' ? 'Mathematics' : a.subject_id === 'subj-eng' ? 'English' : 'Combined Science'} · {a.term} · {a.date_written}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 ml-4">
-                    <span className="text-xs text-slate-500">{a.total_marks} marks</span>
-                    <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
-                      a.status === 'graded' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                      a.status === 'published' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                      'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
-                    }`}>
-                      {a.status}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* ── Interventions in Progress ─────────────────────────────────────── */}
-      {activeInterventions.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              Interventions in Progress
-            </h2>
-            <span className="text-xs text-slate-500 font-medium">{pendingInterventions} active</span>
+      <div className="grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
+        <SectionCard title="Evidence, not verdicts" description="ZimLearnGraph keeps deterministic measurements primary and human judgement in control.">
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[['Traceable', 'Assessment → question → topic → support indicator.'], ['Teacher verified', 'Support signals require professional review before action.'], ['Privacy aware', 'The demo uses anonymous learner codes and no identities.']].map(([title, body]) => <div key={title} className="rounded-xl bg-slate-50 p-4"><h3 className="text-sm font-extrabold text-slate-950">{title}</h3><p className="mt-2 text-xs leading-5 text-slate-600">{body}</p></div>)}
           </div>
-          <div className="space-y-3">
-            {activeInterventions.map((inv) => (
-              <div
-                key={inv.id}
-                className={`rounded-xl border p-4 ${
-                  inv.severity === 'critical'
-                    ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
-                    : inv.severity === 'high'
-                    ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">{inv.recommendation}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Status:{' '}
-                      <span className={`font-medium ${
-                        inv.status === 'in_progress' ? 'text-blue-600' :
-                        inv.status === 'completed' ? 'text-emerald-600' :
-                        'text-slate-600'
-                      }`}>
-                        {inv.status.replace('_', ' ')}
-                      </span>
-                    </p>
-                  </div>
-                  <span className={`shrink-0 px-2 py-0.5 text-[10px] font-medium rounded-full ${
-                    inv.severity === 'critical'
-                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      : inv.severity === 'high'
-                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                      : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
-                  }`}>
-                    {inv.severity}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Premium Metric Card ──────────────────────────────────────────
-
-function MetricCard({ label, value, accent }: { label: string; value: string; accent: string }) {
-  return (
-    <div className="relative group overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm hover:shadow-md transition-all duration-300">
-      <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${accent} opacity-70`} />
-      <div className="relative">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-          {label}
-        </span>
-        <p className="mt-1 truncate text-xl font-bold text-slate-900 dark:text-white">
-          {value}
-        </p>
+        </SectionCard>
+        <SectionCard title="Ready to inspect a real path" description="Begin with Pilot School and follow its classes, assessments and reports.">
+          <div className="flex flex-col gap-3"><PrimaryAction href="/impact/schools/school-pilot">Open Pilot School</PrimaryAction><SecondaryAction href="/impact/assessments/assess-math-term1">Open Mathematics assessment</SecondaryAction></div>
+        </SectionCard>
       </div>
     </div>
   )

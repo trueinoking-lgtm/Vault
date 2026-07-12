@@ -1,146 +1,41 @@
 'use client'
 
-import Link from 'next/link'
-import { LoadingSpinner } from '@/components/common/LoadingSpinner'
-import { useImpactAssessments, useImpactSchools, useImpactClassGroups, useImpactLearners } from '@/lib/hooks/use-impact'
+import { ArrowRight, ClipboardCheck } from 'lucide-react'
+import { PageHeader, ProductState, StatusBadge } from '@/components/impact/ProductUI'
+import { useImpactAssessments, useImpactClassGroups, useImpactLearners, useImpactSchools } from '@/lib/hooks/use-impact'
+import { getSeededAssessmentAnalytics, getSeededQuestions, SEEDED_SUBJECTS } from '@/lib/impact/demo-data'
 
-/**
- * Impact Intelligence — Assessments Page
- *
- * Shows all assessments with results and status.
- * When backend is offline, displays seeded demo assessments.
- */
-export default function ImpactAssessmentsPage() {
-  const { data: assessmentsRes, isLoading } = useImpactAssessments()
-  const { data: schoolsRes } = useImpactSchools()
-  const { data: classesRes } = useImpactClassGroups()
-  const { data: learnersRes } = useImpactLearners()
+export default function AssessmentsPage() {
+  const assessmentsQuery = useImpactAssessments()
+  const schoolsQuery = useImpactSchools()
+  const classesQuery = useImpactClassGroups()
+  const learnersQuery = useImpactLearners()
+  const isLoading = assessmentsQuery.isLoading || schoolsQuery.isLoading || classesQuery.isLoading || learnersQuery.isLoading
+  const assessments = assessmentsQuery.data?.assessments ?? []
+  const schools = schoolsQuery.data?.schools ?? []
+  const classes = classesQuery.data?.class_groups ?? []
+  const learners = learnersQuery.data?.learners ?? []
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  if (isLoading) return <ProductState type="loading" title="Loading assessments" description="Preparing completion, results, topic and support evidence." />
 
-  const assessments = assessmentsRes?.assessments ?? []
-  const schools = schoolsRes?.schools ?? []
-  const classGroups = classesRes?.class_groups ?? []
-
-  const subjectNames: Record<string, string> = {
-    'subj-math': 'Mathematics',
-    'subj-eng': 'English',
-    'subj-sci': 'Combined Science',
-  }
-
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <Link href="/impact" className="text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 text-sm mb-2 inline-flex items-center gap-1 transition-colors">
-            ← Back to Overview
-          </Link>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">Assessments</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            {assessments.filter((a) => a.status === 'graded').length} of {assessments.length} assessments graded
-          </p>
-        </div>
-      </div>
-
-      {/* Assessments Grid */}
-      {assessments.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
-          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-          </div>
-          <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No assessments yet</h3>
-          <p className="text-slate-500 dark:text-slate-400">Assessments will appear here once they are created and graded.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {assessments.map((a) => {
-            const school = schools.find((s) => s.id === a.school_id)
-            const cls = classGroups.find((c) => c.id === a.class_group_id)
-            const subject = subjectNames[a.subject_id] || a.subject_id
-            const totalLearners = learnersRes?.learners.filter((l) => l.class_group_id === a.class_group_id).length ?? 0
-
-            // Seeded pass rate per assessment
-            const passRate = a.id === 'assess-math-term1' ? 50 :
-              a.id === 'assess-math-fractions' ? 55 :
-              a.id === 'assess-eng-comp' ? 48 :
-              a.id === 'assess-eng-grammar' ? 62 :
-              a.id === 'assess-sci-topics' ? 60 :
-              a.id === 'assess-sci-practical' ? 65 : 50
-
-            const weakTopics = a.id === 'assess-math-term1' ? 3 :
-              a.id === 'assess-math-fractions' ? 2 :
-              a.id === 'assess-eng-comp' ? 2 :
-              a.id === 'assess-eng-grammar' ? 1 :
-              a.id === 'assess-sci-topics' ? 1 :
-              a.id === 'assess-sci-practical' ? 0 : 2
-
-            return (
-              <Link
-                key={a.id}
-                href={`/impact/assessments/${a.id}`}
-                className="block rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden hover:shadow-md transition-all duration-200"
-              >
-                <div className="p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="font-semibold text-slate-900 dark:text-white truncate">{a.title}</h3>
-                        <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0 ${
-                          a.status === 'graded' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                          a.status === 'published' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                          'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
-                        }`}>
-                          {a.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500">
-                        {school?.name} · {cls?.name} · {subject} · {a.assessment_type} · {a.date_written}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-                    <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Learners</p>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{totalLearners}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Questions</p>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{a.total_marks > 100 ? '10' : '5'}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Max Marks</p>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{a.total_marks}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Pass Rate</p>
-                      <p className={`text-sm font-semibold ${passRate >= 60 ? 'text-emerald-600' : passRate >= 40 ? 'text-amber-600' : 'text-red-600'}`}>
-                        {passRate}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Weak Topics</p>
-                      <p className="text-sm font-semibold text-amber-600">{weakTopics}</p>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
-                        View details →
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
+  return <div><PageHeader eyebrow="Assessment workflow" title="Assessments" description="Open a teacher-marked assessment to move through questions and topics, marks, deterministic results, learner support and its print-ready report." />
+    {assessments.length === 0 ? <ProductState type="empty" title="No assessments available" description="Assessments appear here once questions and marks have been recorded." /> : <div className="space-y-3">{assessments.map((assessment) => {
+      const school = schools.find((item) => item.id === assessment.school_id)
+      const cls = classes.find((item) => item.id === assessment.class_group_id)
+      const subject = SEEDED_SUBJECTS.subjects.find((item) => item.id === assessment.subject_id)
+      const analytics = getSeededAssessmentAnalytics(assessment.id)
+      const questionCount = getSeededQuestions(assessment.id).questions.length
+      const learnerCount = learners.filter((item) => item.class_group_id === assessment.class_group_id).length
+      return <article key={assessment.id} className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:grid-cols-[1.45fr_repeat(4,.65fr)_auto] lg:items-center">
+        <div className="min-w-0"><div className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-800"><ClipboardCheck aria-hidden="true" className="h-5 w-5" /></span><div className="min-w-0"><h2 className="truncate text-base font-black text-slate-950">{assessment.title}</h2><p className="mt-1 truncate text-xs font-semibold text-slate-500">{school?.name} · {cls?.name} · {subject?.name}</p><p className="mt-1 text-xs text-slate-500">{assessment.date_written} · {assessment.assessment_type}</p></div></div></div>
+        <Data label="Mark completion" value={`${analytics?.learners_assessed ?? 0}/${learnerCount}`} detail="learners" />
+        <Data label="Pass rate" value={`${analytics?.pass_rate ?? 0}%`} detail="seeded result" />
+        <Data label="Questions" value={String(questionCount)} detail={`${assessment.total_marks} marks`} />
+        <Data label="Topics needing attention" value={String(analytics?.weak_topics.length ?? 0)} detail="teacher review" />
+        <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-end"><StatusBadge tone="success">{assessment.status}</StatusBadge><a href={`/impact/assessments/${assessment.id}`} className="inline-flex min-h-11 items-center gap-1 rounded-xl bg-[#0b4f5c] px-4 py-2 text-xs font-black text-white hover:bg-[#083d47] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">Open assessment <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" /></a></div>
+      </article>
+    })}</div>}
+  </div>
 }
+
+function Data({ label, value, detail }: { label: string; value: string; detail: string }) { return <div><p className="text-[10px] font-black uppercase tracking-[0.09em] text-slate-500">{label}</p><p className="mt-1 text-lg font-black text-slate-950">{value}</p><p className="text-xs text-slate-500">{detail}</p></div> }

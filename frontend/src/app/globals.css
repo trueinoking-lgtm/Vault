@@ -206,3 +206,29 @@
   overflow: auto !important;
   height: auto !important;
 }
+
+/* ZimLearnGraph product shell: predictable local scrolling and print output. */
+.landing-page body {
+  overflow-x: hidden !important;
+}
+
+@media print {
+  .landing-page body {
+    background: #fff !important;
+  }
+
+  .landing-page aside.fixed,
+  .landing-page header.sticky,
+  .landing-page a[href="#zg-main"] {
+    display: none !important;
+  }
+
+  .landing-page main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .landing-page .lg\:pl-64 {
+    padding-left: 0 !important;
+  }
+}
