@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import { BarChart3, ClipboardCheck, Download, GraduationCap, Target, UsersRound } from 'lucide-react'
-import { MetricCard, PageHeader, PrimaryAction, ProductState, ProgressBar, SecondaryAction, SectionCard, StatusBadge } from '@/components/impact/ProductUI'
+import { MetricCard, PageHeader, PrimaryAction, ProductState, ProgressBar, SecondaryAction, SectionCard, StatusBadge, BandBar, MiniHeatmap } from '@/components/impact/ProductUI'
 import { useImpactAssessments, useImpactClassGroups, useImpactInterventions, useImpactSchool } from '@/lib/hooks/use-impact'
 import { getSeededSchoolDashboard } from '@/lib/impact/demo-data'
 import { getClassRoute } from '@/lib/impact/product-navigation'
@@ -35,13 +35,17 @@ export default function SchoolOverviewPage({ params }: { params: Promise<{ id: s
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <SectionCard title="Class comparison" description="Select a class to inspect its learner codes and assessment evidence.">
-          <div className="space-y-3">{dashboard.pass_rate_by_class.map((item) => <a key={item.class_id} href={getClassRoute(item.class_id)} className="block rounded-xl border border-slate-200 p-4 hover:border-teal-300 hover:bg-teal-50/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"><div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-sm font-extrabold text-slate-950">{item.class_name}</p><p className="text-xs text-slate-500">{item.total_learners} learners</p></div><StatusBadge tone={item.pass_rate >= 60 ? 'success' : 'attention'}>{item.pass_rate >= 60 ? 'Monitoring' : 'Needs teacher review'}</StatusBadge></div><ProgressBar label="Pass rate" value={item.pass_rate} /></a>)}</div>
+        <SectionCard title="Class comparison" description="Pass-rate evidence by class, coloured by performance with learner counts. Select a class to inspect its evidence.">
+          <div className="space-y-4">{dashboard.pass_rate_by_class.map((item) => <a key={item.class_id} href={getClassRoute(item.class_id)} className="block rounded-xl border border-slate-200 p-4 hover:border-teal-300 hover:bg-teal-50/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"><div className="mb-2 flex items-center justify-between gap-3"><div><p className="text-sm font-extrabold text-slate-950">{item.class_name}</p><p className="text-xs text-slate-500">{item.total_learners} learners</p></div><StatusBadge tone={item.pass_rate >= 60 ? 'success' : 'attention'}>{item.pass_rate >= 60 ? 'Monitoring' : 'Needs teacher review'}</StatusBadge></div><BandBar label="Pass rate" value={item.pass_rate} count={item.total_learners} /></a>)}</div>
         </SectionCard>
-        <SectionCard title="Subject performance" description="Pass-rate evidence grouped by subject; colour is supplemented by labels and values.">
-          <div className="space-y-4">{dashboard.pass_rate_by_subject.map((item) => <ProgressBar key={item.subject_id} label={`${item.subject_name} · ${item.total_learners} learners`} value={item.pass_rate} />)}</div>
+        <SectionCard title="Subject performance" description="Pass-rate evidence grouped by subject. Colour and value show performance; the n shows evidence size.">
+          <div className="space-y-4">{dashboard.pass_rate_by_subject.map((item) => <BandBar key={item.subject_id} label={`${item.subject_name} · ${item.total_learners} learners`} value={item.pass_rate} count={item.total_learners} />)}</div>
         </SectionCard>
       </div>
+
+      <SectionCard title="Topic attention map" description="Observed assessment performance by topic, coloured from critical (red) to secure (teal). Each cell shows the percentage and number of mapped questions — not a causal diagnosis.">
+        <MiniHeatmap rows={[{ rowLabel: 'Topics needing attention', cells: dashboard.weakest_topics.map((topic) => ({ label: topic.topic_name, value: topic.percentage, sub: `${topic.num_questions} q` })) }]} caption="Lower performance (red) indicates topics where teacher review is recommended." />
+      </SectionCard>
 
       <div className="grid gap-5 xl:grid-cols-[1.1fr_.9fr]">
         <SectionCard title="Topics needing attention" description="Observed assessment performance, not a causal diagnosis.">
