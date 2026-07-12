@@ -134,12 +134,12 @@ export function MiniHeatmap({ rows, caption }: { rows: { rowLabel: string; cells
             {row.cells.map((cell) => {
               const color = performanceColor(cell.value)
               return (
-                <div key={cell.label} className="rounded-lg border border-slate-200 p-2" style={{ backgroundColor: `${color}14` }}>
+                <div key={cell.label} className="rounded-lg border border-slate-200 p-2.5" style={{ backgroundColor: `${color}33`, borderLeft: `4px solid ${color}` }}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-[11px] font-semibold text-slate-700" title={cell.label}>{cell.label}</span>
-                    <span className="shrink-0 text-[11px] font-black" style={{ color }}>{cell.value}%</span>
+                    <span className="truncate text-[11px] font-semibold text-slate-800" title={cell.label}>{cell.label}</span>
+                    <span className="shrink-0 text-[12px] font-black" style={{ color }}>{cell.value}%</span>
                   </div>
-                  {cell.sub && <p className="mt-0.5 text-[10px] text-slate-400">{cell.sub}</p>}
+                  {cell.sub && <p className="mt-0.5 text-[10px] font-medium text-slate-500">{cell.sub}</p>}
                 </div>
               )
             })}
