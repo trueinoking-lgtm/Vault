@@ -14,7 +14,7 @@ import {
   getSeededSchoolReport,
 } from './demo-data'
 
-describe('canonical ZimLearnGraph demo evidence', () => {
+describe('canonical HiveMind Intelligence demo evidence', () => {
   it('has one reconciling multi-school baseline', () => {
     const stats = getCanonicalDemoStats()
 

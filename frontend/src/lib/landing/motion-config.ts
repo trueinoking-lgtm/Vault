@@ -1,5 +1,5 @@
 /**
- * ZimLearnGraph Landing — Motion Configuration
+ * HiveMind Intelligence Landing — Motion Configuration
  *
  * Central constants and easing functions for the landing page animation system.
  * All motion values are defined here for consistency across components.

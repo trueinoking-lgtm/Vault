@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import {
   OVERVIEW_WORKFLOW,
   STAKEHOLDER_DEMO_DISCLOSURE,
-  ZIMLEARNGRAPH_NAV_ITEMS,
+  HIVEMIND_NAV_ITEMS,
   getClassRoute,
   getSchoolRoute,
 } from './product-navigation'
 
 describe('Phase B standalone product navigation', () => {
   it('exposes every required product destination without Vault navigation', () => {
-    expect(ZIMLEARNGRAPH_NAV_ITEMS.map((item) => [item.label, item.href])).toEqual([
+    expect(HIVEMIND_NAV_ITEMS.map((item) => [item.label, item.href])).toEqual([
       ['Overview', '/impact'],
       ['Schools', '/impact/schools'],
       ['Classes', '/impact/classes'],
@@ -19,7 +19,7 @@ describe('Phase B standalone product navigation', () => {
       ['Stakeholder Demo', '/impact/stakeholder-demo'],
     ])
 
-    expect(ZIMLEARNGRAPH_NAV_ITEMS.some((item) => /vault|notebook|provider/i.test(item.label))).toBe(false)
+    expect(HIVEMIND_NAV_ITEMS.some((item) => /vault|notebook|provider/i.test(item.label))).toBe(false)
   })
 
   it('links every guided overview step to a functioning product route', () => {

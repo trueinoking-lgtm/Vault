@@ -38,7 +38,7 @@ export default function ImpactTrustPanel() {
               Built for evidence, not automated judgement.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-400">
-              ZimLearnGraph should feel safe for schools because it keeps the source of truth visible: teacher-marked assessments, transparent topic mapping, and advisory summaries that support human decisions.
+              HiveMind Intelligence should feel safe for schools because it keeps the source of truth visible: teacher-marked assessments, transparent topic mapping, and advisory summaries that support human decisions.
             </p>
           </div>
 

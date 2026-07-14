@@ -4,7 +4,7 @@
    ============================================================ */
 
 export const SITE = {
-  title: 'ZimLearnGraph Impact',
+  title: 'HiveMind Intelligence',
   altTitle: 'Impact Intelligence',
   url: '/impact-intelligence',
 } as const;
@@ -12,7 +12,7 @@ export const SITE = {
 export const HERO = {
   headline: 'Turn marked tests into learning intelligence.',
   subheadline:
-    'ZimLearnGraph Impact transforms teacher-marked assessments into weak-topic analysis, learner support signals, and school-level evidence.',
+    'HiveMind Intelligence transforms teacher-marked assessments into weak-topic analysis, learner support signals, and school-level evidence.',
   ctaPrimary: { label: 'View live demo', href: '/impact' },
   ctaSecondary: { label: 'Request a pilot', href: '#pilot' },
   trustStrip: [
@@ -121,19 +121,19 @@ export const PILOT = {
     { item: '1 report', desc: 'Evidence of learning change' },
   ],
   output: 'Pilot output: weak-topic analysis, learner support summary, teacher action brief, school improvement snapshot, and a before/after evidence report.',
-  ctaPrimary: { label: 'Request a pilot', href: 'mailto:impact@zimlearngraph.com' },
+  ctaPrimary: { label: 'Request a pilot', href: 'mailto:impact@hivemind.intelligence' },
   ctaSecondary: { label: 'View demo dashboard', href: '/impact/school-dashboard' },
 } as const;
 
 export const FINAL_CTA = {
   heading: 'Move from marks to measurable learning impact.',
   subheading: 'Bring assessment intelligence to your school.',
-  ctaPrimary: { label: 'Book a walkthrough', href: 'mailto:impact@zimlearngraph.com' },
+  ctaPrimary: { label: 'Book a walkthrough', href: 'mailto:impact@hivemind.intelligence' },
   ctaSecondary: { label: 'Open live demo', href: '/impact' },
 } as const;
 
 export const NAV = {
-  logo: SITE.title,
+  logo: 'HiveMind Intelligence',
   links: [
     { label: 'How it works', href: '#how-it-works' },
     { label: 'Intelligence layers', href: '#layers' },

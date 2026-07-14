@@ -1,5 +1,5 @@
-import { ZimLearnGraphShell } from '@/components/impact/ZimLearnGraphShell'
+import { HiveMindShell } from '@/components/impact/HiveMindShell'
 
 export default function ImpactLayout({ children }: { children: React.ReactNode }) {
-  return <ZimLearnGraphShell>{children}</ZimLearnGraphShell>
+  return <HiveMindShell>{children}</HiveMindShell>
 }

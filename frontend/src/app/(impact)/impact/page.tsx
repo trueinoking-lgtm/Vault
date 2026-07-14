@@ -27,7 +27,7 @@ export default function ImpactOverviewPage() {
         <div aria-hidden="true" className="absolute bottom-0 right-0 h-44 w-1/2 bg-[radial-gradient(circle_at_bottom_right,rgba(45,212,191,0.18),transparent_65%)]" />
         <div className="relative max-w-3xl">
           <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Assessment and learning intelligence for schools</p>
-          <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] sm:text-5xl lg:text-6xl">ZimLearnGraph</h1>
+          <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] sm:text-5xl lg:text-6xl">HiveMind Intelligence</h1>
           <p className="mt-4 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">Turn marked assessments into learning evidence.</p>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">Turn teacher-marked assessments into evidence that helps schools identify learning gaps, support learners, and track interventions.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -52,7 +52,7 @@ export default function ImpactOverviewPage() {
         </div>
       </section>
 
-      <SectionCard title="Follow the evidence workflow" description="Every step opens a real ZimLearnGraph route with traceable seeded evidence." action={<SecondaryAction href="/impact/stakeholder-demo">Open stakeholder demo</SecondaryAction>}>
+      <SectionCard title="Follow the evidence workflow" description="Every step opens a real HiveMind Intelligence route with traceable seeded evidence." action={<SecondaryAction href="/impact/stakeholder-demo">Open stakeholder demo</SecondaryAction>}>
         <ol id="guided-workflow" className="grid scroll-mt-28 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
           {OVERVIEW_WORKFLOW.map((item) => (
             <li key={item.step} className="min-w-0">
@@ -68,7 +68,7 @@ export default function ImpactOverviewPage() {
       </SectionCard>
 
       <div className="grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
-        <SectionCard title="Evidence, not verdicts" description="ZimLearnGraph keeps deterministic measurements primary and human judgement in control.">
+        <SectionCard title="Evidence, not verdicts" description="HiveMind Intelligence keeps deterministic measurements primary and human judgement in control.">
           <div className="grid gap-4 sm:grid-cols-3">
             {[['Traceable', 'Assessment → question → topic → support indicator.'], ['Teacher verified', 'Support signals require professional review before action.'], ['Privacy aware', 'The demo uses anonymous learner codes and no identities.']].map(([title, body]) => <div key={title} className="rounded-xl bg-slate-50 p-4"><h3 className="text-sm font-extrabold text-slate-950">{title}</h3><p className="mt-2 text-xs leading-5 text-slate-600">{body}</p></div>)}
           </div>

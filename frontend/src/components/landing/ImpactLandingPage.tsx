@@ -83,7 +83,7 @@ function LandingInner() {
         <footer className="relative border-t border-white/[0.03] bg-[#050814]/90">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <span className="text-xs text-slate-600">
-              © {new Date().getFullYear()} ZimLearnGraph Impact
+              © {new Date().getFullYear()} HiveMind Intelligence
             </span>
             <span className="text-xs text-slate-700">
               Assessment-driven · Teacher-first · School-ready

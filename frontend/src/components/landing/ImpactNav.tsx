@@ -37,8 +37,8 @@ export default function ImpactNav() {
             href="#hero"
             className="text-sm font-bold text-white tracking-tight"
           >
-            <span className="text-cyan-400">ZimLearnGraph</span>{' '}
-            <span className="text-white/60">Impact</span>
+            <span className="text-cyan-400">HiveMind</span>{' '}
+            <span className="text-white/60">Intelligence</span>
           </Link>
 
           {/* Desktop links */}

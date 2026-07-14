@@ -16,7 +16,7 @@ export interface ProductNavigationItem {
   description: string
 }
 
-export const ZIMLEARNGRAPH_NAV_ITEMS: ProductNavigationItem[] = [
+export const HIVEMIND_NAV_ITEMS: ProductNavigationItem[] = [
   { label: 'Overview', href: '/impact', icon: BarChart3, description: 'System summary and guided workflow' },
   { label: 'Schools', href: '/impact/schools', icon: Building2, description: 'School performance and readiness' },
   { label: 'Classes', href: '/impact/classes', icon: GraduationCap, description: 'Class evidence and learner support' },

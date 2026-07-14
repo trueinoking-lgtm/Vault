@@ -304,12 +304,12 @@ if [[ -d "public" ]] && [[ -n "$(ls -A public 2>/dev/null)" ]]; then
 fi
 
 # ---- Step 12b: Sync static into the nginx-readable direct-serve dir --------
-# Nginx serves /_next/static/* directly from /var/www/zimlearngraph-static/
+# Nginx serves /_next/static/* directly from /var/www/hivemind-static/
 # (see deploy/nginx/impact-standalone.conf). The repo .next tree lives under
 # /root, which www-data cannot traverse, so the static dir must be copied to a
 # path nginx can read. This MUST run after the standalone static copy above so
 # the alias target is always repopulated before the service restarts.
-NGINX_STATIC_DIR="/var/www/zimlearngraph-static"
+NGINX_STATIC_DIR="/var/www/hivemind-static"
 if [[ -d "$STANDALONE_STATIC" ]]; then
     info "Syncing static → nginx direct-serve dir ($NGINX_STATIC_DIR) …"
     mkdir -p "$NGINX_STATIC_DIR"
@@ -462,7 +462,7 @@ if [[ "$SMOKE" == true ]]; then
         ((errors++))
     fi
 
-    # Direct static serving (Nginx alias → /var/www/zimlearngraph-static).
+    # Direct static serving (Nginx alias → /var/www/hivemind-static).
     # Extract one /_next/static asset referenced by the live landing HTML and
     # confirm it returns 200 with a stable Content-Length (proves it is served
     # by Nginx, not the Node proxy).

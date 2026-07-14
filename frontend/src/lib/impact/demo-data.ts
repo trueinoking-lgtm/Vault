@@ -1,5 +1,5 @@
 /**
- * ZimLearnGraph Impact — Seeded Demo Data
+ * HiveMind Intelligence — Seeded Demo Data
  *
  * Consistent frontend demo dataset used across all Impact pages
  * when the API backend is unavailable (pre-pilot state).
