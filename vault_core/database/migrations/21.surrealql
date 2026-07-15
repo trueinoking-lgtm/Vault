@@ -1,0 +1,157 @@
+-- Migration 21: physically isolated ZimLearnGraph controlled pilot workspace.
+-- Seeded demonstration records remain in impact_* tables. Pilot APIs exclusively
+-- query these pilot_* tables, preventing cross-mode totals by construction.
+
+DEFINE TABLE IF NOT EXISTS pilot_workspace SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS dataset_mode ON TABLE pilot_workspace TYPE string DEFAULT "pilot" ASSERT $value = "pilot";
+DEFINE FIELD IF NOT EXISTS school_name ON TABLE pilot_workspace TYPE string;
+DEFINE FIELD IF NOT EXISTS district ON TABLE pilot_workspace TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS province ON TABLE pilot_workspace TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS school_type ON TABLE pilot_workspace TYPE option<string> ASSERT $value INSIDE ["primary", "secondary", "combined", "other"];
+DEFINE FIELD IF NOT EXISTS primary_contact ON TABLE pilot_workspace TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS academic_year ON TABLE pilot_workspace TYPE string;
+DEFINE FIELD IF NOT EXISTS term ON TABLE pilot_workspace TYPE string;
+DEFINE FIELD IF NOT EXISTS pilot_start_date ON TABLE pilot_workspace TYPE datetime;
+DEFINE FIELD IF NOT EXISTS status ON TABLE pilot_workspace TYPE string DEFAULT "draft" ASSERT $value INSIDE ["draft", "onboarding", "active", "paused", "completed"];
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_workspace TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_workspace TYPE datetime DEFAULT time::now();
+
+DEFINE TABLE IF NOT EXISTS pilot_membership SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_membership TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS user_id ON TABLE pilot_membership TYPE record<user>;
+DEFINE FIELD IF NOT EXISTS role ON TABLE pilot_membership TYPE string ASSERT $value INSIDE ["pilot_admin", "teacher", "viewer"];
+DEFINE FIELD IF NOT EXISTS assigned_class_ids ON TABLE pilot_membership TYPE array<record<pilot_class>> DEFAULT [];
+DEFINE FIELD IF NOT EXISTS active ON TABLE pilot_membership TYPE bool DEFAULT true;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_membership TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_membership TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_membership_unique ON TABLE pilot_membership FIELDS workspace_id, user_id UNIQUE;
+
+DEFINE TABLE IF NOT EXISTS pilot_class SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_class TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS name ON TABLE pilot_class TYPE string;
+DEFINE FIELD IF NOT EXISTS grade_level ON TABLE pilot_class TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS academic_year ON TABLE pilot_class TYPE string;
+DEFINE FIELD IF NOT EXISTS teacher_user_id ON TABLE pilot_class TYPE option<record<user>>;
+DEFINE FIELD IF NOT EXISTS active ON TABLE pilot_class TYPE bool DEFAULT true;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_class TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_class TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_class_workspace ON TABLE pilot_class FIELDS workspace_id;
+DEFINE INDEX IF NOT EXISTS pilot_class_name_unique ON TABLE pilot_class FIELDS workspace_id, name UNIQUE;
+
+DEFINE TABLE IF NOT EXISTS pilot_learner SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_learner TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS class_id ON TABLE pilot_learner TYPE record<pilot_class>;
+DEFINE FIELD IF NOT EXISTS learner_code ON TABLE pilot_learner TYPE string;
+DEFINE FIELD IF NOT EXISTS gender ON TABLE pilot_learner TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS support_note ON TABLE pilot_learner TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS status ON TABLE pilot_learner TYPE string DEFAULT "active" ASSERT $value INSIDE ["active", "inactive", "transferred"];
+DEFINE FIELD IF NOT EXISTS import_batch_id ON TABLE pilot_learner TYPE option<record<pilot_import_batch>>;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_learner TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_learner TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_learner_unique ON TABLE pilot_learner FIELDS workspace_id, learner_code UNIQUE;
+DEFINE INDEX IF NOT EXISTS pilot_learner_class ON TABLE pilot_learner FIELDS class_id;
+
+DEFINE TABLE IF NOT EXISTS pilot_subject SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_subject TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS name ON TABLE pilot_subject TYPE string;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_subject TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_subject TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_subject_unique ON TABLE pilot_subject FIELDS workspace_id, name UNIQUE;
+
+DEFINE TABLE IF NOT EXISTS pilot_topic SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_topic TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS subject_id ON TABLE pilot_topic TYPE record<pilot_subject>;
+DEFINE FIELD IF NOT EXISTS name ON TABLE pilot_topic TYPE string;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_topic TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_topic TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_topic_unique ON TABLE pilot_topic FIELDS subject_id, name UNIQUE;
+
+DEFINE TABLE IF NOT EXISTS pilot_assessment SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_assessment TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS class_id ON TABLE pilot_assessment TYPE record<pilot_class>;
+DEFINE FIELD IF NOT EXISTS subject_id ON TABLE pilot_assessment TYPE record<pilot_subject>;
+DEFINE FIELD IF NOT EXISTS title ON TABLE pilot_assessment TYPE string;
+DEFINE FIELD IF NOT EXISTS kind ON TABLE pilot_assessment TYPE string ASSERT $value INSIDE ["diagnostic", "follow_up", "other"];
+DEFINE FIELD IF NOT EXISTS term ON TABLE pilot_assessment TYPE string;
+DEFINE FIELD IF NOT EXISTS date_written ON TABLE pilot_assessment TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS total_marks ON TABLE pilot_assessment TYPE float;
+DEFINE FIELD IF NOT EXISTS pass_mark ON TABLE pilot_assessment TYPE float;
+DEFINE FIELD IF NOT EXISTS follow_up_to ON TABLE pilot_assessment TYPE option<record<pilot_assessment>>;
+DEFINE FIELD IF NOT EXISTS status ON TABLE pilot_assessment TYPE string DEFAULT "draft" ASSERT $value INSIDE ["draft", "marks_incomplete", "completed"];
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_assessment TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_assessment TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_assessment_workspace ON TABLE pilot_assessment FIELDS workspace_id;
+
+DEFINE TABLE IF NOT EXISTS pilot_question SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_question TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS assessment_id ON TABLE pilot_question TYPE record<pilot_assessment>;
+DEFINE FIELD IF NOT EXISTS question_number ON TABLE pilot_question TYPE int;
+DEFINE FIELD IF NOT EXISTS topic_id ON TABLE pilot_question TYPE record<pilot_topic>;
+DEFINE FIELD IF NOT EXISTS label ON TABLE pilot_question TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS max_marks ON TABLE pilot_question TYPE float;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_question TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_question TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_question_unique ON TABLE pilot_question FIELDS assessment_id, question_number UNIQUE;
+
+DEFINE TABLE IF NOT EXISTS pilot_import_batch SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_import_batch TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS import_type ON TABLE pilot_import_batch TYPE string ASSERT $value INSIDE ["learners", "assessment_structure", "marks"];
+DEFINE FIELD IF NOT EXISTS status ON TABLE pilot_import_batch TYPE string ASSERT $value INSIDE ["confirmed", "rolled_back"];
+DEFINE FIELD IF NOT EXISTS accepted_count ON TABLE pilot_import_batch TYPE int;
+DEFINE FIELD IF NOT EXISTS rejected_count ON TABLE pilot_import_batch TYPE int;
+DEFINE FIELD IF NOT EXISTS created_by ON TABLE pilot_import_batch TYPE record<user>;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_import_batch TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_import_batch TYPE datetime DEFAULT time::now();
+
+DEFINE TABLE IF NOT EXISTS pilot_mark SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_mark TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS assessment_id ON TABLE pilot_mark TYPE record<pilot_assessment>;
+DEFINE FIELD IF NOT EXISTS question_id ON TABLE pilot_mark TYPE record<pilot_question>;
+DEFINE FIELD IF NOT EXISTS learner_id ON TABLE pilot_mark TYPE record<pilot_learner>;
+DEFINE FIELD IF NOT EXISTS score ON TABLE pilot_mark TYPE float;
+DEFINE FIELD IF NOT EXISTS corrected ON TABLE pilot_mark TYPE bool DEFAULT false;
+DEFINE FIELD IF NOT EXISTS corrected_by ON TABLE pilot_mark TYPE option<record<user>>;
+DEFINE FIELD IF NOT EXISTS correction_note ON TABLE pilot_mark TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS import_batch_id ON TABLE pilot_mark TYPE option<record<pilot_import_batch>>;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_mark TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_mark TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_mark_unique ON TABLE pilot_mark FIELDS assessment_id, question_id, learner_id UNIQUE;
+
+DEFINE TABLE IF NOT EXISTS pilot_intervention SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_intervention TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS school_label ON TABLE pilot_intervention TYPE string;
+DEFINE FIELD IF NOT EXISTS class_id ON TABLE pilot_intervention TYPE record<pilot_class>;
+DEFINE FIELD IF NOT EXISTS subject_id ON TABLE pilot_intervention TYPE record<pilot_subject>;
+DEFINE FIELD IF NOT EXISTS topic_id ON TABLE pilot_intervention TYPE record<pilot_topic>;
+DEFINE FIELD IF NOT EXISTS source_assessment_id ON TABLE pilot_intervention TYPE record<pilot_assessment>;
+DEFINE FIELD IF NOT EXISTS recommendation ON TABLE pilot_intervention TYPE string;
+DEFINE FIELD IF NOT EXISTS assigned_teacher_id ON TABLE pilot_intervention TYPE record<user>;
+DEFINE FIELD IF NOT EXISTS planned_date ON TABLE pilot_intervention TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS completed_date ON TABLE pilot_intervention TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS status ON TABLE pilot_intervention TYPE string DEFAULT "suggested" ASSERT $value INSIDE ["suggested", "planned", "in_progress", "completed", "cancelled"];
+DEFINE FIELD IF NOT EXISTS teacher_note ON TABLE pilot_intervention TYPE option<string>;
+DEFINE FIELD IF NOT EXISTS verification_status ON TABLE pilot_intervention TYPE string DEFAULT "unverified" ASSERT $value INSIDE ["teacher_confirmed", "school_reviewed", "unverified"];
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_intervention TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_intervention TYPE datetime DEFAULT time::now();
+
+DEFINE TABLE IF NOT EXISTS pilot_audit_event SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_audit_event TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS actor_id ON TABLE pilot_audit_event TYPE record<user>;
+DEFINE FIELD IF NOT EXISTS action ON TABLE pilot_audit_event TYPE string;
+DEFINE FIELD IF NOT EXISTS entity_type ON TABLE pilot_audit_event TYPE string;
+DEFINE FIELD IF NOT EXISTS entity_id ON TABLE pilot_audit_event TYPE string;
+DEFINE FIELD IF NOT EXISTS summary ON TABLE pilot_audit_event TYPE string;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_audit_event TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_audit_event TYPE datetime DEFAULT time::now();
+DEFINE INDEX IF NOT EXISTS pilot_audit_workspace ON TABLE pilot_audit_event FIELDS workspace_id;
+
+DEFINE TABLE IF NOT EXISTS pilot_report SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS workspace_id ON TABLE pilot_report TYPE record<pilot_workspace>;
+DEFINE FIELD IF NOT EXISTS diagnostic_assessment_id ON TABLE pilot_report TYPE record<pilot_assessment>;
+DEFINE FIELD IF NOT EXISTS follow_up_assessment_id ON TABLE pilot_report TYPE record<pilot_assessment>;
+DEFINE FIELD IF NOT EXISTS version ON TABLE pilot_report TYPE int;
+DEFINE FIELD IF NOT EXISTS school_review_status ON TABLE pilot_report TYPE string ASSERT $value INSIDE ["unreviewed", "school_reviewed"];
+DEFINE FIELD IF NOT EXISTS generated_by ON TABLE pilot_report TYPE record<user>;
+DEFINE FIELD IF NOT EXISTS snapshot ON TABLE pilot_report TYPE object FLEXIBLE;
+DEFINE FIELD IF NOT EXISTS created ON TABLE pilot_report TYPE datetime DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS updated ON TABLE pilot_report TYPE datetime DEFAULT time::now();

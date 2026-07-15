@@ -1,0 +1,14 @@
+-- Migration 21 down: remove controlled-pilot tables only.
+REMOVE TABLE IF EXISTS pilot_report;
+REMOVE TABLE IF EXISTS pilot_audit_event;
+REMOVE TABLE IF EXISTS pilot_intervention;
+REMOVE TABLE IF EXISTS pilot_mark;
+REMOVE TABLE IF EXISTS pilot_import_batch;
+REMOVE TABLE IF EXISTS pilot_question;
+REMOVE TABLE IF EXISTS pilot_assessment;
+REMOVE TABLE IF EXISTS pilot_topic;
+REMOVE TABLE IF EXISTS pilot_subject;
+REMOVE TABLE IF EXISTS pilot_learner;
+REMOVE TABLE IF EXISTS pilot_class;
+REMOVE TABLE IF EXISTS pilot_membership;
+REMOVE TABLE IF EXISTS pilot_workspace;
