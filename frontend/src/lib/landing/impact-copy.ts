@@ -39,7 +39,7 @@ export const GOVERNANCE_SIGNAL = {
   eyebrow: 'Example governance signal',
   heading: 'What a school intelligence signal looks like',
   intro:
-    'One class, connected to its context. HMI does not report a single average and stop. It surfaces granular evidence, marks contextual factors as possible causes, and leaves the decision to the teacher.',
+    'One class, connected to its context. HMI does not report a single average and stop. It surfaces granular evidence, marks contextual factors as possible contributing factors requiring human review, and leaves the decision to the teacher.',
   example: {
     headline: 'Form 1B requires targeted mathematics support',
     learnersBelowThreshold: 12,
@@ -243,7 +243,7 @@ export const LAYERS = {
 // Section 6 — Powered by ZimLearnGraph
 export const ZLG = {
   eyebrow: 'Powered by ZimLearnGraph',
-  heading: 'The structured education-data layer beneath HMI.',
+  heading: 'How HiveMind connects evidence',
   body: 'ZimLearnGraph connects schools, classes, teachers, learners, assessments, questions, curriculum topics, resources, interventions and follow-up evidence across time. It is not a dataset dump — it is the structured relationship and intelligence layer that lets HMI turn scattered school data into connected evidence.',
   flow: [
     'School',

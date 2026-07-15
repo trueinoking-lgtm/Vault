@@ -45,24 +45,26 @@ function LandingInner() {
   useLenis();
 
   return (
-    <>
+    <div className="impact-landing">
       {/* Fixed WebGL scene — visible behind all content */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <FixedScene />
       </div>
 
-      {/* Live data ticker — always visible at top */}
-      <LiveDataTicker />
+      {/* One fixed header stack prevents the ticker and navigation colliding. */}
+      <header className="fixed inset-x-0 top-0 z-50">
+        <LiveDataTicker />
+        <ImpactNav />
+      </header>
       <aside className="fixed bottom-0 left-0 right-0 z-50 border-t border-amber-300/20 bg-amber-950/95 px-4 py-2 text-center text-xs font-medium text-amber-100 backdrop-blur" aria-label="Demonstration data disclosure">
         {DEMO_DISCLOSURE}
       </aside>
 
       {/* Content overlay — scrolls normally with semi-transparent background */}
       <div
-        className="relative z-10 bg-[#050814]/60 backdrop-blur-[2px]"
+        className="relative z-10 bg-[#050814]/60 pb-14 backdrop-blur-[2px] sm:pb-10"
         data-impact-build="governance-2026"
       >
-        <ImpactNav />
         <ImpactHero />
         <ImpactEvidenceStrip />
 
@@ -93,7 +95,7 @@ function LandingInner() {
             <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
               {IMPACT_MODULE.subheading}
             </p>
-            <p className="mt-6 text-xs text-slate-600">
+            <p className="mt-6 text-xs text-slate-400">
               Impact Intelligence by HiveMind Intelligence · Powered by ZimLearnGraph
             </p>
           </div>
@@ -104,15 +106,15 @@ function LandingInner() {
 
         <footer className="relative border-t border-white/[0.03] bg-[#050814]/90">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="text-xs text-slate-600">
+            <span className="text-xs text-slate-400">
               © {new Date().getFullYear()} HiveMind Intelligence
             </span>
-            <span className="text-xs text-slate-700">
+            <span className="text-xs text-slate-400">
               Impact Intelligence by HiveMind Intelligence · Powered by ZimLearnGraph
             </span>
           </div>
         </footer>
       </div>
-    </>
+    </div>
   );
 }

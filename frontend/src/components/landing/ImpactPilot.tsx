@@ -61,7 +61,7 @@ export default function ImpactPilot() {
               className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 text-center hover:border-white/[0.12] transition-all duration-300"
             >
               <div className="text-sm font-semibold text-white">{item.item}</div>
-              <div className="mt-1 text-xs text-slate-500">{item.desc}</div>
+              <div className="mt-1 text-xs text-slate-400">{item.desc}</div>
             </div>
           ))}
         </div>

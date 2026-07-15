@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { fadeUp } from '@/lib/landing/motion-config';
 import { getCanonicalDemoStats } from '@/lib/impact/demo-data';
 
 interface TickerStat {
@@ -41,15 +39,12 @@ export default function LiveDataTicker() {
   }, []);
 
   return (
-    <motion.div
-      variants={fadeUp}
-      initial="hidden"
-      animate={isVisible ? 'visible' : 'hidden'}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-6 sm:gap-10 px-4 py-1.5 bg-[#050814]/80 backdrop-blur-sm border-b border-white/[0.04] pointer-events-none"
+    <div
+      className="flex h-7 items-center justify-center gap-3 overflow-hidden border-b border-white/[0.04] bg-[#050814]/95 px-3 backdrop-blur-sm pointer-events-none sm:gap-10 sm:px-4"
     >
       {TICKER_STATS.map((stat, i) => (
         <div key={stat.label} className="flex items-center gap-1.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+          <span className="text-xs font-medium uppercase tracking-wider text-slate-400">
             {stat.label}
           </span>
           <span className="text-xs font-bold text-cyan-400 tabular-nums">
@@ -60,10 +55,10 @@ export default function LiveDataTicker() {
             )}
           </span>
           {i < TICKER_STATS.length - 1 && (
-            <span className="text-slate-700 text-[8px]">|</span>
+            <span className="text-xs text-slate-400/60">|</span>
           )}
         </div>
       ))}
-    </motion.div>
+    </div>
   );
 }

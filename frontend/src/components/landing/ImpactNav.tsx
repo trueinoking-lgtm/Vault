@@ -24,7 +24,7 @@ export default function ImpactNav() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`relative h-16 transition-all duration-500 lg:h-20 ${
         scrolled
           ? 'bg-[#050814]/80 backdrop-blur-xl border-b border-white/[0.04]'
           : 'bg-transparent'
@@ -35,7 +35,7 @@ export default function ImpactNav() {
           {/* Logo */}
           <Link
             href="#hero"
-            className="text-sm font-bold text-white tracking-tight"
+            className="rounded-sm text-sm font-bold text-white tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#050814]"
           >
             <span className="text-cyan-400">HiveMind</span>{' '}
             <span className="text-white/60">Intelligence</span>
@@ -47,14 +47,14 @@ export default function ImpactNav() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-sm text-slate-400 hover:text-white transition-colors duration-200"
+                className="rounded-sm text-sm text-slate-400 outline-none transition-colors duration-200 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#050814]"
               >
                 {link.label}
               </Link>
             ))}
             <Link
               href={NAV.cta.href}
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold hover:shadow-[0_0_20px_-5px_rgba(0,240,255,0.25)] transition-all duration-300"
+              className="px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold outline-none hover:shadow-[0_0_20px_-5px_rgba(0,240,255,0.25)] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#050814]"
             >
               {NAV.cta.label}
             </Link>
@@ -63,8 +63,10 @@ export default function ImpactNav() {
           {/* Mobile toggle */}
           <button
             onClick={() => setOpen(!open)}
-            className="md:hidden text-slate-400 hover:text-white transition-colors"
-            aria-label="Toggle menu"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-400 outline-none transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814] md:hidden"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+            aria-controls="impact-mobile-menu"
           >
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -73,14 +75,14 @@ export default function ImpactNav() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t border-white/[0.04] bg-[#050814]/95 backdrop-blur-xl">
+        <div id="impact-mobile-menu" className="md:hidden border-t border-white/[0.04] bg-[#050814]/95 backdrop-blur-xl">
           <div className="px-6 py-6 space-y-4">
             {NAV.links.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="block text-sm text-slate-400 hover:text-white transition-colors"
+                className="block rounded-sm text-sm text-slate-400 outline-none transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300"
               >
                 {link.label}
               </Link>
@@ -88,7 +90,7 @@ export default function ImpactNav() {
             <Link
               href={NAV.cta.href}
               onClick={() => setOpen(false)}
-              className="block text-center px-5 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold"
+              className="block text-center px-5 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
             >
               {NAV.cta.label}
             </Link>

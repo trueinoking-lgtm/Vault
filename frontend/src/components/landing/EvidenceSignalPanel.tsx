@@ -47,7 +47,7 @@ export default function EvidenceSignalPanel() {
               className="grid grid-cols-[0.7fr_0.7fr_1.3fr_0.7fr] items-center gap-3 rounded-2xl border border-white/[0.05] bg-white/[0.025] px-3 py-3 text-xs text-slate-300"
             >
               <span className="font-mono text-slate-400">{row.learner}</span>
-              <span className="font-mono text-slate-500">{row.q}</span>
+              <span className="font-mono text-slate-400">{row.q}</span>
               <span className="font-medium text-slate-200">{row.topic}</span>
               <span className={`rounded-full border px-2 py-1 text-center font-mono ${stateStyles[row.state as keyof typeof stateStyles]}`}>
                 {row.score}
@@ -64,7 +64,7 @@ export default function EvidenceSignalPanel() {
           ].map(([value, label]) => (
             <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.025] p-3">
               <div className="font-mono text-lg font-semibold text-cyan-200">{value}</div>
-              <div className="mt-1 text-[10px] text-slate-500">{label}</div>
+              <div className="mt-1 text-xs text-slate-400">{label}</div>
             </div>
           ))}
         </div>

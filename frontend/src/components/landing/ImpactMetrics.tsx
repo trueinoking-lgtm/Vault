@@ -58,7 +58,7 @@ export default function ImpactMetrics() {
               <div className={`text-3xl sm:text-4xl lg:text-5xl font-bold tabular-nums ${metric.color}`}>
                 <span>{metric.value}</span>
               </div>
-              <div className="mt-2 text-xs sm:text-sm text-slate-500 leading-tight">
+              <div className="mt-2 text-xs sm:text-sm text-slate-400 leading-tight">
                 {metric.label}
               </div>
             </div>
@@ -67,7 +67,7 @@ export default function ImpactMetrics() {
 
         {/* Footnote */}
         <p
-          className={`mt-12 text-center text-xs text-slate-600 transition-all duration-1000 delay-1000 ${
+          className={`mt-12 text-center text-xs text-slate-400 transition-all duration-1000 delay-1000 ${
             visible ? 'opacity-100' : 'opacity-0'
           }`}
         >

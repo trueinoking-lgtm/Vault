@@ -22,11 +22,11 @@ export default function MagneticButton({
 
   const springX = useSpring(x, { stiffness: 180, damping: 20 });
   const springY = useSpring(y, { stiffness: 180, damping: 20 });
-  const rotateX = useTransform(springY, [-18, 18], [3, -3]);
-  const rotateY = useTransform(springX, [-18, 18], [-3, 3]);
+  const rotateX = useTransform(springY, [-18, 18], [1.5, -1.5]);
+  const rotateY = useTransform(springX, [-18, 18], [-1.5, 1.5]);
 
   const base =
-    "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-colors duration-300 sm:px-7";
+    "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold outline-none transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#050814] sm:px-7";
   const styles =
     variant === "primary"
       ? "bg-cyan-300 text-slate-950 shadow-[0_0_40px_-18px_rgba(0,229,255,0.85)] hover:bg-cyan-200"
@@ -39,8 +39,8 @@ export default function MagneticButton({
       onPointerMove={(event) => {
         if (reduce) return;
         const rect = event.currentTarget.getBoundingClientRect();
-        x.set((event.clientX - rect.left - rect.width / 2) * 0.22);
-        y.set((event.clientY - rect.top - rect.height / 2) * 0.22);
+        x.set((event.clientX - rect.left - rect.width / 2) * 0.1);
+        y.set((event.clientY - rect.top - rect.height / 2) * 0.1);
       }}
       onPointerLeave={() => {
         x.set(0);

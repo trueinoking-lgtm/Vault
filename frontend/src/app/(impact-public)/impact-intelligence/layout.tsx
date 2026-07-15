@@ -33,5 +33,35 @@ export default function ImpactPublicLayout({
     };
   }, []);
 
-  return <main className="min-h-[100dvh] bg-[#050814]">{children}</main>;
+  return (
+    <main className="min-h-[100dvh] bg-[#050814]">
+      {children}
+      <style jsx global>{`
+        html.landing-page {
+          scroll-padding-top: 7rem;
+        }
+        .impact-landing section[id] {
+          scroll-margin-top: 7rem;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          html.landing-page {
+            scroll-behavior: auto !important;
+          }
+          .impact-landing,
+          .impact-landing *,
+          .impact-landing *::before,
+          .impact-landing *::after {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+            scroll-behavior: auto !important;
+          }
+          .impact-landing [data-hero-reveal] {
+            opacity: 1 !important;
+            transform: none !important;
+          }
+        }
+      `}</style>
+    </main>
+  );
 }

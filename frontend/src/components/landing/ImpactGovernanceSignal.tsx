@@ -31,6 +31,7 @@ export default function ImpactGovernanceSignal() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-medium text-cyan-200/80">Generated governance signal</p>
+                <p className="mt-1 text-xs font-semibold text-amber-200">Illustrative seeded signal</p>
                 <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">{ex.headline}</h3>
               </div>
               <div className="rounded-full border border-amber-300/25 bg-amber-300/[0.08] px-3 py-1 text-xs font-semibold text-amber-200">
@@ -43,11 +44,11 @@ export default function ImpactGovernanceSignal() {
                 <div className="text-3xl font-bold tabular-nums text-red-300">
                   <CountUp to={ex.learnersBelowThreshold} />/<CountUp to={ex.learnersTotal} />
                 </div>
-                <div className="mt-1 text-xs text-slate-500">learners below threshold</div>
+                <div className="mt-1 text-xs text-slate-400">learners below threshold</div>
               </div>
               <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:col-span-2">
                 <div className="text-sm font-semibold text-white">{ex.classGap}</div>
-                <div className="mt-1 text-xs text-slate-500">class-level comparison</div>
+                <div className="mt-1 text-xs text-slate-400">class-level comparison</div>
               </div>
             </div>
 

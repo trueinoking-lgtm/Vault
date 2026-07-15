@@ -88,9 +88,9 @@ export default function ZimLearnGraphVisual({ className = '' }: { className?: st
         <GraphNode label="Assessments" col={1} row={4} index={3} tone="amber" />
         <GraphNode label="Questions" col={1} row={5} index={4} tone="amber" />
         <GraphNode label="Topics" col={1} row={6} index={5} tone="amber" />
-        <GraphNode label="Signals" col={1} row={7} index={6} tone="emerald" active />
-        <GraphNode label="Interventions" col={1} row={8} index={7} tone="emerald" />
-        <GraphNode label="Follow-up evidence" col={1} row={9} index={8} tone="emerald" active />
+        <GraphNode label="Signals" col={1} row={7} index={6} tone="cyan" active />
+        <GraphNode label="Interventions" col={1} row={8} index={7} tone="cyan" />
+        <GraphNode label="Follow-up evidence" col={1} row={9} index={8} tone="cyan" active />
 
         {/* Center edge column */}
         {Array.from({ length: 8 }).map((_, i) => edge(i))}
@@ -101,7 +101,7 @@ export default function ZimLearnGraphVisual({ className = '' }: { className?: st
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : 0.4, ease: EASE.out }}
-          className="col-start-3 row-span-9 flex flex-col justify-around text-right text-[11px] leading-snug text-slate-500"
+          className="col-start-3 row-span-9 flex flex-col justify-around text-right text-xs leading-snug text-slate-400"
         >
           <span>one institution</span>
           <span>streams & groups</span>

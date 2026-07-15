@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { AdaptiveDpr } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
@@ -50,19 +50,19 @@ function CameraRig() {
 /**
  * SceneContent — groups all 3D elements inside the Canvas.
  */
-function SceneContent() {
+function SceneContent({ reducedMotion }: { reducedMotion: boolean }) {
   return (
     <>
-      <CameraRig />
-      <MouseParallax />
+      {!reducedMotion && <CameraRig />}
+      {!reducedMotion && <MouseParallax />}
 
       <ambientLight intensity={0.4} />
       <pointLight position={[0, 5, 5]} intensity={0.8} color="#00f0ff" />
       <pointLight position={[-3, -2, 3]} intensity={0.3} color="#1e40af" />
 
-      <DataParticleField />
-      <AssessmentNetwork />
-      <FloatingDashboardPanels />
+      {!reducedMotion && <DataParticleField />}
+      {!reducedMotion && <AssessmentNetwork />}
+      {!reducedMotion && <FloatingDashboardPanels />}
 
       <EffectComposer>
         <Bloom
@@ -90,10 +90,23 @@ function SceneFallback() {
  * HeroScene — the main WebGL canvas for the intelligence field.
  */
 export default function HeroScene() {
+  const [reducedMotion, setReducedMotion] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReducedMotion(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
   return (
     <div className="fixed inset-0 h-screen w-screen pointer-events-none">
       <Suspense fallback={<SceneFallback />}>
         <Canvas
+          frameloop={reducedMotion ? 'demand' : 'always'}
           dpr={[1, 2]}
           camera={{
             position: SCENE.camera.position,
@@ -108,8 +121,8 @@ export default function HeroScene() {
           }}
           style={{ background: SCENE.bgColor }}
         >
-          <SceneContent />
-          <AdaptiveDpr />
+          <SceneContent reducedMotion={reducedMotion} />
+          {!reducedMotion && <AdaptiveDpr />}
         </Canvas>
       </Suspense>
     </div>

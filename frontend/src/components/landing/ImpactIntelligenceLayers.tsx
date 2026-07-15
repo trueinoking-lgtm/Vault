@@ -70,7 +70,7 @@ export default function ImpactIntelligenceLayers() {
               <p className="mt-3 text-sm text-slate-400 leading-relaxed">{layer.description}</p>
               <ul className="mt-6 space-y-3">
                 {layer.details.map((detail) => (
-                  <li key={detail} className="flex items-start gap-2 text-xs text-slate-500">
+                  <li key={detail} className="flex items-start gap-2 text-xs text-slate-400">
                     <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-cyan-500/60 shrink-0" />
                     {detail}
                   </li>

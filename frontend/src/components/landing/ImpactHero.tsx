@@ -15,7 +15,7 @@ export default function ImpactHero() {
   return (
     <section
       id="hero"
-      className="relative flex min-h-[100dvh] items-center overflow-hidden"
+      className="relative flex min-h-[100dvh] scroll-mt-28 items-center overflow-hidden pt-28 lg:pt-[6.75rem]"
     >
       <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-[#050814]/70 via-[#050814]/30 to-transparent" />
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_28%_32%,rgba(245,197,66,0.10),transparent_40%)]" />
@@ -24,7 +24,7 @@ export default function ImpactHero() {
       <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-10 px-6 pb-16 pt-24 lg:grid-cols-[1.02fr_0.98fr] lg:px-12 lg:pb-20">
         <div className="max-w-3xl">
           <div
-            className={`mb-6 inline-flex items-center rounded-full border border-[#f5c542]/25 bg-[#f5c542]/[0.07] px-4 py-1.5 text-xs font-semibold text-[#f5c542] transition-all duration-1000 ${
+            data-hero-reveal className={`mb-6 inline-flex items-center rounded-full border border-[#f5c542]/25 bg-[#f5c542]/[0.07] px-4 py-1.5 text-xs font-semibold text-[#f5c542] transition-all duration-1000 ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
             }`}
           >
@@ -38,7 +38,7 @@ export default function ImpactHero() {
           />
 
           <p
-            className={`mt-5 max-w-2xl text-base leading-relaxed text-slate-300 transition-all delay-300 duration-1000 sm:text-lg ${
+            data-hero-reveal className={`mt-5 max-w-2xl text-base leading-relaxed text-slate-300 transition-all delay-300 duration-1000 sm:text-lg ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
@@ -46,7 +46,7 @@ export default function ImpactHero() {
           </p>
 
           <p
-            className={`mt-3 max-w-2xl text-sm font-medium leading-relaxed text-cyan-200/80 transition-all delay-[450ms] duration-1000 ${
+            data-hero-reveal className={`mt-3 max-w-2xl text-sm font-medium leading-relaxed text-cyan-200/80 transition-all delay-[450ms] duration-1000 ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
@@ -54,7 +54,7 @@ export default function ImpactHero() {
           </p>
 
           <div
-            className={`mt-8 flex flex-col gap-3 transition-all delay-500 duration-1000 sm:flex-row ${
+            data-hero-reveal className={`mt-8 flex flex-col gap-3 transition-all delay-500 duration-1000 sm:flex-row ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
@@ -68,14 +68,14 @@ export default function ImpactHero() {
           </div>
 
           <div
-            className={`mt-8 flex flex-wrap gap-2 transition-all delay-700 duration-1000 ${
+            data-hero-reveal className={`mt-8 flex flex-wrap gap-2 transition-all delay-700 duration-1000 ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
             {HERO.trustStrip.map((item) => (
               <span
                 key={item}
-                className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-slate-400"
+                className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400"
               >
                 {item}
               </span>
