@@ -10,6 +10,7 @@ Provides:
 """
 
 import hashlib
+import hmac
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -23,6 +24,33 @@ from vault_core.database.repository import repo_query
 from vault_core.domain.school import AuthSession
 from vault_core.domain.user import User
 from vault_core.utils.encryption import get_secret_from_env
+
+
+def hash_account_password(password: str) -> str:
+    """Hash a pilot-account password with scrypt and an independent salt."""
+    if len(password) < 12:
+        raise ValueError("Pilot account passwords must contain at least 12 characters")
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(password.encode(), salt=salt, n=2**14, r=8, p=1)
+    return f"scrypt$16384$8$1${salt.hex()}${digest.hex()}"
+
+
+def verify_account_password(password: str, encoded: str) -> bool:
+    """Verify a pilot-account scrypt hash without exposing timing information."""
+    try:
+        algorithm, n, r, p, salt_hex, digest_hex = encoded.split("$", 5)
+        if algorithm != "scrypt":
+            return False
+        actual = hashlib.scrypt(
+            password.encode(),
+            salt=bytes.fromhex(salt_hex),
+            n=int(n),
+            r=int(r),
+            p=int(p),
+        )
+        return hmac.compare_digest(actual, bytes.fromhex(digest_hex))
+    except (ValueError, TypeError):
+        return False
 
 
 async def resolve_session(token: str) -> Optional[User]:

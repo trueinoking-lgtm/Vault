@@ -39,6 +39,7 @@ from api.routers import (
 )
 from api.routers import commands as commands_router
 from api.routers import impact as impact_router
+from api.routers import pilot as pilot_router
 from api.routers import schools as schools_router
 from api.routers import teacher as teacher_router
 from vault_core.database.async_migrate import AsyncMigrationManager
@@ -339,6 +340,7 @@ app.include_router(tts.router, prefix="/api", tags=["tts"])
 app.include_router(schools_router.router, prefix="/api", tags=["schools"])
 app.include_router(teacher_router.router, prefix="/api", tags=["teacher"])
 app.include_router(impact_router.router, prefix="/api", tags=["impact"])
+app.include_router(pilot_router.router, prefix="/api", tags=["impact-pilot"])
 
 
 @app.get("/")

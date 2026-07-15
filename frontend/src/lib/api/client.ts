@@ -64,8 +64,13 @@ apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear auth and redirect to login
-      if (typeof window !== 'undefined') {
+      // Pilot endpoints use a separate, pilot-scoped session. A 401 there means
+      // "not a pilot user", not "logged out of Vault" — the Pilot page handles it
+      // with an inline sign-in prompt. Do NOT trigger a global Vault logout or
+      // redirect, and do NOT clear the Vault session the user may still want.
+      const requestUrl = error.config?.url ?? ''
+      const isPilotRequest = requestUrl.includes('/impact/pilot/')
+      if (typeof window !== 'undefined' && !isPilotRequest) {
         localStorage.removeItem('auth-storage')
         document.cookie = 'vault-owner-access=; Max-Age=0; Path=/; SameSite=Lax'
         window.location.href = '/login'

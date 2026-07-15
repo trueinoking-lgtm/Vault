@@ -13,7 +13,7 @@ interface AuthState {
   authRequired: boolean | null
   setHasHydrated: (state: boolean) => void
   checkAuthRequired: () => Promise<boolean>
-  login: (password: string) => Promise<boolean>
+  login: (password: string, email?: string) => Promise<boolean>
   logout: () => void
   checkAuth: () => Promise<boolean>
 }
@@ -74,24 +74,35 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      login: async (password: string) => {
+      login: async (password: string, email?: string) => {
         set({ isLoading: true, error: null })
         try {
           const apiUrl = await getApiUrl()
 
-          // Test auth with notebooks endpoint
-          const response = await fetch(`${apiUrl}/api/notebooks`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${password}`,
-              'Content-Type': 'application/json'
-            }
-          })
-          
+          const response = email
+            ? await fetch(`${apiUrl}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+              })
+            : await fetch(`${apiUrl}/api/notebooks`, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${password}`,
+                  'Content-Type': 'application/json'
+                }
+              })
+
           if (response.ok) {
+            let token = password
+            if (email) {
+              const session = await response.json() as { session_id?: string }
+              if (!session.session_id) throw new Error('Pilot login did not return a session')
+              token = session.session_id
+            }
             set({ 
               isAuthenticated: true, 
-              token: password, 
+              token, 
               isLoading: false,
               lastAuthCheck: Date.now(),
               error: null

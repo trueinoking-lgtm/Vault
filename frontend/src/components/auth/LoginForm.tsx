@@ -21,6 +21,7 @@ interface OwnerAccessStatus {
 export function LoginForm() {
   const { t, language } = useTranslation()
   const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('')
   const {
     login,
     isLoading,
@@ -39,6 +40,7 @@ export function LoginForm() {
   const searchParams = useSearchParams()
 
   const requestedPath = searchParams.get('next')
+  const pilotRequested = searchParams.get('pilot') === '1' || (requestedPath?.startsWith('/impact/pilot') ?? false)
   const ownerRequested = useMemo(() => {
     return searchParams.get('owner') === '1' || isOwnerProtectedPath(requestedPath ?? '')
   }, [requestedPath, searchParams])
@@ -235,7 +237,7 @@ export function LoginForm() {
     }
 
     try {
-      const success = await login(password)
+      const success = pilotRequested ? await login(password, email) : await login(password)
       if (success) {
         // Phase F4 — owner-cookie auto bridge.
         // After a successful login, check if the user is a global owner.
@@ -248,8 +250,10 @@ export function LoginForm() {
         // the real security boundary (#F3b).
         let shouldBridgeOwner = false
         try {
-          const meResponse = await authApi.me()
-          shouldBridgeOwner = meResponse.owner_access || meResponse.user?.is_global_owner === true
+          if (!pilotRequested) {
+            const meResponse = await authApi.me()
+            shouldBridgeOwner = meResponse.owner_access || meResponse.user?.is_global_owner === true
+          }
           if (shouldBridgeOwner) {
             const ownerResp = await fetch('/api/owner-access', {
               method: 'POST',
@@ -268,7 +272,7 @@ export function LoginForm() {
         const storedRedirect = typeof window !== 'undefined'
           ? sessionStorage.getItem('redirectAfterLogin')
           : null
-        const nextPath = storedRedirect || '/notebooks'
+        const nextPath = requestedPath || storedRedirect || (pilotRequested ? '/impact/pilot' : '/notebooks')
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('redirectAfterLogin')
         }
@@ -286,11 +290,13 @@ export function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle>{ownerRequested ? 'Owner access required' : t('auth.loginTitle')}</CardTitle>
+          <CardTitle>{ownerRequested ? 'Owner access required' : pilotRequested ? 'Pilot workspace sign in' : t('auth.loginTitle')}</CardTitle>
           <CardDescription>
             {ownerRequested
               ? 'Re-enter the existing admin password to unlock privileged owner routes. Full RBAC is still pending.'
-              : t('auth.loginDesc')}
+              : pilotRequested
+                ? 'Use the email and temporary password issued by your pilot administrator.'
+                : t('auth.loginDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -319,6 +325,20 @@ export function LoginForm() {
               </div>
             )}
 
+            {pilotRequested && !ownerRequested && (
+              <div>
+                <Input
+                  type="email"
+                  aria-label="Pilot account email"
+                  placeholder="Pilot account email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={formDisabled}
+                  required
+                />
+              </div>
+            )}
+
             <div>
               <Input
                 type="password"
@@ -339,7 +359,7 @@ export function LoginForm() {
             <Button
               type="submit"
               className="w-full"
-              disabled={formDisabled || !password.trim()}
+              disabled={formDisabled || !password.trim() || (pilotRequested && !email.trim())}
             >
               {isLoading || isAuthorizingOwner
                 ? (ownerRequested ? 'Verifying owner access...' : t('auth.signingIn'))

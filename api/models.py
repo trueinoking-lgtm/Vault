@@ -988,9 +988,13 @@ class ClassroomAssignmentListResponse(BaseModel):
 
 
 class AuthLoginRequest(BaseModel):
-    """Request to log in with a password."""
+    """Request to log in with an environment password or pilot account."""
 
     password: str = Field(..., description="Password for authentication")
+    email: Optional[str] = Field(
+        default=None,
+        description="Pilot account email. Omit for legacy owner/environment login.",
+    )
 
 
 class AuthUserResponse(BaseModel):

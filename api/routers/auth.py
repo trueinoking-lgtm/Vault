@@ -19,6 +19,7 @@ from api.auth import (
     get_or_create_legacy_user,
     get_or_create_owner_user,
     resolve_session,
+    verify_account_password,
 )
 from api.models import (
     AuthLoginRequest,
@@ -28,6 +29,7 @@ from api.models import (
     AuthUserResponse,
 )
 from vault_core.database.repository import ensure_record_id, repo_query
+from vault_core.domain.user import User
 from vault_core.utils.encryption import get_secret_from_env
 
 router = APIRouter(tags=["auth"])
@@ -125,16 +127,27 @@ async def login(body: AuthLoginRequest):
     ``is_global_owner = true`` is bootstrapped automatically.
     """
     password = body.password
-    is_valid, is_owner = _check_password(password)
-
-    if not is_valid:
-        raise HTTPException(status_code=401, detail="Invalid password")
 
     try:
-        if is_owner:
-            user = await get_or_create_owner_user(password)
+        if body.email:
+            result = await repo_query(
+                "SELECT * FROM user WHERE string::lowercase(email) = string::lowercase($email) AND active = true LIMIT 1",
+                {"email": body.email.strip()},
+            )
+            if not result:
+                raise HTTPException(status_code=401, detail="Invalid email or password")
+            user = User(**result[0])
+            if not verify_account_password(password, user.password_hash):
+                raise HTTPException(status_code=401, detail="Invalid email or password")
+            is_owner = bool(user.is_global_owner)
         else:
-            user = await get_or_create_legacy_user(password)
+            is_valid, is_owner = _check_password(password)
+            if not is_valid:
+                raise HTTPException(status_code=401, detail="Invalid password")
+            if is_owner:
+                user = await get_or_create_owner_user(password)
+            else:
+                user = await get_or_create_legacy_user(password)
 
         session = await create_session_for_user(user)
 
