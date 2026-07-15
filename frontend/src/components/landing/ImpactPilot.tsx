@@ -28,15 +28,14 @@ export default function ImpactPilot() {
       id="pilot"
       className="relative py-28 lg:py-36 overflow-hidden bg-[#070b1a]"
     >
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#070b1a] via-[#0a1035] to-[#070b1a]" />
       <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-emerald-500/[0.02] blur-[120px]" />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12">
-        {/* Heading */}
         <div className="text-center max-w-3xl mx-auto">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-200/80">{PILOT.eyebrow}</p>
           <h2
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight transition-all duration-1000 ${
+            className={`mt-4 text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight transition-all duration-1000 ${
               visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
@@ -51,9 +50,8 @@ export default function ImpactPilot() {
           </p>
         </div>
 
-        {/* Scope grid */}
         <div
-          className={`mt-16 grid grid-cols-2 md:grid-cols-3 gap-4 transition-all duration-1000 delay-300 ${
+          className={`mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 transition-all duration-1000 delay-300 ${
             visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
@@ -68,7 +66,6 @@ export default function ImpactPilot() {
           ))}
         </div>
 
-        {/* Output card */}
         <div
           className={`mt-8 flex items-start gap-4 rounded-xl border border-cyan-500/10 bg-cyan-500/[0.02] p-6 transition-all duration-1000 delay-500 ${
             visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -78,7 +75,6 @@ export default function ImpactPilot() {
           <p className="text-sm text-slate-300 leading-relaxed">{PILOT.output}</p>
         </div>
 
-        {/* CTAs */}
         <div
           className={`flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 transition-all duration-1000 delay-700 ${
             visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'

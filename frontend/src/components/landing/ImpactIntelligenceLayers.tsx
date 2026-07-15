@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { LAYERS } from '@/lib/landing/impact-copy';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, ShieldAlert } from 'lucide-react';
 
 export default function ImpactIntelligenceLayers() {
   const [visible, setVisible] = useState(false);
@@ -27,7 +27,6 @@ export default function ImpactIntelligenceLayers() {
       id="layers"
       className="relative py-28 lg:py-36 overflow-hidden bg-[#050814]"
     >
-      {/* Background layers — visual stack hint */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-full max-w-5xl h-full relative">
           <div className="absolute top-[15%] left-[5%] w-72 h-72 rounded-2xl border border-white/[0.02] bg-white/[0.01] rotate-3" />
@@ -37,8 +36,8 @@ export default function ImpactIntelligenceLayers() {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-12">
-        {/* Heading */}
         <div className="text-center max-w-3xl mx-auto mb-16">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">{LAYERS.eyebrow}</p>
           <h2
             className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight transition-all duration-1000 ${
               visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -55,7 +54,6 @@ export default function ImpactIntelligenceLayers() {
           </p>
         </div>
 
-        {/* Three layer cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {LAYERS.layers.map((layer, i) => (
             <div
@@ -65,22 +63,11 @@ export default function ImpactIntelligenceLayers() {
               }`}
               style={{ transitionDelay: `${300 + i * 150}ms` }}
             >
-              {/* Gradient accent bar */}
               <div
                 className={`absolute top-0 left-8 right-8 h-0.5 rounded-full bg-gradient-to-r ${layer.accent} opacity-60`}
               />
-
-              {/* Title */}
-              <h3 className="mt-4 text-xl font-semibold text-white">
-                {layer.title}
-              </h3>
-
-              {/* Description */}
-              <p className="mt-3 text-sm text-slate-400 leading-relaxed">
-                {layer.description}
-              </p>
-
-              {/* Detail list */}
+              <h3 className="mt-4 text-xl font-semibold text-white">{layer.title}</h3>
+              <p className="mt-3 text-sm text-slate-400 leading-relaxed">{layer.description}</p>
               <ul className="mt-6 space-y-3">
                 {layer.details.map((detail) => (
                   <li key={detail} className="flex items-start gap-2 text-xs text-slate-500">
@@ -89,11 +76,20 @@ export default function ImpactIntelligenceLayers() {
                   </li>
                 ))}
               </ul>
-
-              {/* Hover glow */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-500/0 to-blue-600/0 opacity-0 group-hover:opacity-100 group-hover:from-cyan-500/[0.02] group-hover:to-blue-600/[0.02] transition-all duration-500 pointer-events-none" />
             </div>
           ))}
+        </div>
+
+        <div
+          className={`mt-10 flex items-start gap-3 rounded-2xl border border-amber-300/15 bg-amber-300/[0.04] px-5 py-4 transition-all duration-1000 delay-700 ${
+            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          }`}
+        >
+          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-300/90" />
+          <p className="text-sm leading-relaxed text-amber-100/80">
+            <span className="font-semibold text-amber-100">Data protection:</span> {LAYERS.sensitiveNote}
+          </p>
         </div>
       </div>
     </section>

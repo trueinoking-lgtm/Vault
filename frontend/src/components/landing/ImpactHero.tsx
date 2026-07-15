@@ -1,14 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { HERO } from '@/lib/landing/impact-copy';
+import { HERO, SITE } from '@/lib/landing/impact-copy';
 import { ArrowRight } from 'lucide-react';
 import EvidenceSignalPanel from './EvidenceSignalPanel';
 import MagneticButton from './MagneticButton';
-import { getCanonicalDemoStats } from '@/lib/impact/demo-data';
+import AnimatedWords from './motion/AnimatedWords';
 
 export default function ImpactHero() {
-  const stats = getCanonicalDemoStats();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -28,16 +27,14 @@ export default function ImpactHero() {
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
             }`}
           >
-            HiveMind Intelligence
+            {SITE.positioning}
           </div>
 
-          <h1
-            className={`text-4xl font-bold leading-[1.03] tracking-tight text-white transition-all delay-150 duration-1000 sm:text-5xl md:text-6xl lg:text-7xl ${
-              mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-            }`}
-          >
-            {HERO.headline}
-          </h1>
+          <AnimatedWords
+            as="h1"
+            phrases={HERO.headlinePhrases}
+            className="text-4xl font-bold leading-[1.03] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+          />
 
           <p
             className={`mt-5 max-w-2xl text-base leading-relaxed text-slate-300 transition-all delay-300 duration-1000 sm:text-lg ${
@@ -45,6 +42,14 @@ export default function ImpactHero() {
             }`}
           >
             {HERO.subheadline}
+          </p>
+
+          <p
+            className={`mt-3 max-w-2xl text-sm font-medium leading-relaxed text-cyan-200/80 transition-all delay-[450ms] duration-1000 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+            }`}
+          >
+            {HERO.secondaryStatement}
           </p>
 
           <div
@@ -62,20 +67,17 @@ export default function ImpactHero() {
           </div>
 
           <div
-            className={`mt-8 grid max-w-xl grid-cols-3 gap-3 transition-all delay-700 duration-1000 ${
+            className={`mt-8 flex flex-wrap gap-2 transition-all delay-700 duration-1000 ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
-            aria-label="Landing page proof points"
           >
-            {[
-              [String(stats.schools), 'schools'],
-              [String(stats.learners), 'learners'],
-              [String(stats.assessments), 'assessments'],
-            ].map(([value, label]) => (
-              <div key={label} className="rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3 backdrop-blur-sm">
-                <div className="font-mono text-lg font-semibold text-cyan-200">{value}</div>
-                <div className="mt-1 text-xs text-slate-500">{label}</div>
-              </div>
+            {HERO.trustStrip.map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-slate-400"
+              >
+                {item}
+              </span>
             ))}
           </div>
         </div>
