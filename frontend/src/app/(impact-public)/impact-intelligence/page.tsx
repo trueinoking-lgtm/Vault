@@ -2,24 +2,24 @@ import type { Metadata } from 'next';
 import ImpactLandingPage from '@/components/landing/ImpactLandingPage';
 
 export const metadata: Metadata = {
-  title: 'Impact Intelligence — HiveMind Intelligence',
+  title: 'HiveMind Intelligence — School intelligence',
   description:
-    'Turn marked tests into learning intelligence. HiveMind Intelligence transforms teacher-marked assessments into weak-topic analysis, learner support signals, intervention plans, and school-level evidence.',
+    'Turn school data into governance intelligence. HiveMind Intelligence connects school administration, resources, assessments, curriculum evidence and intervention outcomes to reveal where support is needed, why patterns may be occurring, and what action should follow.',
   icons: {
     icon: '/favicon.svg',
   },
   openGraph: {
-    title: 'Impact Intelligence — HiveMind Intelligence',
+    title: 'HiveMind Intelligence — School intelligence',
     description:
-      'Turn marked tests into learning intelligence. Assessment analytics for schools and ministries.',
+      'Turn school data into governance intelligence. School intelligence, governance intelligence, and decision signals for teachers, school leaders and education stakeholders.',
     type: 'website',
     siteName: 'HiveMind Intelligence',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Impact Intelligence — HiveMind Intelligence',
+    title: 'HiveMind Intelligence — School intelligence',
     description:
-      'Turn marked tests into learning intelligence. Assessment analytics for schools and ministries.',
+      'Turn school data into governance intelligence. Assessment analytics for schools and ministries.',
   },
   robots: {
     index: true,

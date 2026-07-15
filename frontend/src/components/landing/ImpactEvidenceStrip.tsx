@@ -1,6 +1,6 @@
 const items = [
-  "Teacher-marked",
-  "Assessment-driven",
+  "Teacher-supportive",
+  "Assessment-oriented",
   "Deterministic first",
   "AI advisory only",
   "School-ready evidence",

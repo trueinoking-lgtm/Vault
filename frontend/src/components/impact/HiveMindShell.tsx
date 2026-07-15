@@ -20,7 +20,7 @@ function Brand() {
       </span>
       <span className="min-w-0">
         <span className="block truncate text-base font-bold tracking-[-0.02em] text-slate-950">HiveMind Intelligence</span>
-        <span className="block truncate text-[11px] font-medium text-slate-500">School intelligence</span>
+        <span className="block truncate text-[11px] font-medium text-slate-500">Impact Intelligence · Powered by ZimLearnGraph</span>
       </span>
     </a>
   )

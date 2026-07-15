@@ -13,27 +13,27 @@ import type { Metadata } from 'next';
  */
 export const metadata: Metadata = {
   title: {
-    default: 'Impact Intelligence — HiveMind Intelligence',
+    default: 'Impact Intelligence by HiveMind Intelligence',
     template: '%s · HiveMind Intelligence',
   },
   description:
-    'HiveMind Intelligence — turn teacher-marked assessments into structured learning evidence. Weak-topic analysis, learner-support signals, and school-level analytics.',
+    'Impact Intelligence by HiveMind Intelligence — powered by ZimLearnGraph. Turns school data into governance intelligence: weak-topic analysis, learner-support signals, and school-level evidence.',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
   },
   openGraph: {
-    title: 'Impact Intelligence — HiveMind Intelligence',
+    title: 'Impact Intelligence by HiveMind Intelligence',
     description:
-      'Turn marked tests into learning intelligence. Assessment analytics for schools and ministries.',
+      'Turn school data into governance intelligence. Assessment analytics for schools and ministries.',
     type: 'website',
     siteName: 'HiveMind Intelligence',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Impact Intelligence — HiveMind Intelligence',
+    title: 'Impact Intelligence by HiveMind Intelligence',
     description:
-      'Turn marked tests into learning intelligence. Assessment analytics for schools and ministries.',
+      'Turn school data into governance intelligence. Assessment analytics for schools and ministries.',
   },
 };
 
