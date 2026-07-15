@@ -1,7 +1,6 @@
 'use client';
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { EASE, DURATION } from '@/lib/landing/motion-config';
 
 interface AnimatedWordsProps {
   phrases: readonly string[];
@@ -23,7 +22,7 @@ export default function AnimatedWords({
   phrases,
   as = 'h1',
   className = '',
-  stagger = 0.22,
+  stagger = 0.32,
   delay = 0.15,
 }: AnimatedWordsProps) {
   const reduce = useReducedMotion();
@@ -36,12 +35,16 @@ export default function AnimatedWords({
   };
 
   const word: Variants = {
-    hidden: reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: '0.4em' },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: reduce ? 0 : DURATION.normal, ease: EASE.out },
-    },
+    hidden: reduce ? { opacity: 1 } : { opacity: 0, y: '1.1em', scale: 0.96, filter: 'blur(8px)' },
+    visible: reduce
+      ? { opacity: 1, transition: { duration: 0 } }
+      : {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: 'blur(0px)',
+          transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+        },
   };
 
   const Tag = motion[as];
@@ -56,7 +59,7 @@ export default function AnimatedWords({
     >
       {phrases.map((phrase, i) => (
         <span key={i} className="inline-block overflow-hidden align-bottom" aria-hidden="true">
-          <motion.span className="inline-block" variants={word} style={{ willChange: 'transform, opacity' }}>
+          <motion.span className="inline-block" variants={word} style={{ willChange: 'transform, opacity, filter' }}>
             {phrase}
             {i < phrases.length - 1 ? ' ' : ''}
           </motion.span>

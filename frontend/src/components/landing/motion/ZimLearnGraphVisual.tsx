@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { EASE, DURATION } from '@/lib/landing/motion-config';
+import { EASE } from '@/lib/landing/motion-config';
 
 interface GraphNodeProps {
   label: string;
@@ -27,16 +27,25 @@ function GraphNode({ label, col, row, index, tone = 'cyan', active = false }: Gr
   const reduce = useReducedMotion();
   return (
     <motion.div
-      initial={reduce ? false : { opacity: 0, scale: 0.9 }}
-      whileInView={{ opacity: 1, scale: 1 }}
+      initial={reduce ? false : { opacity: 0, scale: 0.85, y: 12 }}
+      whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : index * 0.12, ease: EASE.out }}
       style={{ gridColumn: col, gridRow: row }}
-      className={`flex items-center justify-center rounded-2xl border px-3 py-2 text-center text-xs font-semibold ${toneClasses[tone]} ${
-        active ? 'shadow-[0_0_28px_-8px_rgba(0,229,255,0.7)] ring-1 ring-cyan-300/40' : ''
-      }`}
     >
-      {label}
+      <motion.div
+        animate={
+          reduce
+            ? undefined
+            : { scale: [1, 1, 1.06, 1], filter: ['brightness(1)', 'brightness(1)', 'brightness(1.55)', 'brightness(1)'] }
+        }
+        transition={{ duration: 3.5, delay: index * 0.28, repeat: Infinity, ease: 'easeInOut' }}
+        className={`flex h-full w-full items-center justify-center rounded-2xl border px-3 py-2 text-center text-xs font-semibold ${toneClasses[tone]} ${
+          active ? 'shadow-[0_0_28px_-8px_rgba(0,229,255,0.7)] ring-1 ring-cyan-300/40' : ''
+        }`}
+      >
+        {label}
+      </motion.div>
     </motion.div>
   );
 }
@@ -57,9 +66,16 @@ export default function ZimLearnGraphVisual({ className = '' }: { className?: st
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : i * 0.12 + 0.1, ease: EASE.out }}
-      className="bg-gradient-to-b from-cyan-300/40 to-slate-500/20"
-      style={{ gridColumn: '2', gridRow: `${i + 1} / ${i + 2}`, justifySelf: 'center', width: '1px', height: '100%' }}
-    />
+      className="relative overflow-hidden bg-gradient-to-b from-cyan-300/30 to-slate-500/20"
+      style={{ gridColumn: '2', gridRow: `${i + 1} / ${i + 2}`, justifySelf: 'center', width: '2px', height: '100%' }}
+    >
+      <motion.span
+        className="absolute left-0 h-1/3 w-full bg-cyan-100 shadow-[0_0_8px_rgba(103,232,249,1)]"
+        initial={reduce ? false : { y: '-100%' }}
+        animate={reduce ? undefined : { y: ['-100%', '300%'] }}
+        transition={{ duration: 3.5, delay: i * 0.28, repeat: Infinity, ease: 'linear' }}
+      />
+    </motion.span>
   );
 
   return (

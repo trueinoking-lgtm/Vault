@@ -31,9 +31,9 @@ export default function MotionSection({
       id={id}
       aria-labelledby={ariaLabelledby}
       className={className}
-      initial={reduce ? false : { opacity: 0, y: 28 }}
+      initial={reduce ? false : { opacity: 0, y: 56 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: reduce ? 0 : DURATION.slow, ease: EASE.out, delay: reduce ? 0 : delay }}
     >
       {children}

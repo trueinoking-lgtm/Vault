@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { EASE, DURATION } from '@/lib/landing/motion-config';
+import { EASE } from '@/lib/landing/motion-config';
 
 interface AnimatedFlowProps {
   steps: readonly string[];
@@ -28,13 +28,18 @@ export default function AnimatedFlow({ steps, className = '' }: AnimatedFlowProp
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true, amount: 0.4 }}
               transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : i * 0.18, ease: EASE.out }}
-              className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold ${
-                isFinal
-                  ? 'border-cyan-300/40 bg-cyan-300/10 text-cyan-100 shadow-[0_0_24px_-6px_rgba(0,229,255,0.6)]'
-                  : 'border-white/10 bg-white/[0.04] text-slate-300'
-              }`}
             >
-              {step}
+              <motion.div
+                animate={reduce ? undefined : { scale: [1, 1.05, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }}
+                transition={{ duration: 3, delay: i * 0.3, repeat: Infinity, ease: 'easeInOut' }}
+                className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold ${
+                  isFinal
+                    ? 'border-cyan-300/40 bg-cyan-300/10 text-cyan-100 shadow-[0_0_24px_-6px_rgba(0,229,255,0.6)]'
+                    : 'border-white/10 bg-white/[0.04] text-slate-300'
+                }`}
+              >
+                {step}
+              </motion.div>
             </motion.div>
             {i < last && (
               <motion.span
@@ -43,9 +48,14 @@ export default function AnimatedFlow({ steps, className = '' }: AnimatedFlowProp
                 whileInView={{ scaleX: 1, opacity: 1 }}
                 viewport={{ once: true, amount: 0.4 }}
                 transition={{ duration: reduce ? 0 : 0.4, delay: reduce ? 0 : i * 0.18 + 0.22, ease: EASE.out }}
-                className="mx-1.5 h-px w-5 origin-left bg-gradient-to-r from-cyan-300/60 to-slate-500/40"
+                className="relative mx-1.5 h-px w-5 origin-left overflow-hidden bg-gradient-to-r from-cyan-300/30 to-slate-500/30"
               >
-                <span className="block h-px w-full" />
+                <motion.span
+                  className="absolute inset-y-0 w-2 bg-gradient-to-r from-transparent via-cyan-100 to-transparent shadow-[0_0_7px_rgba(103,232,249,0.9)]"
+                  initial={reduce ? false : { x: -8 }}
+                  animate={reduce ? undefined : { x: [-8, 28] }}
+                  transition={{ duration: 3, delay: i * 0.3, repeat: Infinity, ease: 'linear' }}
+                />
               </motion.span>
             )}
           </div>

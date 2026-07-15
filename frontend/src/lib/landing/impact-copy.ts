@@ -312,7 +312,7 @@ export const AI_BOUNDARIES = {
       icon: 'database',
     },
     {
-      title: 'AI advisory only',
+      title: 'AI advisory',
       detail: 'Generated summaries explain patterns and possible actions. They do not grade learners or make final decisions.',
       icon: 'brain',
     },

@@ -2,7 +2,7 @@ const items = [
   "Teacher-supportive",
   "Assessment-oriented",
   "Deterministic first",
-  "AI advisory only",
+  "AI advisory",
   "School-ready evidence",
 ] as const;
 
