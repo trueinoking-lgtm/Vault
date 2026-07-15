@@ -18,12 +18,13 @@ export default function ImpactHero() {
       className="relative flex min-h-[100dvh] items-center overflow-hidden"
     >
       <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-[#050814]/70 via-[#050814]/30 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_28%_32%,rgba(245,197,66,0.10),transparent_40%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-44 bg-gradient-to-t from-[#050814] to-transparent" />
 
       <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-10 px-6 pb-16 pt-24 lg:grid-cols-[1.02fr_0.98fr] lg:px-12 lg:pb-20">
         <div className="max-w-3xl">
           <div
-            className={`mb-6 inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-4 py-1.5 text-xs font-semibold text-cyan-100 transition-all duration-1000 ${
+            className={`mb-6 inline-flex items-center rounded-full border border-[#f5c542]/25 bg-[#f5c542]/[0.07] px-4 py-1.5 text-xs font-semibold text-[#f5c542] transition-all duration-1000 ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
             }`}
           >

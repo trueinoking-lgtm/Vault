@@ -15,7 +15,7 @@ export default function ImpactGovernanceSignal() {
       ariaLabelledby="governance-signal-heading"
       className="relative overflow-hidden bg-[#050814] py-24 lg:py-32"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,229,255,0.07),transparent_32%),radial-gradient(circle_at_80%_70%,rgba(245,158,11,0.05),transparent_30%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,229,255,0.07),transparent_32%),radial-gradient(circle_at_80%_70%,rgba(245,197,66,0.09),transparent_34%)]" />
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">{g.eyebrow}</p>

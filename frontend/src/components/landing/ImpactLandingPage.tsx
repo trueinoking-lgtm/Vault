@@ -70,7 +70,7 @@ function LandingInner() {
         <section aria-hidden="true" className="relative border-y border-white/[0.04] bg-[#050814]/70 py-6">
           <div className="mx-auto max-w-5xl px-6 lg:px-12">
             <AnimatedFlow
-              steps={['School data', 'ZimLearnGraph', 'Analysis', 'Decision signals', 'Intervention', 'Follow-up evidence']}
+              steps={['School data', 'HiveMind', 'Analysis', 'Decision signals', 'Intervention', 'Follow-up evidence']}
             />
           </div>
         </section>
