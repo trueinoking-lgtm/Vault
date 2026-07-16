@@ -44,7 +44,7 @@ function ProductNavigation({ pathname, onNavigate }: { pathname: string; onNavig
                 : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
             }`}
           >
-            <Icon aria-hidden="true" className={`h-[18px] w-[18px] ${active ? 'text-amber-700' : 'text-cyan-600/70 group-hover:text-cyan-700'}`} />
+            <Icon aria-hidden="true" className={`h-5 w-5 ${active ? 'text-teal-700' : 'text-slate-400 group-hover:text-cyan-700'}`} />
             <span>{item.label}</span>
           </a>
         )
@@ -149,7 +149,7 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        <main id="hm-main" className="mx-auto min-h-[calc(100vh-3rem)] w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+        <main id="hm-main" className="mx-auto min-h-[calc(100vh-3rem)] w-full max-w-[1440px] px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
           {children}
         </main>
       </div>

@@ -18,8 +18,8 @@ export function PageHeader({ eyebrow, title, description, actions, breadcrumbs }
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-3xl">
           {eyebrow && <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.16em] text-teal-700">{eyebrow}</p>}
-          <h1 className="text-3xl font-black tracking-[-0.035em] text-slate-950 sm:text-4xl">{title}</h1>
-          <p className="mt-3 max-w-[70ch] text-sm leading-6 text-slate-600 sm:text-base">{description}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{title}</h1>
+          <p className="mt-3 max-w-[70ch] text-base leading-7 text-slate-600">{description}</p>
         </div>
         {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
       </div>
@@ -50,7 +50,7 @@ export function MetricCard({ label, value, detail, icon: Icon, tone = 'teal' }: 
       <div className={`mb-5 grid h-10 w-10 place-items-center rounded-2xl border ${tones[tone]}`}><Icon aria-hidden="true" className="h-5 w-5" /></div>
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl">{value}</p>
-      {showProgress && <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div className={`h-full rounded-full ${tone === 'amber' ? 'bg-[#f5c542]' : 'bg-cyan-600'}`} style={{ width: `${progress}%` }} /></div>}
+      {showProgress && <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div className={`h-full rounded-full ${tone === 'amber' ? 'bg-[#f5c542]' : 'bg-cyan-600'}`} style={{ width: `${progress}%` }} /></div>}
       {detail && <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>}
     </article>
   )
@@ -59,11 +59,11 @@ export function MetricCard({ label, value, detail, icon: Icon, tone = 'teal' }: 
 export function SectionCard({ title, description, action, children, className = '' }: { title: string; description?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <section className={`rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_rgba(2,6,23,0.06)] ${className}`}>
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <div><h2 className="text-base font-extrabold tracking-[-0.01em] text-slate-950">{title}</h2>{description && <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>}</div>
+      <div className="flex flex-col gap-3 border-b border-slate-100 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div><h2 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">{title}</h2>{description && <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>}</div>
         {action}
       </div>
-      <div className="p-5 sm:p-6">{children}</div>
+      <div className="p-6">{children}</div>
     </section>
   )
 }
@@ -78,7 +78,7 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3 text-xs"><span className="font-medium text-slate-600">{label}</span><span className="font-bold text-slate-900">{safe}%</span></div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safe}><div className="h-full rounded-full bg-cyan-600" style={{ width: `${safe}%` }} /></div>
+      <div className="h-3 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safe}><div className="h-full rounded-full bg-[#f5c542]" style={{ width: `${safe}%` }} /></div>
     </div>
   )
 }

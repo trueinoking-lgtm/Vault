@@ -26,7 +26,7 @@ export default function ImpactPilot() {
     <section
       ref={ref}
       id="pilot"
-      className="relative py-28 lg:py-36 overflow-hidden bg-[#070b1a]"
+      className="relative overflow-hidden bg-[#070b1a] py-20 lg:py-24"
     >
       <div className="absolute inset-0 bg-gradient-to-b from-[#070b1a] via-[#0a1035] to-[#070b1a]" />
       <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-emerald-500/[0.02] blur-[120px]" />
@@ -35,14 +35,14 @@ export default function ImpactPilot() {
         <div className="text-center max-w-3xl mx-auto">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-200/80">{PILOT.eyebrow}</p>
           <h2
-            className={`mt-4 text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight transition-all duration-1000 ${
+            className={`mt-4 text-3xl font-bold leading-tight tracking-tight text-white transition-all duration-1000 md:text-4xl ${
               visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
             {PILOT.heading}
           </h2>
           <p
-            className={`mt-4 text-base sm:text-lg text-slate-400 transition-all duration-1000 delay-200 ${
+            className={`mt-4 text-base leading-7 text-slate-400 transition-all duration-1000 delay-200 ${
               visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}
           >

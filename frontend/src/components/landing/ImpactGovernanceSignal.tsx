@@ -13,13 +13,13 @@ export default function ImpactGovernanceSignal() {
     <MotionSection
       id="governance-signal"
       ariaLabelledby="governance-signal-heading"
-      className="relative overflow-hidden bg-[#050814] py-24 lg:py-32"
+      className="relative overflow-hidden bg-[#050814] py-20 lg:py-24"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,229,255,0.07),transparent_32%),radial-gradient(circle_at_80%_70%,rgba(245,197,66,0.09),transparent_34%)]" />
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">{g.eyebrow}</p>
-          <h2 id="governance-signal-heading" className="mt-4 text-3xl font-bold leading-[1.08] tracking-tight text-white md:text-5xl">
+          <h2 id="governance-signal-heading" className="mt-4 text-3xl font-bold leading-tight tracking-tight text-white md:text-4xl">
             {g.heading}
           </h2>
           <p className="mt-5 text-base leading-relaxed text-slate-400">{g.intro}</p>
@@ -27,7 +27,7 @@ export default function ImpactGovernanceSignal() {
 
         <div className="mt-12 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           {/* Left: the signal card */}
-          <article className="rounded-[28px] border border-white/[0.07] bg-white/[0.025] p-6 shadow-[0_30px_120px_-80px_rgba(0,229,255,0.7)] backdrop-blur-xl sm:p-8">
+          <article className="governance-signal-card rounded-[28px] border border-cyan-300/25 bg-white/[0.035] p-6 shadow-[0_0_38px_-16px_rgba(0,229,255,0.75)] backdrop-blur-xl">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-medium text-cyan-200/80">Generated governance signal</p>

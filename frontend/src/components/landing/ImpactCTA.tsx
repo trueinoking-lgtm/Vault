@@ -25,7 +25,7 @@ export default function ImpactCTA() {
   return (
     <section
       ref={ref}
-      className="relative py-28 lg:py-36 overflow-hidden bg-[#050814]"
+      className="relative overflow-hidden bg-[#050814] py-20 lg:py-24"
     >
       {/* Dramatic glow */}
       <div className="absolute inset-0 flex items-center justify-center">
@@ -45,7 +45,7 @@ export default function ImpactCTA() {
       <div className="relative z-10 max-w-3xl mx-auto px-6 lg:px-12 text-center">
         {/* Heading */}
         <h2
-          className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight transition-all duration-1000 ${
+          className={`text-3xl font-bold leading-tight tracking-tight text-white transition-all duration-1000 md:text-4xl ${
             visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
@@ -54,7 +54,7 @@ export default function ImpactCTA() {
 
         {/* Subheading */}
         <p
-          className={`mt-4 text-lg text-slate-400 transition-all duration-1000 delay-200 ${
+          className={`mt-4 text-base leading-7 text-slate-400 transition-all duration-1000 delay-200 ${
             visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
           }`}
         >

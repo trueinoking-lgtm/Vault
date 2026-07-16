@@ -17,13 +17,13 @@ export default function ImpactDataCategories() {
     <MotionSection
       id="data-categories"
       ariaLabelledby="data-categories-heading"
-      className="relative overflow-hidden bg-[#070b1a] py-24 lg:py-32"
+      className="relative overflow-hidden bg-[#070b1a] py-20 lg:py-24"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(0,229,255,0.06),transparent_34%)]" />
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">{d.eyebrow}</p>
-          <h2 id="data-categories-heading" className="mt-4 text-3xl font-bold leading-[1.08] tracking-tight text-white md:text-5xl">
+          <h2 id="data-categories-heading" className="mt-4 text-3xl font-bold leading-tight tracking-tight text-white md:text-4xl">
             {d.heading}
           </h2>
           <p className="mt-5 text-base leading-relaxed text-slate-400">{d.subheading}</p>
@@ -40,7 +40,7 @@ export default function ImpactDataCategories() {
                 <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/16 bg-cyan-300/[0.06] text-cyan-100">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">{cat.title}</h3>
+                <h3 className="text-xl font-semibold text-white">{cat.title}</h3>
                 <ul className="mt-4 space-y-2">
                   {cat.items.map((item) => (
                     <li key={item} className="flex items-start gap-2 text-sm leading-relaxed text-slate-400">

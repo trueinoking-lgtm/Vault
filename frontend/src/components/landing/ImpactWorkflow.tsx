@@ -13,13 +13,13 @@ export default function ImpactWorkflow() {
     <MotionSection
       id="workflow"
       ariaLabelledby="workflow-heading"
-      className="relative overflow-hidden bg-[#050814] py-24 lg:py-32"
+      className="relative overflow-hidden bg-[#050814] py-20 lg:py-24"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,229,255,0.07),transparent_32%),radial-gradient(circle_at_80%_45%,rgba(245,158,11,0.05),transparent_30%)]" />
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">{w.eyebrow}</p>
-          <h2 id="workflow-heading" className="mt-4 text-3xl font-bold leading-[1.08] tracking-tight text-white md:text-5xl">
+          <h2 id="workflow-heading" className="mt-4 text-3xl font-bold leading-tight tracking-tight text-white md:text-4xl">
             {w.heading}
           </h2>
           <p className="mt-5 text-base leading-relaxed text-slate-400">{w.subheading}</p>
@@ -46,7 +46,7 @@ export default function ImpactWorkflow() {
                     {step.number}
                   </span>
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-white">{step.title}</h3>
+                <h3 className="mt-4 text-xl font-semibold text-white">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-400">{step.description}</p>
               </div>
             </motion.li>

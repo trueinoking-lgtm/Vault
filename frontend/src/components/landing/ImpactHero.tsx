@@ -15,8 +15,13 @@ export default function ImpactHero() {
   return (
     <section
       id="hero"
-      className="relative flex min-h-[100dvh] scroll-mt-28 items-center overflow-hidden pt-28 lg:pt-[6.75rem]"
+      className="relative isolate flex min-h-[100dvh] scroll-mt-28 items-center overflow-hidden pt-28 lg:pt-[6.75rem]"
     >
+      <div aria-hidden="true" className="landing-aurora pointer-events-none absolute inset-[-15%] -z-10 opacity-80 blur-3xl">
+        <div className="absolute left-[5%] top-[12%] h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(circle,rgba(0,229,255,0.24),rgba(0,229,255,0)_68%)]" />
+        <div className="absolute right-[2%] top-[18%] h-[36rem] w-[36rem] rounded-full bg-[radial-gradient(circle,rgba(245,197,66,0.20),rgba(245,197,66,0)_68%)]" />
+        <div className="absolute bottom-[-8%] left-[38%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(0,229,255,0.14),rgba(245,197,66,0.05)_42%,transparent_70%)]" />
+      </div>
       <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-[#050814]/70 via-[#050814]/30 to-transparent" />
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_28%_32%,rgba(245,197,66,0.10),transparent_40%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-44 bg-gradient-to-t from-[#050814] to-transparent" />
@@ -34,11 +39,11 @@ export default function ImpactHero() {
           <AnimatedWords
             as="h1"
             phrases={HERO.headlinePhrases}
-            className="text-4xl font-bold leading-[1.03] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+            className="text-[clamp(2.5rem,5vw,4rem)] font-bold leading-[1.03] tracking-tight text-white"
           />
 
           <p
-            data-hero-reveal className={`mt-5 max-w-2xl text-base leading-relaxed text-slate-300 transition-all delay-300 duration-1000 sm:text-lg ${
+            data-hero-reveal className={`mt-5 max-w-2xl text-base leading-7 text-slate-300 transition-all delay-300 duration-1000 ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >

@@ -15,7 +15,7 @@ const iconMap = {
 export default function ImpactTrustPanel() {
   const t = AI_BOUNDARIES;
   return (
-    <section className="relative overflow-hidden bg-[#070b1a] py-24 lg:py-32" aria-labelledby="trust-heading">
+    <section className="relative overflow-hidden bg-[#070b1a] py-20 lg:py-24" aria-labelledby="trust-heading">
       <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,229,255,0.06),transparent_35%,rgba(16,185,129,0.055))]" />
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
         <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
@@ -24,7 +24,7 @@ export default function ImpactTrustPanel() {
               <Lock className="h-3.5 w-3.5" />
               {t.eyebrow}
             </div>
-            <h2 id="trust-heading" className="mt-5 text-3xl font-bold leading-[1.08] tracking-tight text-white md:text-5xl">
+            <h2 id="trust-heading" className="mt-5 text-3xl font-bold leading-tight tracking-tight text-white md:text-4xl">
               {t.heading}
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-400">
@@ -40,7 +40,7 @@ export default function ImpactTrustPanel() {
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-300/16 bg-cyan-300/[0.06] text-cyan-100">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="text-base font-semibold text-white">{item.title}</h3>
+                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-400">{item.detail}</p>
                 </article>
               );

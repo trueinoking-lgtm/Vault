@@ -127,6 +127,23 @@ function LandingInner() {
           </div>
         </footer>
       </div>
+      <style jsx global>{`
+        @keyframes landing-aurora-drift {
+          0%, 100% { transform: translate3d(-2%, -1%, 0) scale(1); }
+          50% { transform: translate3d(3%, 2%, 0) scale(1.08); }
+        }
+        @keyframes governance-signal-pulse {
+          0%, 100% { border-color: rgba(103, 232, 249, 0.24); box-shadow: 0 0 34px -16px rgba(0, 229, 255, 0.75); transform: translateY(0); }
+          50% { border-color: rgba(245, 197, 66, 0.48); box-shadow: 0 0 54px -12px rgba(245, 197, 66, 0.42), 0 0 32px -14px rgba(0, 229, 255, 0.7); transform: translateY(-3px); }
+        }
+        .landing-aurora { animation: landing-aurora-drift 10s ease-in-out infinite; }
+        .governance-signal-card { animation: governance-signal-pulse 3.6s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .impact-landing, .impact-landing * { animation: none !important; scroll-behavior: auto !important; transition: none !important; }
+          .impact-landing *:hover { transform: none !important; }
+          .landing-aurora { opacity: 0.62; }
+        }
+      `}</style>
     </div>
   );
 }
