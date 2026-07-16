@@ -28,8 +28,8 @@ export default function ImpactOverviewPage() {
         <div className="relative max-w-3xl">
           <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Assessment and learning intelligence for schools</p>
           <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] sm:text-5xl lg:text-6xl">HiveMind Intelligence</h1>
-          <p className="mt-4 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">Turn marked assessments into learning evidence.</p>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">Turn teacher-marked assessments into evidence that helps schools identify learning gaps, support learners, and track interventions.</p>
+          <p className="mt-4 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">Turn school data into governance intelligence.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">Turn school data into governance intelligence that helps schools identify learning gaps, support learners, and track interventions.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <a href="#guided-workflow" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal-300 px-5 py-3 text-sm font-black text-[#082b37] transition hover:bg-teal-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Explore demo <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
             <a href="/impact/schools" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">View schools</a>
