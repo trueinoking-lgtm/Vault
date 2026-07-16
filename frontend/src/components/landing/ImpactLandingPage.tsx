@@ -1,17 +1,17 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+import { ShieldCheck, X } from 'lucide-react';
 import { ScrollProvider } from '@/lib/landing/ScrollContext';
 import { useLenis } from '@/lib/landing/useLenis';
 import ImpactNav from './ImpactNav';
 import ImpactHero from './ImpactHero';
-import ImpactEvidenceStrip from './ImpactEvidenceStrip';
 import ImpactGovernanceSignal from './ImpactGovernanceSignal';
 import ImpactDataCategories from './ImpactDataCategories';
 import ImpactWorkflow from './ImpactWorkflow';
 import ImpactIntelligenceLayers from './ImpactIntelligenceLayers';
 import ImpactZimLearnGraph from './ImpactZimLearnGraph';
-import ImpactOutputs from './ImpactOutputs';
 import ImpactTrustPanel from './ImpactTrustPanel';
 import ImpactPilot from './ImpactPilot';
 import ImpactCTA from './ImpactCTA';
@@ -43,6 +43,16 @@ export default function ImpactLandingPage() {
 
 function LandingInner() {
   useLenis();
+  const [disclosureVisible, setDisclosureVisible] = useState(false);
+
+  useEffect(() => {
+    setDisclosureVisible(localStorage.getItem('hm-disclosure-dismissed') !== 'true');
+  }, []);
+
+  function dismissDisclosure() {
+    localStorage.setItem('hm-disclosure-dismissed', 'true');
+    setDisclosureVisible(false);
+  }
 
   return (
     <div className="impact-landing">
@@ -56,9 +66,14 @@ function LandingInner() {
         <LiveDataTicker />
         <ImpactNav />
       </header>
-      <aside className="fixed bottom-0 left-0 right-0 z-50 border-t border-amber-300/20 bg-amber-950/95 px-4 py-2 text-center text-xs font-medium text-amber-100 backdrop-blur" aria-label="Demonstration data disclosure">
-        {DEMO_DISCLOSURE}
-      </aside>
+      {disclosureVisible && <aside className="fixed bottom-0 left-0 right-0 z-50 border-t border-amber-300/20 bg-amber-950/95 px-4 py-2 text-xs font-medium text-amber-100 backdrop-blur" aria-label="Demonstration data disclosure">
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2">
+          <ShieldCheck aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-300" />
+          <strong className="shrink-0">Demo</strong>
+          <span>{DEMO_DISCLOSURE.split('.')[0]} · Focused preview of production capabilities.</span>
+          <button type="button" onClick={dismissDisclosure} aria-label="Dismiss demonstration disclosure" className="ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-md text-amber-200 hover:bg-amber-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"><X aria-hidden="true" className="h-4 w-4" /></button>
+        </div>
+      </aside>}
 
       {/* Content overlay — scrolls normally with semi-transparent background */}
       <div
@@ -66,8 +81,6 @@ function LandingInner() {
         data-impact-build="governance-2026"
       >
         <ImpactHero />
-        <ImpactEvidenceStrip />
-
         {/* Data → intelligence narrative strip */}
         <section aria-hidden="true" className="relative border-y border-white/[0.04] bg-[#050814]/70 py-6">
           <div className="mx-auto max-w-5xl px-6 lg:px-12">
@@ -82,7 +95,6 @@ function LandingInner() {
         <ImpactWorkflow />
         <ImpactIntelligenceLayers />
         <ImpactZimLearnGraph />
-        <ImpactOutputs />
         <ImpactTrustPanel />
 
         {/* Impact Intelligence module callout (assessment module inside HMI) */}

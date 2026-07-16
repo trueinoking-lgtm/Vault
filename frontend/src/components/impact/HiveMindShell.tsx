@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { Menu, ShieldCheck, X } from 'lucide-react'
-import { DEMO_DISCLOSURE, HIVEMIND_SCOPE_NOTE } from '@/lib/impact/demo-data'
+import { DEMO_DISCLOSURE } from '@/lib/impact/demo-data'
 import { PILOT_DISCLOSURE } from '@/lib/impact/pilot-contract'
 import { HIVEMIND_NAV_ITEMS } from '@/lib/impact/product-navigation'
 
@@ -56,8 +56,10 @@ function ProductNavigation({ pathname, onNavigate }: { pathname: string; onNavig
 export function HiveMindShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const pilotMode = pathname.startsWith('/impact/pilot')
+  const pathSegments = pathname.split('/').filter(Boolean)
+  const deepDetailRoute = !pilotMode && pathSegments[0] === 'impact' && pathSegments.length > 2
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [scopeNoteVisible, setScopeNoteVisible] = useState(true)
+  const [disclosureVisible, setDisclosureVisible] = useState(false)
 
   useEffect(() => {
     document.documentElement.classList.add('landing-page')
@@ -69,6 +71,15 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => setMobileOpen(false), [pathname])
+
+  useEffect(() => {
+    setDisclosureVisible(localStorage.getItem('hm-disclosure-dismissed') !== 'true')
+  }, [])
+
+  function dismissDisclosure() {
+    localStorage.setItem('hm-disclosure-dismissed', 'true')
+    setDisclosureVisible(false)
+  }
 
   return (
     <div className="impact-app min-h-screen bg-[#f6f8f7] text-slate-900">
@@ -111,21 +122,27 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <div className={`border-b px-4 py-2.5 sm:px-6 lg:px-8 ${pilotMode ? 'border-teal-200 bg-teal-50' : 'border-amber-200 bg-amber-50'}`} role="note" aria-label={`${pilotMode ? 'Pilot' : 'Demonstration'} data disclosure`}>
-          <div className={`mx-auto flex max-w-[1440px] items-start gap-2 text-xs font-medium leading-5 ${pilotMode ? 'text-teal-950' : 'text-amber-950'}`}>
-            <ShieldCheck aria-hidden="true" className={`mt-0.5 h-4 w-4 shrink-0 ${pilotMode ? 'text-teal-700' : 'text-amber-700'}`} />
-            <strong className="shrink-0">{pilotMode ? 'Pilot Mode' : 'Demo Mode'}</strong>
-            <span>{pilotMode ? PILOT_DISCLOSURE : DEMO_DISCLOSURE}</span>
+        {pilotMode && <div className="border-b border-teal-200 bg-teal-50 px-4 py-2.5 sm:px-6 lg:px-8" role="note" aria-label="Pilot data disclosure">
+          <div className="mx-auto flex max-w-[1440px] items-start gap-2 text-xs font-medium leading-5 text-teal-950">
+            <ShieldCheck aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
+            <strong className="shrink-0">Pilot Mode</strong>
+            <span>{PILOT_DISCLOSURE}</span>
           </div>
-        </div>
+        </div>}
 
-        {scopeNoteVisible && (
-          <div className="border-b border-blue-200 bg-blue-50 px-4 py-2.5 sm:px-6 lg:px-8" role="note" aria-label="Demonstration scope">
-            <div className="mx-auto flex max-w-[1440px] items-start gap-2 text-xs font-medium leading-5 text-blue-950">
-              <ShieldCheck aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
-              <strong className="shrink-0">Focused preview</strong>
-              <span className="min-w-0 flex-1">{HIVEMIND_SCOPE_NOTE}</span>
-              <button type="button" onClick={() => setScopeNoteVisible(false)} aria-label="Dismiss demonstration scope note" className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-blue-800 hover:bg-blue-100 hover:text-blue-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
+        {!pilotMode && deepDetailRoute && (
+          <div className="px-4 pt-3 sm:px-6 lg:px-8" aria-label="Demonstration mode">
+            <span className="mx-auto flex max-w-[1440px]"><span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-amber-900">Demo</span></span>
+          </div>
+        )}
+
+        {!pilotMode && !deepDetailRoute && disclosureVisible && (
+          <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 sm:px-6 lg:px-8" role="note" aria-label="Demonstration data disclosure">
+            <div className="mx-auto flex max-w-[1440px] items-center gap-2 text-xs font-medium leading-5 text-amber-950">
+              <ShieldCheck aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-700" />
+              <strong className="shrink-0">Demo</strong>
+              <span className="min-w-0 flex-1">{DEMO_DISCLOSURE.split('.')[0]} · Focused preview of production capabilities.</span>
+              <button type="button" onClick={dismissDisclosure} aria-label="Dismiss demonstration disclosure" className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-amber-800 hover:bg-amber-100 hover:text-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
                 <X aria-hidden="true" className="h-4 w-4" />
               </button>
             </div>

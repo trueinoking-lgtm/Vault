@@ -1,7 +1,7 @@
 'use client'
 /* eslint-disable @next/next/no-html-link-for-pages -- Product shell uses hard navigations to avoid router corruption on tall evidence pages. */
 
-import { ArrowRight, BarChart3, Building2, ClipboardCheck, GraduationCap, ListChecks, Target, UsersRound } from 'lucide-react'
+import { ArrowRight, BarChart3, Building2, GraduationCap, UsersRound } from 'lucide-react'
 import { MetricCard, PageHeader, PrimaryAction, ProductState, SecondaryAction, SectionCard } from '@/components/impact/ProductUI'
 import { useImpactAssessments, useImpactClassGroups, useImpactInterventions, useImpactLearners, useImpactSchools } from '@/lib/hooks/use-impact'
 import { getCanonicalDemoStats } from '@/lib/impact/demo-data'
@@ -40,27 +40,31 @@ export default function ImpactOverviewPage() {
 
       <section aria-labelledby="system-metrics-heading">
         <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-teal-700">Canonical demonstration baseline</p><h2 id="system-metrics-heading" className="mt-1 text-xl font-black tracking-[-0.02em] text-slate-950">The complete evidence system at a glance</h2></div><span className="hidden text-xs font-semibold text-slate-700 sm:block">No unexplained zero values</span></div>
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-4 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-4">
           <MetricCard label="Schools" value={stats.schools} detail="Seeded institutions" icon={Building2} />
           <MetricCard label="Classes" value={stats.classes} detail="Across 3 schools" icon={GraduationCap} tone="blue" />
           <MetricCard label="Learners" value={stats.learners} detail="Anonymous codes" icon={UsersRound} tone="violet" />
-          <MetricCard label="Assessments" value={stats.assessments} detail="Teacher-marked" icon={ClipboardCheck} />
           <MetricCard label="Pass rate" value={`${stats.averagePassRate}%`} detail="Average school rate" icon={BarChart3} tone="blue" />
-          <MetricCard label="Topics" value={stats.weakTopics} detail="Needing attention" icon={ListChecks} tone="amber" />
-          <MetricCard label="Support signals" value={stats.learnerSupportSignals} detail="Teacher review required" icon={UsersRound} tone="amber" />
-          <MetricCard label="Active actions" value={stats.activeInterventions} detail="Teacher-led interventions" icon={Target} tone="teal" />
         </div>
+        <details className="group mt-4 rounded-xl border border-slate-200 bg-white">
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500">View all metrics <span aria-hidden="true" className="float-right text-slate-400 group-open:rotate-180">⌄</span></summary>
+          <div className="grid grid-cols-2 gap-px border-t border-slate-200 bg-slate-200 md:grid-cols-4">{[
+            ['Topics', stats.weakTopics, 'Needing attention'],
+            ['Support signals', stats.learnerSupportSignals, 'Teacher review required'],
+            ['Active actions', stats.activeInterventions, 'Teacher-led interventions'],
+            ['Assessments', stats.assessments, 'Teacher-marked'],
+          ].map(([label, value, detail]) => <div key={label} className="bg-white px-4 py-3"><p className="text-[10px] font-black uppercase tracking-[0.09em] text-slate-500">{label}</p><p className="mt-1 text-xl font-black text-slate-950">{value}</p><p className="text-xs text-slate-500">{detail}</p></div>)}</div>
+        </details>
       </section>
 
       <SectionCard title="Follow the evidence workflow" description="Every step opens a real HiveMind Intelligence route with traceable seeded evidence." action={<SecondaryAction href="/impact/stakeholder-demo">Open stakeholder demo</SecondaryAction>}>
-        <ol id="guided-workflow" className="grid scroll-mt-28 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <ol id="guided-workflow" className="grid scroll-mt-28 gap-3 md:grid-cols-2 xl:grid-cols-4">
           {OVERVIEW_WORKFLOW.map((item) => (
             <li key={item.step} className="min-w-0">
-              <a href={item.href} className="group flex h-full min-h-44 flex-col rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-[#0b4f5c] text-xs font-black text-white">{item.step}</span>
-                <h3 className="mt-4 text-sm font-extrabold text-slate-950">{item.label}</h3>
+              <a href={item.href} className="group flex h-full min-h-36 flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 transition hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
+                <div className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#0b4f5c] text-[10px] font-black text-white">{item.step}</span><h3 className="text-sm font-extrabold text-slate-950">{item.label}</h3></div>
                 <p className="mt-2 flex-1 text-xs leading-5 text-slate-600">{item.description}</p>
-                <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-teal-800">Open step <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" /></span>
+                <span className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-teal-800">Open step <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" /></span>
               </a>
             </li>
           ))}
