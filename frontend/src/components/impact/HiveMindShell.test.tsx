@@ -38,8 +38,10 @@ describe('HiveMindShell', () => {
     expect(screen.getByRole('button', { name: 'Close product navigation' })).toBeInTheDocument()
   })
 
-  it('keeps the Phase A disclosure visible', () => {
+  it('keeps the merged Phase A disclosure visible', () => {
     render(<HiveMindShell><p>Page content</p></HiveMindShell>)
-    expect(screen.getByText('Seeded multi-school demonstration data. No learner identities. Not verified pilot evidence.')).toBeInTheDocument()
+    // Disclosure was merged into one compact bar during the declutter pass.
+    expect(screen.getByText(/Seeded multi-school demonstration data/)).toBeInTheDocument()
+    expect(screen.getByText(/Focused preview of production capabilities/)).toBeInTheDocument()
   })
 })

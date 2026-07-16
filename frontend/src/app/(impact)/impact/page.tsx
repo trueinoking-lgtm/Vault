@@ -22,18 +22,18 @@ export default function ImpactOverviewPage() {
 
   return (
     <div className="space-y-8 pb-8">
-      <section className="relative overflow-hidden rounded-[28px] bg-[#09283f] px-6 py-10 text-white shadow-[0_20px_60px_rgba(9,40,63,0.18)] sm:px-10 sm:py-14 lg:px-14">
-        <div aria-hidden="true" className="absolute -right-20 -top-20 h-72 w-72 rounded-full border border-cyan-300/10 bg-cyan-300/5" />
-        <div aria-hidden="true" className="absolute bottom-0 right-0 h-44 w-1/2 bg-[radial-gradient(circle_at_bottom_right,rgba(45,212,191,0.18),transparent_65%)]" />
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white px-6 py-10 shadow-[0_1px_3px_rgba(2,6,23,0.06)] sm:px-10 sm:py-14 lg:px-14">
+        <div aria-hidden="true" className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-cyan-50" />
+        <div aria-hidden="true" className="absolute bottom-0 right-0 h-44 w-1/2 bg-[radial-gradient(circle_at_bottom_right,rgba(245,197,66,0.18),transparent_65%)]" />
         <div className="relative max-w-3xl">
-          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Assessment and learning intelligence for schools</p>
-          <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] sm:text-5xl lg:text-6xl">HiveMind Intelligence</h1>
-          <p className="mt-4 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">Turn school data into governance intelligence.</p>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">Turn school data into governance intelligence that helps schools identify learning gaps, support learners, and track interventions.</p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-teal-700">Assessment and learning intelligence for schools</p>
+          <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-6xl">HiveMind Intelligence</h1>
+          <p className="mt-4 text-xl font-bold tracking-[-0.02em] text-slate-900 sm:text-2xl">Turn school data into governance intelligence.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Turn school data into governance intelligence that helps schools identify learning gaps, support learners, and track interventions.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <a href="#guided-workflow" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal-300 px-5 py-3 text-sm font-black text-[#082b37] transition hover:bg-teal-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Explore demo <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
-            <a href="/impact/schools" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">View schools</a>
-            <a href="/impact/assessments" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">View assessment intelligence</a>
+            <a href="#guided-workflow" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#f5c542] px-5 py-3 text-sm font-black text-[#073b4c] shadow-sm transition-colors hover:bg-[#eab82d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">Explore demo <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+            <a href="/impact/schools" className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm hover:border-cyan-200 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">View schools</a>
+            <a href="/impact/assessments" className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm hover:border-cyan-200 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">View assessment intelligence</a>
           </div>
         </div>
       </section>
@@ -44,7 +44,7 @@ export default function ImpactOverviewPage() {
           <MetricCard label="Schools" value={stats.schools} detail="Seeded institutions" icon={Building2} />
           <MetricCard label="Classes" value={stats.classes} detail="Across 3 schools" icon={GraduationCap} tone="blue" />
           <MetricCard label="Learners" value={stats.learners} detail="Anonymous codes" icon={UsersRound} tone="violet" />
-          <MetricCard label="Pass rate" value={`${stats.averagePassRate}%`} detail="Average school rate" icon={BarChart3} tone="blue" />
+          <MetricCard label="Pass rate" value={`${stats.averagePassRate}%`} detail="Average school rate" icon={BarChart3} tone="amber" />
         </div>
         <details className="group mt-4 rounded-xl border border-slate-200 bg-white">
           <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500">View all metrics <span aria-hidden="true" className="float-right text-slate-400 group-open:rotate-180">⌄</span></summary>
@@ -62,7 +62,7 @@ export default function ImpactOverviewPage() {
           {OVERVIEW_WORKFLOW.map((item) => (
             <li key={item.step} className="min-w-0">
               <a href={item.href} className="group flex h-full min-h-36 flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 transition hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
-                <div className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#0b4f5c] text-[10px] font-black text-white">{item.step}</span><h3 className="text-sm font-extrabold text-slate-950">{item.label}</h3></div>
+                <div className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-cyan-600 text-[10px] font-black text-white">{item.step}</span><h3 className="text-sm font-extrabold text-slate-950">{item.label}</h3></div>
                 <p className="mt-2 flex-1 text-xs leading-5 text-slate-600">{item.description}</p>
                 <span className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-teal-800">Open step <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" /></span>
               </a>

@@ -14,8 +14,8 @@ function isRouteActive(pathname: string, href: string) {
 
 function Brand() {
   return (
-    <a href="/impact" className="group flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#09283f] text-sm font-black tracking-tight text-white shadow-[0_8px_20px_rgba(9,40,63,0.18)]">
+    <a href="/impact" className="group flex min-w-0 items-center gap-3 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#f5c542] text-sm font-black tracking-tight text-[#073b4c] shadow-sm">
         HM
       </span>
       <span className="min-w-0">
@@ -38,13 +38,13 @@ function ProductNavigation({ pathname, onNavigate }: { pathname: string; onNavig
             href={item.href}
             onClick={onNavigate}
             aria-current={active ? 'page' : undefined}
-            className={`group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+            className={`group flex min-h-11 items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
               active
-                ? 'bg-[#dff7f4] text-[#073b4c] shadow-[inset_3px_0_0_#0f766e]'
+                ? 'bg-amber-100 text-[#073b4c] font-bold'
                 : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
             }`}
           >
-            <Icon aria-hidden="true" className={`h-[18px] w-[18px] ${active ? 'text-teal-700' : 'text-slate-400 group-hover:text-slate-700'}`} />
+            <Icon aria-hidden="true" className={`h-[18px] w-[18px] ${active ? 'text-amber-700' : 'text-cyan-600/70 group-hover:text-cyan-700'}`} />
             <span>{item.label}</span>
           </a>
         )
@@ -82,12 +82,12 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="impact-app min-h-screen bg-[#f6f8f7] text-slate-900">
+    <div className="impact-app min-h-screen bg-[#F7F9FC] text-slate-900">
       <a href="#hm-main" className="sr-only z-[100] rounded-md bg-white px-4 py-3 font-semibold text-slate-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
         Skip to main content
       </a>
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-slate-200 bg-white px-4 py-5 lg:flex lg:flex-col">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-slate-200/70 bg-white px-4 py-5 shadow-[1px_0_3px_rgba(2,6,23,0.03)] lg:flex lg:flex-col">
         <Brand />
         <p className="mt-3 text-xs font-medium leading-5 text-slate-700">Assessment and learning intelligence for schools.</p>
         <div className="my-6 h-px bg-slate-100" />

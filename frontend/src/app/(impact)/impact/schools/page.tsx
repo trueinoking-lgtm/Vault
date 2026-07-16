@@ -33,7 +33,7 @@ export default function SchoolsPage() {
             const schoolAssessments = assessments.filter((item) => item.school_id === school.id)
             const rate = dashboard?.overall_pass_rate ?? 0
             return (
-              <article key={school.id} className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <article key={school.id} className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_rgba(2,6,23,0.06)]">
                 <div className="border-b border-slate-100 p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-4"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-teal-50 text-teal-800"><Building2 aria-hidden="true" className="h-5 w-5" /></span><StatusBadge tone={rate >= 60 ? 'success' : 'attention'}>{rate >= 60 ? 'Monitoring' : 'Needs teacher review'}</StatusBadge></div>
                   <h2 className="mt-5 text-xl font-black tracking-[-0.025em] text-slate-950">{school.name}</h2>
@@ -42,7 +42,7 @@ export default function SchoolsPage() {
                 <dl className="grid grid-cols-2 gap-px bg-slate-100">
                   {[['Classes', schoolClasses.length], ['Learners assessed', schoolLearners.length], ['Assessments', schoolAssessments.length], ['Pass rate', `${rate}%`]].map(([label, value]) => <div key={label} className="bg-white px-5 py-4"><dt className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">{label}</dt><dd className="mt-1 text-lg font-black text-slate-950">{value}</dd></div>)}
                 </dl>
-                <div className="mt-auto p-5 sm:p-6"><a href={getSchoolRoute(school.id)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0b4f5c] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#083d47] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">Open school <ArrowRight aria-hidden="true" className="h-4 w-4" /></a></div>
+                <div className="mt-auto p-5 sm:p-6"><a href={getSchoolRoute(school.id)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#f5c542] px-5 py-2.5 text-sm font-extrabold text-[#073b4c] shadow-sm hover:bg-[#eab82d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">Open school <ArrowRight aria-hidden="true" className="h-4 w-4" /></a></div>
               </article>
             )
           })}

@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 
 export function PageHeader({ eyebrow, title, description, actions, breadcrumbs }: { eyebrow?: string; title: string; description: string; actions?: ReactNode; breadcrumbs?: { label: string; href?: string }[] }) {
   return (
-    <header className="mb-8">
+    <header className="mb-8 rounded-2xl border border-slate-200/60 bg-white px-5 py-6 shadow-[0_1px_3px_rgba(2,6,23,0.06)] sm:px-6 sm:py-7">
       {breadcrumbs && (
         <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
           {breadcrumbs.map((item, index) => (
@@ -28,11 +28,11 @@ export function PageHeader({ eyebrow, title, description, actions, breadcrumbs }
 }
 
 export function PrimaryAction({ href, children }: { href: string; children: ReactNode }) {
-  return <a href={href} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#0b4f5c] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#083d47] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">{children}<ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+  return <a href={href} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#f5c542] px-5 py-2.5 text-sm font-extrabold text-[#073b4c] shadow-[0_1px_3px_rgba(2,6,23,0.08)] transition-colors hover:bg-[#eab82d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">{children}<ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
 }
 
 export function SecondaryAction({ href, children, download }: { href: string; children: ReactNode; download?: string }) {
-  return <a href={href} download={download} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">{children}</a>
+  return <a href={href} download={download} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:border-cyan-200 hover:bg-cyan-50/50 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">{children}</a>
 }
 
 export function MetricCard({ label, value, detail, icon: Icon, tone = 'teal' }: { label: string; value: string | number; detail?: string; icon: LucideIcon; tone?: 'teal' | 'amber' | 'blue' | 'violet' }) {
@@ -42,11 +42,15 @@ export function MetricCard({ label, value, detail, icon: Icon, tone = 'teal' }: 
     blue: 'bg-blue-50 text-blue-800 border-blue-100',
     violet: 'bg-violet-50 text-violet-800 border-violet-100',
   }
+  const numericValue = typeof value === 'number' ? value : Number.parseFloat(value)
+  const showProgress = Number.isFinite(numericValue) && (String(value).includes('%') || /rate|coverage|average|readiness/i.test(label))
+  const progress = Math.max(0, Math.min(100, numericValue))
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-5">
-      <div className={`mb-4 grid h-9 w-9 place-items-center rounded-xl border ${tones[tone]}`}><Icon aria-hidden="true" className="h-4 w-4" /></div>
+    <article className={`rounded-2xl border bg-white p-5 shadow-[0_1px_3px_rgba(2,6,23,0.06)] sm:p-6 ${tone === 'amber' ? 'border-amber-200/80 ring-1 ring-amber-100' : 'border-slate-200/60'}`}>
+      <div className={`mb-5 grid h-10 w-10 place-items-center rounded-2xl border ${tones[tone]}`}><Icon aria-hidden="true" className="h-5 w-5" /></div>
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl">{value}</p>
+      {showProgress && <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div className={`h-full rounded-full ${tone === 'amber' ? 'bg-[#f5c542]' : 'bg-cyan-600'}`} style={{ width: `${progress}%` }} /></div>}
       {detail && <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>}
     </article>
   )
@@ -54,8 +58,8 @@ export function MetricCard({ label, value, detail, icon: Icon, tone = 'teal' }: 
 
 export function SectionCard({ title, description, action, children, className = '' }: { title: string; description?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${className}`}>
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <section className={`rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_rgba(2,6,23,0.06)] ${className}`}>
+      <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div><h2 className="text-base font-extrabold tracking-[-0.01em] text-slate-950">{title}</h2>{description && <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>}</div>
         {action}
       </div>
@@ -65,7 +69,7 @@ export function SectionCard({ title, description, action, children, className = 
 }
 
 export function StatusBadge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'success' | 'attention' | 'info' | 'neutral' }) {
-  const tones = { success: 'border-emerald-200 bg-emerald-50 text-emerald-800', attention: 'border-amber-200 bg-amber-50 text-amber-900', info: 'border-blue-200 bg-blue-50 text-blue-800', neutral: 'border-slate-200 bg-slate-50 text-slate-700' }
+  const tones = { success: 'border-emerald-200/80 bg-emerald-50 text-emerald-700', attention: 'border-amber-200/80 bg-amber-50 text-amber-700', info: 'border-cyan-200/80 bg-cyan-50 text-cyan-700', neutral: 'border-slate-200 bg-slate-50 text-slate-600' }
   return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${tones[tone]}`}>{children}</span>
 }
 
@@ -74,7 +78,7 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3 text-xs"><span className="font-medium text-slate-600">{label}</span><span className="font-bold text-slate-900">{safe}%</span></div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safe}><div className="h-full rounded-full bg-teal-600" style={{ width: `${safe}%` }} /></div>
+      <div className="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safe}><div className="h-full rounded-full bg-cyan-600" style={{ width: `${safe}%` }} /></div>
     </div>
   )
 }
