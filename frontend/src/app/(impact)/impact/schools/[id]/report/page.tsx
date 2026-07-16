@@ -54,7 +54,7 @@ export default function SchoolReportPage({
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">Report not found</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">Report not found</h1>
           <Link href="/impact/school-dashboard" className="text-blue-600 hover:text-blue-700">
             ← Back to school dashboard
           </Link>
@@ -66,7 +66,7 @@ export default function SchoolReportPage({
   const { school, classes, assessments, pass_rate_by_class, recent_interventions, total_learners, total_learners_assessed, overall_pass_rate } = report
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0E1626]">
       {/* Print styles */}
       <style jsx global>{`
         @media print {
@@ -92,8 +92,8 @@ export default function SchoolReportPage({
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">School Impact Report</h1>
-              <p className="text-slate-600 mt-1">{school.name}</p>
+              <h1 className="text-3xl font-bold text-white">School Impact Report</h1>
+              <p className="text-slate-400 mt-1">{school.name}</p>
             </div>
             <div className="flex gap-3">
               <button
@@ -114,8 +114,8 @@ export default function SchoolReportPage({
 
         {/* Report Header */}
         <div className="border-b-2 border-slate-900 pb-4 mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">{school.name}</h1>
-          <div className="flex gap-4 mt-2 text-sm text-slate-600">
+          <h1 className="text-2xl font-bold text-white">{school.name}</h1>
+          <div className="flex gap-4 mt-2 text-sm text-slate-400">
             {school.district && <span>District: {school.district}</span>}
             {school.province && <span>Province: {school.province}</span>}
             {school.school_type && <span>Type: {school.school_type}</span>}
@@ -124,20 +124,20 @@ export default function SchoolReportPage({
 
         {/* Summary Stats */}
         <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="border border-slate-300 p-4">
-            <p className="text-sm text-slate-600">Total Classes</p>
+          <div className="border border-[#1e293b] p-4">
+            <p className="text-sm text-slate-400">Total Classes</p>
             <p className="text-2xl font-bold">{classes.length}</p>
           </div>
-          <div className="border border-slate-300 p-4">
-            <p className="text-sm text-slate-600">Total Learners</p>
+          <div className="border border-[#1e293b] p-4">
+            <p className="text-sm text-slate-400">Total Learners</p>
             <p className="text-2xl font-bold">{total_learners}</p>
           </div>
-          <div className="border border-slate-300 p-4">
-            <p className="text-sm text-slate-600">Learners Assessed</p>
+          <div className="border border-[#1e293b] p-4">
+            <p className="text-sm text-slate-400">Learners Assessed</p>
             <p className="text-2xl font-bold">{total_learners_assessed}</p>
           </div>
-          <div className="border border-slate-300 p-4">
-            <p className="text-sm text-slate-600">Overall Pass Rate</p>
+          <div className="border border-[#1e293b] p-4">
+            <p className="text-sm text-slate-400">Overall Pass Rate</p>
             <p className="text-2xl font-bold">{overall_pass_rate}%</p>
           </div>
         </div>
@@ -145,10 +145,10 @@ export default function SchoolReportPage({
         {/* Pass Rate by Class */}
         {pass_rate_by_class.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Pass Rate by Class</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Pass Rate by Class</h2>
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-300">
+                <tr className="border-b-2 border-[#1e293b]">
                   <th className="text-left py-2 px-4 text-sm font-bold">Class Name</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Total Learners</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Pass Rate %</th>
@@ -156,7 +156,7 @@ export default function SchoolReportPage({
               </thead>
               <tbody>
                 {pass_rate_by_class.map((cls) => (
-                  <tr key={cls.class_id} className="border-b border-slate-200">
+                  <tr key={cls.class_id} className="border-b border-[#1e293b]">
                     <td className="py-2 px-4 text-sm">{cls.class_name}</td>
                     <td className="py-2 px-4 text-sm">{cls.total_learners}</td>
                     <td className="py-2 px-4 text-sm">
@@ -174,10 +174,10 @@ export default function SchoolReportPage({
         {/* Assessments */}
         {assessments.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Assessments</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Assessments</h2>
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-300">
+                <tr className="border-b-2 border-[#1e293b]">
                   <th className="text-left py-2 px-4 text-sm font-bold">Title</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Type</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Total Marks</th>
@@ -187,7 +187,7 @@ export default function SchoolReportPage({
               </thead>
               <tbody>
                 {assessments.map((assessment) => (
-                  <tr key={assessment.id} className="border-b border-slate-200">
+                  <tr key={assessment.id} className="border-b border-[#1e293b]">
                     <td className="py-2 px-4 text-sm">{assessment.title}</td>
                     <td className="py-2 px-4 text-sm capitalize">{assessment.assessment_type}</td>
                     <td className="py-2 px-4 text-sm">{assessment.total_marks}</td>
@@ -202,19 +202,19 @@ export default function SchoolReportPage({
 
         <div className="mb-8 grid gap-6 md:grid-cols-3">
           <section>
-            <h2 className="mb-3 text-lg font-bold text-slate-900">Subjects</h2>
+            <h2 className="mb-3 text-lg font-bold text-white">Subjects</h2>
             <ul className="list-disc pl-5 text-sm">
               {report.subjects.map((subject) => <li key={subject.id}>{subject.name}</li>)}
             </ul>
           </section>
           <section>
-            <h2 className="mb-3 text-lg font-bold text-slate-900">Topics needing attention</h2>
+            <h2 className="mb-3 text-lg font-bold text-white">Topics needing attention</h2>
             <ul className="list-disc pl-5 text-sm">
               {report.weak_topics.map((topic) => <li key={topic.topic_id}>{topic.topic_name}: {topic.percentage}%</li>)}
             </ul>
           </section>
           <section>
-            <h2 className="mb-3 text-lg font-bold text-slate-900">Support Indicators</h2>
+            <h2 className="mb-3 text-lg font-bold text-white">Support Indicators</h2>
             <p className="text-sm">Learners: {report.support_indicators.learners_needing_support}</p>
             <p className="text-sm">Classes: {report.support_indicators.classes_needing_support}</p>
             <p className="text-sm">Open interventions: {report.support_indicators.open_interventions}</p>
@@ -224,18 +224,18 @@ export default function SchoolReportPage({
         {/* Recent Interventions */}
         {recent_interventions.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Recent Interventions</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Recent Interventions</h2>
             <div className="space-y-2">
               {recent_interventions.map((intervention) => (
-                <div key={intervention.id} className="border border-slate-300 p-3">
+                <div key={intervention.id} className="border border-[#1e293b] p-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold">{intervention.recommendation}</p>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-slate-400">
                         {new Date(intervention.created).toLocaleDateString()}
                       </p>
                     </div>
-                    <span className={`font-bold ${intervention.severity === 'critical' ? 'text-red-600' : intervention.severity === 'high' ? 'text-amber-600' : 'text-slate-600'}`}>
+                    <span className={`font-bold ${intervention.severity === 'critical' ? 'text-red-600' : intervention.severity === 'high' ? 'text-amber-600' : 'text-slate-400'}`}>
                       {intervention.severity}
                     </span>
                   </div>
@@ -245,7 +245,7 @@ export default function SchoolReportPage({
           </div>
         )}
 
-        <section className="mb-8 border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+        <section className="mb-8 border border-amber-300 bg-amber-500/10 p-4 text-sm text-amber-300">
           <p className="font-bold">{report.disclosure || DEMO_DISCLOSURE}</p>
           {report.data_quality && <p className="mt-2">Dataset readiness: {report.data_quality.status} · Marks complete: {report.data_quality.mark_completion_rate}% · Questions mapped: {report.data_quality.mapped_question_rate}%</p>}
           <p className="mt-2 font-semibold">Limitations</p>
@@ -254,7 +254,7 @@ export default function SchoolReportPage({
           </ul>
         </section>
         {/* Footer */}
-        <div className="border-t border-slate-300 pt-4 mt-8 text-sm text-slate-600">
+        <div className="border-t border-[#1e293b] pt-4 mt-8 text-sm text-slate-400">
           <p>Generated by Impact Intelligence · {new Date().toLocaleDateString()}</p>
         </div>
       </div>

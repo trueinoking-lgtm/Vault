@@ -85,8 +85,8 @@ export function QuestionMapBuilder({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Questions</h2>
-          <p className="text-sm text-slate-600 mt-1">
+          <h2 className="text-lg font-semibold text-white">Questions</h2>
+          <p className="text-sm text-slate-400 mt-1">
             {questions.length} questions · {currentTotal}/{totalMarks} marks assigned
           </p>
         </div>
@@ -101,7 +101,7 @@ export function QuestionMapBuilder({
 
       {/* Progress bar */}
       <div className="mb-6">
-        <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
+        <div className="flex items-center justify-between text-sm text-slate-400 mb-2">
           <span>Marks assigned</span>
           <span>{currentTotal} / {totalMarks}</span>
         </div>
@@ -118,33 +118,33 @@ export function QuestionMapBuilder({
       {/* Add Form Modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-xl font-semibold text-slate-900 mb-4">Add question</h3>
+          <div className="bg-[#0E1626] rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-xl font-semibold text-white mb-4">Add question</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Question number *
                   </label>
                   <input
                     type="number"
                     value={formData.question_number}
                     onChange={(e) => setFormData({ ...formData, question_number: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[#1e293b] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="1"
                     min="1"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Max marks *
                   </label>
                   <input
                     type="number"
                     value={formData.max_marks}
                     onChange={(e) => setFormData({ ...formData, max_marks: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[#1e293b] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="10"
                     min="0.5"
                     step="0.5"
@@ -153,25 +153,25 @@ export function QuestionMapBuilder({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Label
                 </label>
                 <input
                   type="text"
                   value={formData.label}
                   onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[#1e293b] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g. Multiple Choice"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Topic
                 </label>
                 <select
                   value={formData.topic_id}
                   onChange={(e) => setFormData({ ...formData, topic_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[#1e293b] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select topic</option>
                   {topicsData?.topics.map((topic) => (
@@ -181,13 +181,13 @@ export function QuestionMapBuilder({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Skill type
                   </label>
                   <select
                     value={formData.skill_type}
                     onChange={(e) => setFormData({ ...formData, skill_type: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[#1e293b] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="knowledge">Knowledge</option>
                     <option value="comprehension">Comprehension</option>
@@ -196,13 +196,13 @@ export function QuestionMapBuilder({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Difficulty
                   </label>
                   <select
                     value={formData.difficulty}
                     onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[#1e293b] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select difficulty</option>
                     <option value="easy">Easy</option>
@@ -215,7 +215,7 @@ export function QuestionMapBuilder({
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-[#1e293b] text-slate-300 rounded-lg hover:bg-white/[0.04] transition-colors"
                 >
                   Cancel
                 </button>
@@ -234,8 +234,8 @@ export function QuestionMapBuilder({
 
       {/* Questions List */}
       {questions.length === 0 ? (
-        <div className="text-center py-12 bg-slate-50 rounded-lg">
-          <p className="text-slate-600 mb-4">No questions added yet</p>
+        <div className="text-center py-12 bg-white/[0.04] rounded-lg">
+          <p className="text-slate-400 mb-4">No questions added yet</p>
           <button
             onClick={() => setShowAddForm(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -247,37 +247,37 @@ export function QuestionMapBuilder({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Q#</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Label</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Max Marks</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Topic</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Skill</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Difficulty</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-slate-600">Actions</th>
+              <tr className="border-b border-[#1e293b]">
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Q#</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Label</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Max Marks</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Topic</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Skill</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Difficulty</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-slate-400">Actions</th>
               </tr>
             </thead>
             <tbody>
               {questions
                 .sort((a, b) => a.question_number - b.question_number)
                 .map((question) => (
-                  <tr key={question.id} className="border-b border-slate-100">
-                    <td className="py-3 px-4 text-sm text-slate-900 font-medium">
+                  <tr key={question.id} className="border-b border-[#1e293b]">
+                    <td className="py-3 px-4 text-sm text-white font-medium">
                       {question.question_number}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
+                    <td className="py-3 px-4 text-sm text-slate-400">
                       {question.label || '-'}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
+                    <td className="py-3 px-4 text-sm text-slate-400">
                       {question.max_marks}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
+                    <td className="py-3 px-4 text-sm text-slate-400">
                       {topicsData?.topics.find((t) => t.id === question.topic_id)?.name || '-'}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-600 capitalize">
+                    <td className="py-3 px-4 text-sm text-slate-400 capitalize">
                       {question.skill_type}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-600 capitalize">
+                    <td className="py-3 px-4 text-sm text-slate-400 capitalize">
                       {question.difficulty || '-'}
                     </td>
                     <td className="py-3 px-4 text-right">

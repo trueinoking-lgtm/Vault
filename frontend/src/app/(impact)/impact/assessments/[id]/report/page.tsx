@@ -62,7 +62,7 @@ export default function AssessmentReportPage({
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">Report not found</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">Report not found</h1>
           <Link href="/impact/assessments" className="text-blue-600 hover:text-blue-700">
             ← Back to assessments
           </Link>
@@ -74,7 +74,7 @@ export default function AssessmentReportPage({
   const { assessment, questions, learners, analytics, school, class_group, subject } = report
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0E1626]">
       {/* Print styles */}
       <style jsx global>{`
         @media print {
@@ -100,8 +100,8 @@ export default function AssessmentReportPage({
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Assessment Report</h1>
-              <p className="text-slate-600 mt-1">{assessment.title}</p>
+              <h1 className="text-3xl font-bold text-white">Assessment Report</h1>
+              <p className="text-slate-400 mt-1">{assessment.title}</p>
             </div>
             <div className="flex gap-3">
               <button
@@ -128,8 +128,8 @@ export default function AssessmentReportPage({
 
         {/* Report Header */}
         <div className="border-b-2 border-slate-900 pb-4 mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">{assessment.title}</h1>
-          <div className="flex gap-4 mt-2 text-sm text-slate-600">
+          <h1 className="text-2xl font-bold text-white">{assessment.title}</h1>
+          <div className="flex gap-4 mt-2 text-sm text-slate-400">
             {school && <span>{school.name}</span>}
             {class_group && <span>Class: {class_group.name}</span>}
             {subject && <span>Subject: {subject.name}</span>}
@@ -140,20 +140,20 @@ export default function AssessmentReportPage({
 
         {/* Summary Stats */}
         <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="border border-slate-300 p-4">
-            <p className="text-sm text-slate-600">Class Average</p>
+          <div className="border border-[#1e293b] p-4">
+            <p className="text-sm text-slate-400">Class Average</p>
             <p className="text-2xl font-bold">{analytics.class_average_percentage}%</p>
           </div>
-          <div className="border border-slate-300 p-4">
-            <p className="text-sm text-slate-600">Pass Rate</p>
+          <div className="border border-[#1e293b] p-4">
+            <p className="text-sm text-slate-400">Pass Rate</p>
             <p className="text-2xl font-bold">{analytics.pass_rate}%</p>
           </div>
-          <div className="border border-slate-300 p-4">
-            <p className="text-sm text-slate-600">Learners Assessed</p>
+          <div className="border border-[#1e293b] p-4">
+            <p className="text-sm text-slate-400">Learners Assessed</p>
             <p className="text-2xl font-bold">{analytics.learners_assessed} / {analytics.total_learners}</p>
           </div>
-          <div className="border border-slate-300 p-4">
-            <p className="text-sm text-slate-600">Total Marks</p>
+          <div className="border border-[#1e293b] p-4">
+            <p className="text-sm text-slate-400">Total Marks</p>
             <p className="text-2xl font-bold">{assessment.total_marks}</p>
           </div>
         </div>
@@ -161,10 +161,10 @@ export default function AssessmentReportPage({
         {/* Question Performance */}
         {analytics.question_performance.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Question Performance</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Question Performance</h2>
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-300">
+                <tr className="border-b-2 border-[#1e293b]">
                   <th className="text-left py-2 px-4 text-sm font-bold">Q#</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Label</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Max</th>
@@ -175,7 +175,7 @@ export default function AssessmentReportPage({
               </thead>
               <tbody>
                 {analytics.question_performance.map((q: any) => (
-                  <tr key={q.question_id} className="border-b border-slate-200">
+                  <tr key={q.question_id} className="border-b border-[#1e293b]">
                     <td className="py-2 px-4 text-sm">{q.question_number}</td>
                     <td className="py-2 px-4 text-sm">{q.label || '-'}</td>
                     <td className="py-2 px-4 text-sm">{q.max_marks}</td>
@@ -196,10 +196,10 @@ export default function AssessmentReportPage({
         {/* Topic Performance */}
         {analytics.topic_performance.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Topic Performance</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Topic Performance</h2>
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-300">
+                <tr className="border-b-2 border-[#1e293b]">
                   <th className="text-left py-2 px-4 text-sm font-bold">Topic</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Score</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Max</th>
@@ -210,7 +210,7 @@ export default function AssessmentReportPage({
               </thead>
               <tbody>
                 {analytics.topic_performance.map((topic: any) => (
-                  <tr key={topic.topic_id} className="border-b border-slate-200">
+                  <tr key={topic.topic_id} className="border-b border-[#1e293b]">
                     <td className="py-2 px-4 text-sm">{topic.topic_name}</td>
                     <td className="py-2 px-4 text-sm">{topic.total_score}</td>
                     <td className="py-2 px-4 text-sm">{topic.total_max_marks}</td>
@@ -231,14 +231,14 @@ export default function AssessmentReportPage({
         {/* Topics needing attention */}
         {analytics.weak_topics.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Topics Needing Revision</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Topics Needing Revision</h2>
             <div className="space-y-2">
               {analytics.weak_topics.map((topic: any) => (
-                <div key={topic.topic_id} className="border border-slate-300 p-3">
+                <div key={topic.topic_id} className="border border-[#1e293b] p-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold">{topic.topic_name}</p>
-                      <p className="text-sm text-slate-600">{topic.percentage}% · {topic.num_questions} questions</p>
+                      <p className="text-sm text-slate-400">{topic.percentage}% · {topic.num_questions} questions</p>
                     </div>
                     <span className={`font-bold ${topic.is_critical ? 'text-red-600' : 'text-amber-600'}`}>
                       {topic.is_critical ? 'Priority' : 'Review'}
@@ -253,10 +253,10 @@ export default function AssessmentReportPage({
         {/* Learner support signals */}
         {analytics.at_risk_learners.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Learners Needing Support</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Learners Needing Support</h2>
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-300">
+                <tr className="border-b-2 border-[#1e293b]">
                   <th className="text-left py-2 px-4 text-sm font-bold">Learner</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">Score</th>
                   <th className="text-left py-2 px-4 text-sm font-bold">%</th>
@@ -265,7 +265,7 @@ export default function AssessmentReportPage({
               </thead>
               <tbody>
                 {analytics.at_risk_learners.map((learner: any) => (
-                  <tr key={learner.learner_id} className="border-b border-slate-200">
+                  <tr key={learner.learner_id} className="border-b border-[#1e293b]">
                     <td className="py-2 px-4 text-sm">{learner.display_name || learner.learner_code}</td>
                     <td className="py-2 px-4 text-sm">{learner.total_score} / {learner.total_max_marks}</td>
                     <td className="py-2 px-4 text-sm">{learner.percentage}%</td>
@@ -284,16 +284,16 @@ export default function AssessmentReportPage({
         {/* Interventions */}
         {analytics.interventions.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Recommended Interventions</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Recommended Interventions</h2>
             <div className="space-y-2">
               {analytics.interventions.map((intervention: any, index: number) => (
-                <div key={index} className="border border-slate-300 p-3">
+                <div key={index} className="border border-[#1e293b] p-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold">{intervention.entity_name}</p>
-                      <p className="text-sm text-slate-600">{intervention.recommendation}</p>
+                      <p className="text-sm text-slate-400">{intervention.recommendation}</p>
                     </div>
-                    <span className={`font-bold ${intervention.severity === 'critical' ? 'text-red-600' : intervention.severity === 'high' ? 'text-amber-600' : 'text-slate-600'}`}>
+                    <span className={`font-bold ${intervention.severity === 'critical' ? 'text-red-600' : intervention.severity === 'high' ? 'text-amber-600' : 'text-slate-400'}`}>
                       {intervention.severity}
                     </span>
                   </div>
@@ -303,12 +303,12 @@ export default function AssessmentReportPage({
           </div>
         )}
 
-        <section className="mb-8 border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+        <section className="mb-8 border border-amber-300 bg-amber-500/10 p-4 text-sm text-amber-300">
           <p className="font-bold">{DEMO_DISCLOSURE}</p>
           <p className="mt-2">Limitations: support indicators require teacher verification. Follow-up evidence is illustrative; longitudinal improvement has not been established.</p>
         </section>
         {/* Footer */}
-        <div className="border-t border-slate-300 pt-4 mt-8 text-sm text-slate-600">
+        <div className="border-t border-[#1e293b] pt-4 mt-8 text-sm text-slate-400">
           <p>Generated by Impact Intelligence · {new Date().toLocaleDateString()}</p>
         </div>
       </div>

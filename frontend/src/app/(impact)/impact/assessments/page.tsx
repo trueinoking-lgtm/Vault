@@ -26,8 +26,8 @@ export default function AssessmentsPage() {
       const analytics = getSeededAssessmentAnalytics(assessment.id)
       const questionCount = getSeededQuestions(assessment.id).questions.length
       const learnerCount = learners.filter((item) => item.class_group_id === assessment.class_group_id).length
-      return <article key={assessment.id} className="grid gap-4 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(2,6,23,0.06)] lg:grid-cols-[1.45fr_repeat(4,.65fr)_auto] lg:items-center">
-        <div className="min-w-0"><div className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-800"><ClipboardCheck aria-hidden="true" className="h-5 w-5" /></span><div className="min-w-0"><h2 className="truncate text-base font-black text-slate-950">{assessment.title}</h2><p className="mt-1 truncate text-xs font-semibold text-slate-500">{school?.name} · {cls?.name} · {subject?.name}</p><p className="mt-1 text-xs text-slate-500">{assessment.date_written} · {assessment.assessment_type}</p></div></div></div>
+      return <article key={assessment.id} className="grid gap-4 rounded-2xl border border-[#1e293b] bg-[#0E1626] p-5 shadow-[0_1px_3px_rgba(2,6,23,0.06)] lg:grid-cols-[1.45fr_repeat(4,.65fr)_auto] lg:items-center">
+        <div className="min-w-0"><div className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-500/10 text-blue-800"><ClipboardCheck aria-hidden="true" className="h-5 w-5" /></span><div className="min-w-0"><h2 className="truncate text-base font-black text-white">{assessment.title}</h2><p className="mt-1 truncate text-xs font-semibold text-slate-400">{school?.name} · {cls?.name} · {subject?.name}</p><p className="mt-1 text-xs text-slate-400">{assessment.date_written} · {assessment.assessment_type}</p></div></div></div>
         <Data label="Mark completion" value={`${analytics?.learners_assessed ?? 0}/${learnerCount}`} detail="learners" />
         <Data label="Pass rate" value={`${analytics?.pass_rate ?? 0}%`} detail="seeded result" />
         <Data label="Questions" value={String(questionCount)} detail={`${assessment.total_marks} marks`} />
@@ -38,4 +38,4 @@ export default function AssessmentsPage() {
   </div>
 }
 
-function Data({ label, value, detail }: { label: string; value: string; detail: string }) { return <div><p className="text-[10px] font-black uppercase tracking-[0.09em] text-slate-500">{label}</p><p className="mt-1 text-lg font-black text-slate-950">{value}</p><p className="text-xs text-slate-500">{detail}</p></div> }
+function Data({ label, value, detail }: { label: string; value: string; detail: string }) { return <div><p className="text-[10px] font-black uppercase tracking-[0.09em] text-slate-400">{label}</p><p className="mt-1 text-lg font-black text-white">{value}</p><p className="text-xs text-slate-400">{detail}</p></div> }
