@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { Menu, ShieldCheck, X } from 'lucide-react'
-import { DEMO_DISCLOSURE } from '@/lib/impact/demo-data'
+import { DEMO_DISCLOSURE, HIVEMIND_SCOPE_NOTE } from '@/lib/impact/demo-data'
 import { PILOT_DISCLOSURE } from '@/lib/impact/pilot-contract'
 import { HIVEMIND_NAV_ITEMS } from '@/lib/impact/product-navigation'
 
@@ -20,7 +20,7 @@ function Brand() {
       </span>
       <span className="min-w-0">
         <span className="block truncate text-base font-bold tracking-[-0.02em] text-slate-950">HiveMind Intelligence</span>
-        <span className="block truncate text-[11px] font-medium text-slate-500">Impact Intelligence · Powered by ZimLearnGraph</span>
+        <span className="block truncate text-[11px] font-semibold text-slate-700">Impact Intelligence · Powered by ZimLearnGraph</span>
       </span>
     </a>
   )
@@ -41,7 +41,7 @@ function ProductNavigation({ pathname, onNavigate }: { pathname: string; onNavig
             className={`group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
               active
                 ? 'bg-[#dff7f4] text-[#073b4c] shadow-[inset_3px_0_0_#0f766e]'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
             }`}
           >
             <Icon aria-hidden="true" className={`h-[18px] w-[18px] ${active ? 'text-teal-700' : 'text-slate-400 group-hover:text-slate-700'}`} />
@@ -57,6 +57,7 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const pilotMode = pathname.startsWith('/impact/pilot')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [scopeNoteVisible, setScopeNoteVisible] = useState(true)
 
   useEffect(() => {
     document.documentElement.classList.add('landing-page')
@@ -70,14 +71,14 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
   useEffect(() => setMobileOpen(false), [pathname])
 
   return (
-    <div className="min-h-screen bg-[#f6f8f7] text-slate-900">
+    <div className="impact-app min-h-screen bg-[#f6f8f7] text-slate-900">
       <a href="#hm-main" className="sr-only z-[100] rounded-md bg-white px-4 py-3 font-semibold text-slate-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
         Skip to main content
       </a>
 
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-slate-200 bg-white px-4 py-5 lg:flex lg:flex-col">
         <Brand />
-        <p className="mt-3 text-xs leading-5 text-slate-500">Assessment and learning intelligence for schools.</p>
+        <p className="mt-3 text-xs font-medium leading-5 text-slate-700">Assessment and learning intelligence for schools.</p>
         <div className="my-6 h-px bg-slate-100" />
         <ProductNavigation pathname={pathname} />
         <div className="mt-5 border-t border-slate-100 pt-5">
@@ -118,6 +119,19 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
+        {scopeNoteVisible && (
+          <div className="border-b border-blue-200 bg-blue-50 px-4 py-2.5 sm:px-6 lg:px-8" role="note" aria-label="Demonstration scope">
+            <div className="mx-auto flex max-w-[1440px] items-start gap-2 text-xs font-medium leading-5 text-blue-950">
+              <ShieldCheck aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
+              <strong className="shrink-0">Focused preview</strong>
+              <span className="min-w-0 flex-1">{HIVEMIND_SCOPE_NOTE}</span>
+              <button type="button" onClick={() => setScopeNoteVisible(false)} aria-label="Dismiss demonstration scope note" className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-blue-800 hover:bg-blue-100 hover:text-blue-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
+                <X aria-hidden="true" className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <main id="hm-main" className="mx-auto min-h-[calc(100vh-3rem)] w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
           {children}
         </main>
@@ -138,10 +152,24 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
             <a href={pilotMode ? '/impact' : '/impact/pilot'} onClick={() => setMobileOpen(false)} className="mt-5 flex min-h-11 items-center justify-between rounded-xl border border-teal-200 bg-teal-50 px-3 py-2.5 text-sm font-bold text-teal-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
               <span>{pilotMode ? 'Return to Demo Mode' : 'Open Pilot Mode'}</span><span aria-hidden="true">→</span>
             </a>
-            <p className="mt-auto border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">Assessment and learning intelligence for schools.</p>
+            <p className="mt-auto border-t border-slate-100 pt-4 text-xs font-medium leading-5 text-slate-700">Assessment and learning intelligence for schools.</p>
           </section>
         </div>
       )}
+      <style jsx global>{`
+        @media (prefers-reduced-motion: reduce) {
+          .impact-app,
+          .impact-app * {
+            animation: none !important;
+            scroll-behavior: auto !important;
+            transition: none !important;
+          }
+
+          .impact-app *:hover {
+            transform: none !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

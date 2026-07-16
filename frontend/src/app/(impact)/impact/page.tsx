@@ -39,7 +39,7 @@ export default function ImpactOverviewPage() {
       </section>
 
       <section aria-labelledby="system-metrics-heading">
-        <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-teal-700">Canonical demonstration baseline</p><h2 id="system-metrics-heading" className="mt-1 text-xl font-black tracking-[-0.02em] text-slate-950">The complete evidence system at a glance</h2></div><span className="hidden text-xs font-semibold text-slate-500 sm:block">No unexplained zero values</span></div>
+        <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-teal-700">Canonical demonstration baseline</p><h2 id="system-metrics-heading" className="mt-1 text-xl font-black tracking-[-0.02em] text-slate-950">The complete evidence system at a glance</h2></div><span className="hidden text-xs font-semibold text-slate-700 sm:block">No unexplained zero values</span></div>
         <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-4 xl:grid-cols-4">
           <MetricCard label="Schools" value={stats.schools} detail="Seeded institutions" icon={Building2} />
           <MetricCard label="Classes" value={stats.classes} detail="Across 3 schools" icon={GraduationCap} tone="blue" />

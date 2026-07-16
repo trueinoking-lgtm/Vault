@@ -42,6 +42,7 @@ import type {
 } from '@/lib/types/impact'
 
 export const DEMO_DISCLOSURE = 'Seeded multi-school demonstration data. No learner identities. Not verified pilot evidence.'
+export const HIVEMIND_SCOPE_NOTE = 'This demonstration showcases a focused set of HiveMind Intelligence capabilities using seeded multi-school data. The production platform extends beyond this preview with broader data connectivity, additional intelligence modules, and deeper governance workflows.'
 
 // =========================================================================
 // IDs (deterministic)
