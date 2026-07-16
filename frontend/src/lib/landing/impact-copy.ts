@@ -23,8 +23,8 @@ export const HERO = {
   subheadline:
     'HiveMind Intelligence collects, connects and analyses school data to produce practical decision signals for teachers, school leaders and education stakeholders.',
   secondaryStatement: 'Deterministic analysis first. AI advisory. Human decisions remain central.',
-  ctaPrimary: { label: 'Explore the school intelligence workflow', href: '#workflow' },
-  ctaSecondary: { label: 'View the controlled demonstration', href: '/impact' },
+  ctaPrimary: { label: 'Go to the school intelligence dashboard', href: '/impact' },
+  ctaSecondary: { label: 'Explore the workflow', href: '#workflow' },
   trustStrip: [
     'Teacher-supportive',
     'Assessment-oriented',
