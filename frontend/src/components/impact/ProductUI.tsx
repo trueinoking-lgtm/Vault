@@ -1,10 +1,14 @@
 import type { LucideIcon, LucideProps } from 'lucide-react'
 import { AlertCircle, ArrowRight, CheckCircle2, LoaderCircle, RotateCcw } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 
 export function PageHeader({ eyebrow, title, description, actions, breadcrumbs }: { eyebrow?: string; title: string; description: string; actions?: ReactNode; breadcrumbs?: { label: string; href?: string }[] }) {
   return (
-    <header className="mb-8 rounded-2xl border border-slate-200 bg-white px-5 py-6 shadow-[0_8px_24px_rgba(2,6,23,0.08)] sm:px-6 sm:py-7">
+    <Card className="mb-8 gap-0 rounded-xl py-0 shadow-sm"><header className="px-5 py-6 sm:px-6 sm:py-7">
       {breadcrumbs && (
         <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
           {breadcrumbs.map((item, index) => (
@@ -23,22 +27,22 @@ export function PageHeader({ eyebrow, title, description, actions, breadcrumbs }
         </div>
         {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
       </div>
-    </header>
+    </header></Card>
   )
 }
 
 export function PrimaryAction({ href, children }: { href: string; children: ReactNode }) {
-  return <a href={href} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#f5c542] px-5 py-2.5 text-sm font-extrabold text-[#073b4c] shadow-[0_1px_3px_rgba(2,6,23,0.08)] transition-colors hover:bg-[#eab82d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">{children}<ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+  return <Button asChild size="lg" className="min-h-11 font-bold"><a href={href}>{children}<ArrowRight aria-hidden="true" /></a></Button>
 }
 
 export function SecondaryAction({ href, children, download }: { href: string; children: ReactNode; download?: string }) {
-  return <a href={href} download={download} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:border-[#f5c542]/40 hover:text-[#b45309] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">{children}</a>
+  return <Button asChild size="lg" variant="outline" className="min-h-11 font-bold"><a href={href} download={download}>{children}</a></Button>
 }
 
 export function MetricCard({ label, value, detail, icon: Icon, tone = 'teal' }: { label: string; value: string | number; detail?: string; icon: LucideIcon; tone?: 'teal' | 'amber' | 'blue' | 'violet' }) {
   const tones = {
     teal: 'bg-cyan-400/10 text-cyan-700 border-cyan-400/20',
-    amber: 'bg-[#f5c542]/10 text-[#b45309] border-[#f5c542]/20',
+    amber: 'bg-primary/10 text-[#b45309] border-[#f5c542]/20',
     blue: 'bg-blue-400/10 text-blue-700 border-blue-400/20',
     violet: 'bg-violet-400/10 text-violet-700 border-violet-400/20',
   }
@@ -46,31 +50,31 @@ export function MetricCard({ label, value, detail, icon: Icon, tone = 'teal' }: 
   const showProgress = Number.isFinite(numericValue) && (String(value).includes('%') || /rate|coverage|average|readiness/i.test(label))
   const progress = Math.max(0, Math.min(100, numericValue))
   return (
-    <article className="rounded-2xl border border-[#f5c542]/25 bg-white p-5 shadow-[0_8px_24px_rgba(2,6,23,0.08)] sm:p-6">
-      <div className={`mb-5 grid h-10 w-10 place-items-center rounded-2xl border ${tones[tone]}`}><Icon aria-hidden="true" className="h-5 w-5" /></div>
+    <Card className="gap-0 rounded-xl p-5 sm:p-6">
+      <div className={`mb-5 grid h-10 w-10 place-items-center rounded-xl border ${tones[tone]}`}><Icon aria-hidden="true" className="h-5 w-5" /></div>
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{label}</p>
       <p className={`mt-2 text-4xl font-black tracking-[-0.04em] sm:text-5xl ${tone === 'amber' ? 'text-[#b45309]' : 'text-slate-900'}`}>{value}</p>
-      {showProgress && <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div className={`h-full rounded-full ${tone === 'amber' ? 'bg-[#f5c542]' : 'bg-cyan-500'}`} style={{ width: `${progress}%` }} /></div>}
+      {showProgress && <Progress value={progress} aria-label={label} className={`mt-4 h-2.5 ${tone === 'amber' ? '' : '[&_[data-slot=progress-indicator]]:bg-cyan-500'}`} />}
       {detail && <p className="mt-2 text-xs leading-5 text-slate-500">{detail}</p>}
-    </article>
+    </Card>
   )
 }
 
 export function SectionCard({ title, description, action, children, className = '' }: { title: string; description?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(2,6,23,0.08)] ${className}`}>
-      <div className="flex flex-col gap-3 border-b border-slate-200 p-6 sm:flex-row sm:items-center sm:justify-between">
-        <div><h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h2>{description && <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>}</div>
+    <Card className={`gap-0 rounded-xl ${className}`} role="region" aria-label={title}>
+      <CardHeader className="flex flex-col gap-3 border-b sm:flex-row sm:items-center sm:justify-between">
+        <div><CardTitle className="text-xl tracking-tight sm:text-2xl">{title}</CardTitle>{description && <CardDescription className="mt-2 leading-6">{description}</CardDescription>}</div>
         {action}
-      </div>
-      <div className="p-6">{children}</div>
-    </section>
+      </CardHeader>
+      <CardContent className="pt-6">{children}</CardContent>
+    </Card>
   )
 }
 
 export function StatusBadge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'success' | 'attention' | 'info' | 'neutral' }) {
   const tones = { success: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700', attention: 'border-amber-500/30 bg-amber-500/10 text-amber-700', info: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-700', neutral: 'border-slate-500/30 bg-slate-200 text-slate-700' }
-  return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${tones[tone]}`}>{children}</span>
+  return <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${tones[tone]}`}>{children}</Badge>
 }
 
 export function ProgressBar({ value, label }: { value: number; label: string }) {
@@ -78,7 +82,7 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3 text-xs"><span className="font-medium text-slate-500">{label}</span><span className="font-bold text-slate-700">{safe}%</span></div>
-      <div className="h-3 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safe}><div className="h-full rounded-full bg-[#f5c542]" style={{ width: `${safe}%` }} /></div>
+      <Progress value={safe} aria-label={label} className="h-2.5" />
     </div>
   )
 }
@@ -109,16 +113,13 @@ function performanceColor(value: number): string {
  * underlying n shown. Used for subject / class pass-rate comparison.
  */
 export function BandBar({ label, value, count, showValue = true }: { label: string; value: number; count?: number; showValue?: boolean }) {
-  const color = performanceColor(value)
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
         <span className="font-medium text-slate-500">{label}</span>
         <span className="font-bold text-slate-700">{showValue ? `${value}%` : ''}{count != null && <span className="ml-1.5 font-normal text-slate-500">n={count}</span>}</span>
       </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-slate-200" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={value}>
-        <div className="h-full rounded-full" style={{ width: `${value}%`, backgroundColor: color }} />
-      </div>
+      <Progress value={value} aria-label={label} className="h-2.5 [&_[data-slot=progress-indicator]]:bg-cyan-500" />
     </div>
   )
 }
@@ -273,8 +274,8 @@ export function ProductState({ type, title, description, onRetry }: { type: 'loa
   const icons: Record<string, (props: LucideProps) => ReactNode> = { loading: LoaderCircle, empty: AlertCircle, error: AlertCircle, success: CheckCircle2 }
   const Icon = icons[type]
   return (
-    <div className="grid min-h-56 place-items-center rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center" role={type === 'error' ? 'alert' : 'status'}>
-      <div className="max-w-md"><Icon aria-hidden="true" className={`mx-auto h-7 w-7 ${type === 'loading' ? 'animate-spin text-teal-600' : type === 'error' ? 'text-rose-600' : 'text-slate-500'}`} /><h2 className="mt-4 text-base font-extrabold text-slate-900">{title}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>{onRetry && <button type="button" onClick={onRetry} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"><RotateCcw aria-hidden="true" className="h-4 w-4" />Retry</button>}</div>
-    </div>
+    <Card className="grid min-h-56 place-items-center rounded-xl border-dashed p-8 text-center" role={type === 'error' ? 'alert' : 'status'}>
+      <div className="max-w-md"><Icon aria-hidden="true" className={`mx-auto h-7 w-7 ${type === 'loading' ? 'animate-spin text-cyan-600' : type === 'error' ? 'text-rose-600' : 'text-slate-500'}`} /><h2 className="mt-4 text-base font-extrabold text-slate-900">{title}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>{onRetry && <Button type="button" onClick={onRetry} variant="outline" className="mt-4 min-h-11"><RotateCcw />Retry</Button>}</div>
+    </Card>
   )
 }

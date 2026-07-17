@@ -4,6 +4,8 @@ import { BarChart3, Building2, Target, UsersRound } from 'lucide-react'
 import { BandBar, MetricCard, PrimaryAction, ProductState, SectionCard, StatusBadge } from '@/components/impact/ProductUI'
 import { useImpactAssessments, useImpactClassGroups, useImpactInterventions, useImpactLearners, useImpactSchools } from '@/lib/hooks/use-impact'
 import { getCanonicalDemoStats, getSeededSchoolDashboard, SEEDED_ASSESSMENTS, SEEDED_SCHOOLS } from '@/lib/impact/demo-data'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 
 const SCHOOL_PASS_RATES = [
   { label: 'Chitungwiza Learning Centre', shortLabel: 'CLC', value: 63, count: 31 },
@@ -13,40 +15,38 @@ const SCHOOL_PASS_RATES = [
 
 function SchoolPassRateChart() {
   return (
-    <section aria-labelledby="school-chart-heading" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(2,6,23,0.08)]">
-      <div className="mb-5">
+    <Card aria-labelledby="school-chart-heading" className="gap-0 rounded-xl">
+      <CardHeader>
         <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-cyan-700">School comparison</p>
         <h2 id="school-chart-heading" className="mt-1 text-lg font-bold text-slate-900">Pass rate by school</h2>
-      </div>
+      </CardHeader><CardContent>
       <div className="flex h-48 items-end justify-around gap-3 border-b border-slate-200 px-1" role="img" aria-label="School pass rates: Chitungwiza Learning Centre 63 percent, 31 learners; Mbare Community High 57 percent, 29 learners; Pilot School 50 percent, 30 learners">
-        {SCHOOL_PASS_RATES.map((school) => <div key={school.shortLabel} className="flex h-full min-w-0 flex-1 flex-col justify-end text-center"><span className="mb-1 text-xs font-black text-slate-700">{school.value}%</span><div className="mx-auto w-full max-w-12 rounded-t-lg bg-[#f5c542]" style={{ height: `${school.value}%` }} /><span className="mt-2 text-[10px] font-extrabold text-slate-700" title={school.label}>{school.shortLabel}</span></div>)}
+        {SCHOOL_PASS_RATES.map((school) => <div key={school.shortLabel} className="flex h-full min-w-0 flex-1 flex-col justify-end text-center"><span className="mb-1 text-xs font-black text-slate-700">{school.value}%</span><div className="mx-auto w-full max-w-12 rounded-t-lg bg-primary" style={{ height: `${school.value}%` }} /><span className="mt-2 text-[10px] font-extrabold text-slate-700" title={school.label}>{school.shortLabel}</span></div>)}
       </div>
       <div className="mt-3 space-y-1">
         {SCHOOL_PASS_RATES.map((school) => <p key={school.shortLabel} className="text-[10px] leading-4 text-slate-500"><span className="font-bold text-slate-700">{school.shortLabel}</span> · {school.label} · n={school.count}</p>)}
-      </div>
-    </section>
+      </div></CardContent>
+    </Card>
   )
 }
 
 function InterventionProgress({ rows }: { rows: { status: string }[] }) {
   const items = [
-    { label: 'In progress', count: rows.filter((item) => item.status === 'in_progress').length, color: 'bg-cyan-400' },
-    { label: 'Completed', count: rows.filter((item) => item.status === 'completed').length, color: 'bg-[#f5c542]' },
-    { label: 'Pending', count: rows.filter((item) => item.status === 'pending').length, color: 'bg-amber-300' },
+    { label: 'In progress', count: rows.filter((item) => item.status === 'in_progress').length, color: '[&_[data-slot=progress-indicator]]:bg-cyan-500' },
+    { label: 'Completed', count: rows.filter((item) => item.status === 'completed').length, color: '' },
+    { label: 'Pending', count: rows.filter((item) => item.status === 'pending').length, color: '[&_[data-slot=progress-indicator]]:bg-amber-400' },
   ]
   const total = rows.length || 1
 
   return (
-    <section aria-labelledby="progress-heading" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(2,6,23,0.08)]">
-      <h2 id="progress-heading" className="text-lg font-bold text-slate-900">Intervention progress</h2>
+    <Card aria-labelledby="progress-heading" className="gap-0 rounded-xl"><CardHeader><CardTitle id="progress-heading" className="text-lg">Intervention progress</CardTitle>
       <p className="mt-1 text-xs text-slate-500">Teacher-led actions by workflow status.</p>
-      <div className="mt-5 space-y-4">
+      </CardHeader><CardContent className="space-y-4">
         {items.map((item) => {
           const percentage = Math.round((item.count / total) * 100)
-          return <div key={item.label}><div className="mb-1.5 flex justify-between text-xs"><span className="font-semibold text-slate-700">{item.label}</span><span className="font-black text-slate-900">{item.count}</span></div><div className="h-1.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label={`${item.label} interventions`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={item.count}><div className={`h-full rounded-full ${item.color}`} style={{ width: `${percentage}%` }} /></div></div>
+          return <div key={item.label}><div className="mb-1.5 flex justify-between text-xs"><span className="font-semibold text-slate-700">{item.label}</span><span className="font-black text-slate-900">{item.count}</span></div><Progress value={percentage} aria-label={`${item.label} interventions: ${item.count} of ${total}`} className={`h-2 ${item.color}`} /></div>
         })}
-      </div>
-    </section>
+      </CardContent></Card>
   )
 }
 
@@ -71,12 +71,12 @@ export default function ImpactOverviewPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <header className="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-[0_8px_24px_rgba(2,6,23,0.08)] sm:px-8">
+      <Card className="rounded-xl px-6 py-6 sm:px-8"><header>
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl"><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-700">Assessment &amp; learning intelligence</p><h1 className="mt-2 text-3xl font-black tracking-[-0.04em] text-slate-900">HiveMind Intelligence</h1><p className="mt-2 text-sm leading-6 text-slate-500">See school performance, assessment activity, and teacher-led support in one clear evidence workspace.</p></div>
           <div className="shrink-0"><PrimaryAction href="/impact/schools/school-pilot">Open Pilot School</PrimaryAction></div>
         </div>
-      </header>
+      </header></Card>
 
       <section aria-label="System metrics" className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <MetricCard label="Schools" value={stats.schools} detail="Seeded institutions" icon={Building2} />

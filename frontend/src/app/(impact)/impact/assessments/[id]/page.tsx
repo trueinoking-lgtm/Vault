@@ -50,7 +50,7 @@ export default function AssessmentDetailPage({ params }: { params: Promise<{ id:
       {tab === 'marks' && <SectionCard title="Marks" description="Teacher-entered marks remain the source evidence for all deterministic analytics.">{questionsQuery.isLoading || learnersQuery.isLoading ? <ProductState type="loading" title="Loading mark entry" description="Preparing learner codes and question columns." /> : <div className="overflow-x-auto"><MarkEntryGrid assessmentId={id} assessment={assessment} learners={learners} questions={questions} /></div>}</SectionCard>}
       {tab === 'results' && <Results analytics={analytics} loading={analyticsQuery.isLoading} assessmentId={id} />}
       {tab === 'support' && <Support analytics={analytics} loading={analyticsQuery.isLoading} />}
-      {tab === 'report' && <SectionCard title="Print-ready assessment report" description="The report keeps deterministic metrics, limitations and the seeded-data disclosure together."><div className="rounded-2xl bg-slate-50 p-6"><FileText aria-hidden="true" className="h-8 w-8 text-cyan-700" /><h2 className="mt-4 text-xl font-black text-slate-900">Assessment evidence report</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">Review question performance, topic evidence, support indicators and deterministic interventions in a print-friendly format.</p><a href={`/impact/assessments/${id}/report`} className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-[#0b4f5c] px-4 py-2 text-sm font-bold text-white">View and print report</a></div></SectionCard>}
+      {tab === 'report' && <SectionCard title="Print-ready assessment report" description="The report keeps deterministic metrics, limitations and the seeded-data disclosure together."><div className="rounded-xl bg-slate-50 p-6"><FileText aria-hidden="true" className="h-8 w-8 text-cyan-700" /><h2 className="mt-4 text-xl font-black text-slate-900">Assessment evidence report</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">Review question performance, topic evidence, support indicators and deterministic interventions in a print-friendly format.</p><a href={`/impact/assessments/${id}/report`} className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-[#0b4f5c] px-4 py-2 text-sm font-bold text-white">View and print report</a></div></SectionCard>}
     </section>
   </div>
 }
@@ -64,7 +64,7 @@ function Results({ analytics, loading, assessmentId }: { analytics: AssessmentAn
     </SectionCard><SectionCard title="Question performance" description="Question-level evidence remains traceable to entered marks. Bar colour shows performance; review flags stay beside the value.">
       <div className="space-y-3">{analytics.question_performance.map((q: QuestionPerformance) => <div key={q.question_id} className="flex items-center gap-3"><div className="w-12 shrink-0 text-sm font-bold text-slate-900">Q{q.question_number}</div><div className="flex-1"><BandBar label={q.label ?? `Question ${q.question_number}`} value={q.average_percentage} count={q.num_learners} /></div><div className="shrink-0"><StatusBadge tone={q.is_critical ? 'attention' : 'success'}>{q.is_critical ? 'Review' : 'OK'}</StatusBadge></div></div>)}</div>
     </SectionCard></div>
-    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <details className="group rounded-xl border border-slate-200 bg-white shadow-sm">
       <summary className="cursor-pointer list-none px-5 py-4 text-sm font-extrabold text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500">Learner-support distribution <span aria-hidden="true" className="float-right text-slate-500 group-open:rotate-180">⌄</span><span className="mt-1 block text-xs font-medium leading-5 text-slate-500">Anonymous learner codes grouped by risk level. Counts are shown — colour alone never drives a decision.</span></summary>
       <div className="border-t border-slate-200 p-5">
       <RiskDonut centerLabel={`${analytics.learners_assessed}`} centerSub="learners" segments={[
@@ -75,7 +75,7 @@ function Results({ analytics, loading, assessmentId }: { analytics: AssessmentAn
       <p className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs leading-5 text-amber-700">Every indicator requires teacher verification before any action. These distributions are observational, not a judgement on any learner.</p>
       </div>
     </details>
-    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <details className="group rounded-xl border border-slate-200 bg-white shadow-sm">
       <summary className="cursor-pointer list-none px-5 py-4 text-sm font-extrabold text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500">Optional AI explanation <span aria-hidden="true" className="float-right text-slate-500 group-open:rotate-180">⌄</span><span className="mt-1 block text-xs font-medium leading-5 text-slate-500">Secondary, manually generated content only. Deterministic metrics above remain the source of truth.</span></summary>
       <div className="border-t border-slate-200 p-5"><AISummaryPanel assessmentId={assessmentId} /></div>
     </details>

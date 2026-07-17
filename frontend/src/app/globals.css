@@ -76,6 +76,29 @@
   --sidebar-ring: oklch(0.623 0.214 259.815);
 }
 
+/* HiveMind Intelligence is intentionally light-only and carries its own brand
+   mapping so the Vault and public site keep their existing theme. */
+.impact-app {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #f5c542;
+  --primary-foreground: #422006;
+  --secondary: #ffffff;
+  --secondary-foreground: #334155;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #06b6d4;
+  color-scheme: light;
+}
+
 .dark {
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
