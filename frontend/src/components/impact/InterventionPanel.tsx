@@ -18,8 +18,8 @@ export function InterventionPanel({ interventions }: InterventionPanelProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-white mb-2">No interventions needed</h3>
-        <p className="text-slate-400">All learners are performing well. No urgent interventions required.</p>
+        <h3 className="text-lg font-medium text-slate-900 mb-2">No interventions needed</h3>
+        <p className="text-slate-500">All learners are performing well. No urgent interventions required.</p>
       </div>
     )
   }
@@ -32,7 +32,7 @@ export function InterventionPanel({ interventions }: InterventionPanelProps) {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-white mb-6">Recommended Interventions</h2>
+      <h2 className="text-lg font-semibold text-slate-900 mb-6">Recommended Interventions</h2>
 
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -42,15 +42,15 @@ export function InterventionPanel({ interventions }: InterventionPanelProps) {
         </div>
         <div className="bg-amber-500/10 rounded-lg p-4 border border-amber-500/30">
           <p className="text-sm text-amber-600 mb-1">High</p>
-          <p className="text-2xl font-bold text-amber-300">{high.length}</p>
+          <p className="text-2xl font-bold text-amber-700">{high.length}</p>
         </div>
         <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
           <p className="text-sm text-yellow-600 mb-1">Medium</p>
           <p className="text-2xl font-bold text-yellow-700">{medium.length}</p>
         </div>
-        <div className="bg-white/[0.04] rounded-lg p-4 border border-[#1e293b]">
-          <p className="text-sm text-slate-400 mb-1">Low</p>
-          <p className="text-2xl font-bold text-slate-300">{low.length}</p>
+        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+          <p className="text-sm text-slate-500 mb-1">Low</p>
+          <p className="text-2xl font-bold text-slate-700">{low.length}</p>
         </div>
       </div>
 
@@ -72,7 +72,7 @@ export function InterventionPanel({ interventions }: InterventionPanelProps) {
       {/* High Interventions */}
       {high.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-md font-semibold text-amber-300 mb-4 flex items-center gap-2">
+          <h3 className="text-md font-semibold text-amber-700 mb-4 flex items-center gap-2">
             <span className="w-3 h-3 bg-amber-500 rounded-full"></span>
             High Priority
           </h3>
@@ -102,7 +102,7 @@ export function InterventionPanel({ interventions }: InterventionPanelProps) {
       {/* Low Interventions */}
       {low.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-md font-semibold text-white mb-4 flex items-center gap-2">
+          <h3 className="text-md font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <span className="w-3 h-3 bg-slate-400 rounded-full"></span>
             Low Priority
           </h3>
@@ -122,14 +122,14 @@ function InterventionCard({ intervention }: { intervention: InterventionRecommen
     critical: 'bg-red-50 border-red-200',
     high: 'bg-amber-500/10 border-amber-500/30',
     medium: 'bg-yellow-50 border-yellow-200',
-    low: 'bg-white/[0.04] border-[#1e293b]',
+    low: 'bg-slate-50 border-slate-200',
   }
 
   const iconBg = {
     critical: 'bg-red-100',
     high: 'bg-amber-100',
     medium: 'bg-yellow-100',
-    low: 'bg-white/10',
+    low: 'bg-slate-200',
   }
 
   return (
@@ -140,23 +140,23 @@ function InterventionCard({ intervention }: { intervention: InterventionRecommen
         </div>
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1">
-            <p className="font-medium text-white">{intervention.entity_name}</p>
+            <p className="font-medium text-slate-900">{intervention.entity_name}</p>
             <span
               className={`px-2 py-1 text-xs font-medium rounded-full ${
                 intervention.severity === 'critical'
                   ? 'bg-red-100 text-red-800'
                   : intervention.severity === 'high'
-                  ? 'bg-amber-100 text-amber-300'
+                  ? 'bg-amber-100 text-amber-700'
                   : intervention.severity === 'medium'
                   ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-white/10 text-slate-200'
+                  : 'bg-slate-200 text-slate-700'
               }`}
             >
               {intervention.severity}
             </span>
           </div>
-          <p className="text-sm text-slate-400 mb-2">{intervention.recommendation}</p>
-          <div className="flex items-center gap-4 text-xs text-slate-400">
+          <p className="text-sm text-slate-500 mb-2">{intervention.recommendation}</p>
+          <div className="flex items-center gap-4 text-xs text-slate-500">
             <span className="capitalize">{intervention.entity_type}</span>
             <span>{intervention.percentage}%</span>
             <span className="capitalize">{intervention.intervention_type}</span>

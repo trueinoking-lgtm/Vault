@@ -92,14 +92,14 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
 
   return (
     <div className="mt-6">
-      <h3 className="text-lg font-semibold text-white mb-2">AI-Generated Insights</h3>
-      <p className="text-sm text-slate-400 mb-4">
+      <h3 className="text-lg font-semibold text-slate-900 mb-2">AI-Generated Insights</h3>
+      <p className="text-sm text-slate-500 mb-4">
         Generate summaries based on the deterministic analytics above.
         Always refer to the numbers above as the source of truth.
       </p>
 
       {/* Tabs */}
-      <div className="border-b border-[#1e293b] mb-4">
+      <div className="border-b border-slate-200 mb-4">
         <nav className="flex gap-4">
           {tabs.map((tab) => (
             <button
@@ -108,7 +108,7 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
               className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-[#1e293b]'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200'
               }`}
             >
               <span className="mr-2">{tab.icon}</span>
@@ -119,7 +119,7 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
       </div>
 
       {/* Content */}
-      <div className="bg-white/[0.04] rounded-lg p-4">
+      <div className="bg-slate-50 rounded-lg p-4">
         {activeTab === 'teacher' && (
           <SummaryContent
             type="teacher"
@@ -175,7 +175,7 @@ function SummaryContent({
     return (
       <div className="flex items-center justify-center py-8">
         <LoadingSpinner />
-        <span className="ml-3 text-slate-400">Generating {getSummaryLabel(type)}...</span>
+        <span className="ml-3 text-slate-500">Generating {getSummaryLabel(type)}...</span>
       </div>
     )
   }
@@ -183,12 +183,12 @@ function SummaryContent({
   if (!summary) {
     return (
       <div className="text-center py-8">
-        <p className="text-slate-400 mb-4">
+        <p className="text-slate-500 mb-4">
           Click the button below to generate a {getSummaryLabel(type).toLowerCase()}.
         </p>
         <button
           onClick={onGenerate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-blue-600 text-slate-900 rounded-lg hover:bg-blue-700 transition-colors"
         >
           Generate {getSummaryLabel(type)}
         </button>
@@ -200,7 +200,7 @@ function SummaryContent({
     <div>
       {summary.source === 'fallback' && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-4">
-          <p className="text-sm text-amber-300">
+          <p className="text-sm text-amber-700">
             AI summaries are unavailable. Assessment analytics are still available.
           </p>
         </div>
@@ -208,7 +208,7 @@ function SummaryContent({
 
       {error && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-4">
-          <p className="text-sm text-amber-300">
+          <p className="text-sm text-amber-700">
             AI generation failed. Showing cached or fallback content.
           </p>
         </div>
@@ -217,11 +217,11 @@ function SummaryContent({
       <div className="prose prose-sm max-w-none">
         {type === 'teacher' && (
           <>
-            <div className="whitespace-pre-wrap text-slate-200">{summary.summary}</div>
+            <div className="whitespace-pre-wrap text-slate-700">{summary.summary}</div>
             {summary.revision_sequence && (
-              <div className="mt-4 pt-4 border-t border-[#1e293b]">
-                <h4 className="font-medium text-white mb-2">Suggested Revision Sequence</h4>
-                <div className="whitespace-pre-wrap text-sm text-slate-300">
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <h4 className="font-medium text-slate-900 mb-2">Suggested Revision Sequence</h4>
+                <div className="whitespace-pre-wrap text-sm text-slate-700">
                   {summary.revision_sequence}
                 </div>
               </div>
@@ -230,16 +230,16 @@ function SummaryContent({
         )}
 
         {type === 'intervention' && (
-          <div className="whitespace-pre-wrap text-slate-200">{summary.plan}</div>
+          <div className="whitespace-pre-wrap text-slate-700">{summary.plan}</div>
         )}
 
         {type === 'remedial' && (
           <>
-            <div className="whitespace-pre-wrap text-slate-200">{summary.outline}</div>
+            <div className="whitespace-pre-wrap text-slate-700">{summary.outline}</div>
             {summary.mini_test_idea && (
-              <div className="mt-4 pt-4 border-t border-[#1e293b]">
-                <h4 className="font-medium text-white mb-2">Follow-up Mini-Test Idea</h4>
-                <div className="whitespace-pre-wrap text-sm text-slate-300">
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <h4 className="font-medium text-slate-900 mb-2">Follow-up Mini-Test Idea</h4>
+                <div className="whitespace-pre-wrap text-sm text-slate-700">
                   {summary.mini_test_idea}
                 </div>
               </div>
@@ -249,7 +249,7 @@ function SummaryContent({
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <div className="text-xs text-slate-400">
+        <div className="text-xs text-slate-500">
           {summary.source === 'ai-generated' ? 'Generated explanation' : 'Fallback content'}
         </div>
         <button
