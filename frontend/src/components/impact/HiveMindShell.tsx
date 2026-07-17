@@ -52,7 +52,7 @@ function ProductNavigation({ pathname, onNavigate }: { pathname: string; onNavig
                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
-            {active && <motion.span layoutId="active-nav" transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 35 }} className="absolute inset-y-1 left-0 w-1 rounded-full bg-primary" />}
+            {active && <motion.span layoutId="active-nav" transition={reduce ? { duration: 0 } : { duration: .25, ease: 'easeOut' }} className="absolute inset-y-1 left-0 w-1 rounded-full bg-primary" />}
             <Icon aria-hidden="true" className={`h-4.5 w-4.5 shrink-0 ${active ? 'text-amber-700' : 'text-slate-500 group-hover:text-cyan-600'}`} />
             <span className="lg:hidden xl:inline">{item.label}</span>
           </a>
