@@ -1,99 +1,68 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import { BarChart3, Building2, Target, UsersRound } from 'lucide-react'
-import { BandBar, MetricCard, PrimaryAction, ProductState, SectionCard, StatusBadge } from '@/components/impact/ProductUI'
-import { useImpactAssessments, useImpactClassGroups, useImpactInterventions, useImpactLearners, useImpactSchools } from '@/lib/hooks/use-impact'
-import { getCanonicalDemoStats, getSeededSchoolDashboard, SEEDED_ASSESSMENTS, SEEDED_SCHOOLS } from '@/lib/impact/demo-data'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { AttentionSignals, type AttentionSignal } from '@/components/impact/AttentionSignals'
+import { ImpactMetricCard } from '@/components/impact/ImpactMetricCard'
+import { ImpactSkeleton } from '@/components/impact/ImpactSkeleton'
+import { ImpactTopbar } from '@/components/impact/ImpactTopbar'
+import { InterventionBreakdown } from '@/components/impact/InterventionBreakdown'
+import { PassRateTrendChart } from '@/components/impact/PassRateTrendChart'
+import { PerformanceRanking } from '@/components/impact/PerformanceRanking'
+import { RecentActivity } from '@/components/impact/RecentActivity'
+import { SchoolComparisonChart } from '@/components/impact/SchoolComparisonChart'
+import { useImpactAssessments, useImpactClassGroups, useImpactInterventions, useImpactLearners, useImpactSchools } from '@/lib/hooks/use-impact'
+import { getCanonicalDemoStats, getSeededSchoolDashboard, SEEDED_ASSESSMENTS, SEEDED_CLASSES, SEEDED_INTERVENTIONS, SEEDED_MINISTRY_DASHBOARD, SEEDED_SCHOOLS } from '@/lib/impact/demo-data'
+import { ProductState } from '@/components/impact/ProductUI'
 
-const SCHOOL_PASS_RATES = [
-  { label: 'Chitungwiza Learning Centre', shortLabel: 'CLC', value: 63, count: 31 },
-  { label: 'Mbare Community High', shortLabel: 'MCH', value: 57, count: 29 },
-  { label: 'Pilot School', shortLabel: 'PS', value: 50, count: 30 },
-]
-
-function SchoolPassRateChart() {
-  return (
-    <Card aria-labelledby="school-chart-heading" className="gap-0 rounded-xl">
-      <CardHeader>
-        <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-cyan-700">School comparison</p>
-        <h2 id="school-chart-heading" className="mt-1 text-lg font-bold text-slate-900">Pass rate by school</h2>
-      </CardHeader><CardContent>
-      <div className="flex h-48 items-end justify-around gap-3 border-b border-slate-200 px-1" role="img" aria-label="School pass rates: Chitungwiza Learning Centre 63 percent, 31 learners; Mbare Community High 57 percent, 29 learners; Pilot School 50 percent, 30 learners">
-        {SCHOOL_PASS_RATES.map((school) => <div key={school.shortLabel} className="flex h-full min-w-0 flex-1 flex-col justify-end text-center"><span className="mb-1 text-xs font-black text-slate-700">{school.value}%</span><div className="mx-auto w-full max-w-12 rounded-t-lg bg-primary" style={{ height: `${school.value}%` }} /><span className="mt-2 text-[10px] font-extrabold text-slate-700" title={school.label}>{school.shortLabel}</span></div>)}
-      </div>
-      <div className="mt-3 space-y-1">
-        {SCHOOL_PASS_RATES.map((school) => <p key={school.shortLabel} className="text-[10px] leading-4 text-slate-500"><span className="font-bold text-slate-700">{school.shortLabel}</span> · {school.label} · n={school.count}</p>)}
-      </div></CardContent>
-    </Card>
-  )
-}
-
-function InterventionProgress({ rows }: { rows: { status: string }[] }) {
-  const items = [
-    { label: 'In progress', count: rows.filter((item) => item.status === 'in_progress').length, color: '[&_[data-slot=progress-indicator]]:bg-cyan-500' },
-    { label: 'Completed', count: rows.filter((item) => item.status === 'completed').length, color: '' },
-    { label: 'Pending', count: rows.filter((item) => item.status === 'pending').length, color: '[&_[data-slot=progress-indicator]]:bg-amber-400' },
-  ]
-  const total = rows.length || 1
-
-  return (
-    <Card aria-labelledby="progress-heading" className="gap-0 rounded-xl"><CardHeader><CardTitle id="progress-heading" className="text-lg">Intervention progress</CardTitle>
-      <p className="mt-1 text-xs text-slate-500">Teacher-led actions by workflow status.</p>
-      </CardHeader><CardContent className="space-y-4">
-        {items.map((item) => {
-          const percentage = Math.round((item.count / total) * 100)
-          return <div key={item.label}><div className="mb-1.5 flex justify-between text-xs"><span className="font-semibold text-slate-700">{item.label}</span><span className="font-black text-slate-900">{item.count}</span></div><Progress value={percentage} aria-label={`${item.label} interventions: ${item.count} of ${total}`} className={`h-2 ${item.color}`} /></div>
-        })}
-      </CardContent></Card>
-  )
-}
+const Section = motion.section
 
 export default function ImpactOverviewPage() {
-  const schools = useImpactSchools()
-  const classes = useImpactClassGroups()
-  const assessments = useImpactAssessments()
-  const learners = useImpactLearners()
-  const interventions = useImpactInterventions()
-  const isLoading = schools.isLoading || classes.isLoading || assessments.isLoading || learners.isLoading || interventions.isLoading
-  const error = schools.error || classes.error || assessments.error || learners.error || interventions.error
+  const [period, setPeriod] = useState('term-1'); const reduce = useReducedMotion()
+  const queries = [useImpactSchools(), useImpactClassGroups(), useImpactAssessments(), useImpactLearners(), useImpactInterventions()]
+  const isLoading = queries.some(q => q.isLoading); const error = queries.find(q => q.error)?.error
   const stats = getCanonicalDemoStats()
-  const schoolRows = SEEDED_SCHOOLS.schools.map((school) => ({ school, dashboard: getSeededSchoolDashboard(school.id)! })).sort((a, b) => b.dashboard.overall_pass_rate - a.dashboard.overall_pass_rate)
-  const interventionRows = interventions.data?.interventions ?? []
-  const upcomingRows = [
-    ...SEEDED_ASSESSMENTS.assessments.slice(-2).map((item) => ({ id: item.id, name: item.title, meta: item.date_written ?? item.term ?? 'Scheduled', status: item.status, href: `/impact/assessments/${item.id}`, tone: 'info' as const })),
-    ...interventionRows.filter((item) => item.status !== 'completed' && item.status !== 'dismissed').slice(0, 2).map((item) => ({ id: item.id, name: item.recommendation?.split(' — ')[0] ?? 'Teacher-led intervention', meta: item.updated.slice(0, 10), status: item.status.replace('_', ' '), href: `/impact/assessments/${item.assessment_id}`, tone: 'attention' as const })),
-  ]
+  const schools = SEEDED_SCHOOLS.schools.map(s => ({ school: s, dashboard: getSeededSchoolDashboard(s.id)! }))
+  const ranking = schools.flatMap(({ school, dashboard }) => dashboard.pass_rate_by_class.map(row => ({ id: row.class_id, name: row.class_name, school: school.name, rate: row.pass_rate }))).sort((a, b) => b.rate - a.rate)
+  const subjects = schools.flatMap(({ dashboard }) => dashboard.pass_rate_by_subject).map(row => ({ name: row.subject_name, rate: row.pass_rate, learners: row.total_learners }))
+  const assessed = SEEDED_MINISTRY_DASHBOARD.total_learners_assessed; const unassessed = stats.learners - assessed
+  const attention = useMemo<AttentionSignal[]>(() => {
+    const weakestClass = ranking[ranking.length - 1]
+    const criticalTopic = SEEDED_MINISTRY_DASHBOARD.weak_topics_by_subject.flatMap(group => group.weak_topics.map(topic => ({ ...topic, subject: group.subject_name }))).sort((a, b) => a.percentage - b.percentage)[0]
+    const pending = SEEDED_INTERVENTIONS.interventions.filter(i => i.status === 'pending')
+    return [
+      { id: 'class', severity: 'HIGH', statement: `${weakestClass.name} is the lowest-performing class`, context: weakestClass.school, metric: `${weakestClass.rate}% pass rate`, action: 'Review class evidence and learner-support signals with the teacher.', href: `/impact/classes/${weakestClass.id}` },
+      { id: 'topic', severity: 'HIGH', statement: `${criticalTopic.topic_name} is the weakest seeded topic`, context: criticalTopic.subject, metric: `${criticalTopic.percentage}% average`, action: 'Inspect the related assessment evidence and targeted revision plan.', href: '/impact/assessments/assess-eng-comp' },
+      { id: 'interventions', severity: 'MEDIUM', statement: `${pending.length} interventions are awaiting action`, context: 'Across seeded schools', metric: `${stats.activeInterventions} active`, action: 'Assign owners and review pending teacher-led actions.', href: '/impact/interventions' },
+    ]
+  }, [ranking, stats.activeInterventions])
+  const recent = [...SEEDED_ASSESSMENTS.assessments].sort((a, b) => (b.date_written ?? '').localeCompare(a.date_written ?? '')).slice(0, 4).map(a => ({ id: a.id, title: a.title, context: `${SEEDED_SCHOOLS.schools.find(s => s.id === a.school_id)?.name} · ${SEEDED_CLASSES.class_groups.find(c => c.id === a.class_group_id)?.name}`, date: a.date_written ?? a.term ?? 'Not dated', status: a.status }))
+  const animation = reduce ? { initial: false as const } : { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 }, transition: { duration: .4 } }
 
-  if (isLoading) return <ProductState type="loading" title="Preparing the school intelligence workspace" description="Loading the canonical demonstration schools, classes, assessments and interventions." />
-  if (error) return <ProductState type="error" title="The overview could not be loaded" description="The seeded evidence remains unchanged. Retry the data request to continue." onRetry={() => { void schools.refetch(); void classes.refetch(); void assessments.refetch(); void learners.refetch(); void interventions.refetch() }} />
+  if (isLoading) return <ImpactSkeleton />
+  if (error) return <ProductState type="error" title="The overview could not be loaded" description="The seeded evidence remains unchanged. Retry the data request to continue." onRetry={() => queries.forEach(q => void q.refetch())} />
 
-  return (
-    <div className="space-y-6 pb-8">
-      <Card className="rounded-xl px-6 py-6 sm:px-8"><header>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl"><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-700">Assessment &amp; learning intelligence</p><h1 className="mt-2 text-3xl font-black tracking-[-0.04em] text-slate-900">HiveMind Intelligence</h1><p className="mt-2 text-sm leading-6 text-slate-500">See school performance, assessment activity, and teacher-led support in one clear evidence workspace.</p></div>
-          <div className="shrink-0"><PrimaryAction href="/impact/schools/school-pilot">Open Pilot School</PrimaryAction></div>
-        </div>
-      </header></Card>
-
-      <section aria-label="System metrics" className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <MetricCard label="Schools" value={stats.schools} detail="Seeded institutions" icon={Building2} />
-        <MetricCard label="Learners" value={stats.learners} detail="Anonymous learner codes" icon={UsersRound} tone="blue" />
-        <MetricCard label="Pass rate" value={`${stats.averagePassRate}%`} detail="Average school rate" icon={BarChart3} tone="amber" />
-        <MetricCard label="Active interventions" value={stats.activeInterventions} detail="Teacher-led actions" icon={Target} tone="violet" />
-      </section>
-
-      <section aria-label="Overview details" className="grid gap-5 xl:grid-cols-[minmax(260px,.68fr)_minmax(0,1.32fr)]">
-        <div className="space-y-5"><SchoolPassRateChart /><InterventionProgress rows={interventionRows} /></div>
-        <div className="space-y-5">
-          <SectionCard title="Assessment performance" description="School pass rates with assessed learner counts."><div className="space-y-5">{schoolRows.map(({ school, dashboard }) => <BandBar key={school.id} label={school.name} value={dashboard.overall_pass_rate} count={dashboard.total_learners_assessed} />)}</div></SectionCard>
-          <SectionCard title="Upcoming" description="Next seeded assessment and intervention items."><div className="divide-y divide-slate-200">{upcomingRows.map((item) => <a key={item.id} href={item.href} className="flex min-h-16 items-center justify-between gap-4 rounded-lg px-2 py-3 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"><div className="min-w-0"><p className="truncate text-sm font-bold text-slate-900">{item.name}</p><p className="mt-1 text-xs text-slate-500">{item.meta}</p></div><StatusBadge tone={item.tone}>{item.status}</StatusBadge></a>)}</div></SectionCard>
-        </div>
-      </section>
-
-      <footer className="border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500">Seeded demonstration data supports assessment review and teacher judgement; it is not verified pilot evidence.</footer>
+  return <motion.div key={period} initial={reduce ? false : { opacity: .75 }} animate={{ opacity: 1 }} className="space-y-5 pb-8">
+    <ImpactTopbar period={period} onPeriodChange={setPeriod} />
+    <Section {...animation} aria-label="System metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <ImpactMetricCard label="Schools" value={stats.schools} note="Seeded institutions" href="/impact/schools" icon={Building2} tone="gold" />
+      <ImpactMetricCard label="Learners" value={stats.learners} note={`${assessed} assessed across latest seeded records`} href="/impact/classes" icon={UsersRound} tone="blue" progress={Math.round(assessed / stats.learners * 100)} />
+      <ImpactMetricCard label="Pass Rate" value={stats.averagePassRate} suffix="%" note="Average school pass rate" href="/impact/reports" icon={BarChart3} tone="cyan" progress={stats.averagePassRate} />
+      <ImpactMetricCard label="Active Interventions" value={stats.activeInterventions} note={`${SEEDED_INTERVENTIONS.total} total teacher-led actions`} href="/impact/interventions" icon={Target} tone="violet" />
+    </Section>
+    <Section {...animation} transition={{ duration: .4, delay: reduce ? 0 : .08 }}><AttentionSignals signals={attention} /></Section>
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+      <Section {...animation} className="xl:col-span-7"><SchoolComparisonChart data={schools.map(({ school, dashboard }) => ({ name: school.name.replace(' Community High', '').replace(' Learning Centre', ''), passRate: dashboard.overall_pass_rate }))} /></Section>
+      <Section {...animation} className="xl:col-span-5"><PassRateTrendChart /></Section>
+      <Section {...animation} className="xl:col-span-4"><InterventionBreakdown rows={SEEDED_INTERVENTIONS.interventions} /></Section>
+      <Section {...animation} className="xl:col-span-4"><Card className="h-full gap-0 rounded-2xl border-slate-200 shadow-sm"><CardHeader><CardTitle className="text-xl">Assessment coverage</CardTitle><p className="text-sm text-slate-500">Unique learners represented in seeded school summaries</p></CardHeader><CardContent><div className="flex items-end gap-2"><strong className="text-4xl tracking-tight">{assessed}</strong><span className="pb-1 text-sm text-slate-500">of {stats.learners} learners</span></div><Progress value={Math.round(assessed / stats.learners * 100)} className="mt-5 h-3" /><div className="mt-4 flex justify-between text-xs"><span className="font-semibold text-cyan-700">Assessed {assessed}</span><span className="text-slate-500">Not represented {unassessed}</span></div><p className="mt-5 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">Coverage reflects the latest seeded school dashboard totals, not a longitudinal attendance measure.</p></CardContent></Card></Section>
+      <Section {...animation} className="xl:col-span-4"><Card className="h-full gap-0 rounded-2xl border-slate-200 shadow-sm"><CardHeader><CardTitle className="text-xl">Subject performance</CardTitle><p className="text-sm text-slate-500">Seeded assessment pass rates by subject</p></CardHeader><CardContent className="space-y-5">{subjects.map(s => <div key={s.name}><div className="mb-2 flex justify-between text-sm"><span className="font-semibold text-slate-700">{s.name}</span><strong>{s.rate}%</strong></div><Progress value={s.rate} className="h-2" /><p className="mt-1 text-xs text-slate-400">{s.learners} assessed learners</p></div>)}</CardContent></Card></Section>
+      <Section {...animation} className="xl:col-span-7"><PerformanceRanking rows={ranking} /></Section>
+      <Section {...animation} className="xl:col-span-5"><RecentActivity rows={recent} /></Section>
     </div>
-  )
+    <footer className="border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500">Seeded demonstration data supports assessment review and teacher judgement; it is not verified pilot evidence.</footer>
+  </motion.div>
 }
