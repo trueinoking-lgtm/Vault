@@ -23,7 +23,7 @@ export default function TypewriterHeadline({ text }: { text: string }) {
         setTyping(false);
         sessionStorage.setItem(STORAGE_KEY, 'true');
       }
-    }, 40);
+    }, 30);
     return () => window.clearInterval(timer);
   }, [text]);
 

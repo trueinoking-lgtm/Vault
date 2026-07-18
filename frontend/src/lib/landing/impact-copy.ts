@@ -184,6 +184,35 @@ export const WORKFLOW = {
   ] as const,
 } as const;
 
+export const WORKFLOW_4 = {
+  eyebrow: 'Actual product workflow',
+  heading: 'From assessment to intervention.',
+  subheading:
+    'A clear evidence path keeps deterministic analysis first, AI advisory, and every support decision in human hands.',
+  steps: [
+    {
+      number: '01',
+      title: 'Assessment',
+      description: 'Teachers capture question-level results against the relevant curriculum topics and objectives.',
+    },
+    {
+      number: '02',
+      title: 'Evidence',
+      description: 'Deterministic analysis connects performance patterns with class and school context.',
+    },
+    {
+      number: '03',
+      title: 'Signal',
+      description: 'HiveMind surfaces practical signals for review, with AI used only as an advisory layer.',
+    },
+    {
+      number: '04',
+      title: 'Intervention',
+      description: 'Teachers lead targeted support, record the action taken, and compare follow-up evidence.',
+    },
+  ] as const,
+} as const;
+
 export const LAYERS = {
   eyebrow: 'Intelligence levels',
   heading: 'Intelligence at three levels.',
@@ -381,12 +410,8 @@ export const FINAL_CTA = {
 export const NAV = {
   logo: 'HiveMind Intelligence',
   links: [
-    { label: 'Governance signal', href: '#governance-signal' },
-    { label: 'Data HMI connects', href: '#data-categories' },
     { label: 'Workflow', href: '#workflow' },
-    { label: 'Intelligence levels', href: '#layers' },
-    { label: 'Powered by ZimLearnGraph', href: '#zlg' },
-    { label: 'Pilot', href: '#pilot' },
+    { label: 'Schools', href: '#schools' },
   ],
   cta: { label: 'Explore workflow', href: '#workflow' },
 } as const;
