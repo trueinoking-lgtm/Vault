@@ -6,7 +6,8 @@ export const metadata: Metadata = {
   description:
     'Turn school data into governance intelligence. HiveMind Intelligence connects school administration, resources, assessments, curriculum evidence and intervention outcomes to reveal where support is needed, why patterns may be occurring, and what action should follow.',
   icons: {
-    icon: '/favicon.svg',
+    icon: '/logo.svg',
+    shortcut: '/logo.svg',
   },
   openGraph: {
     title: 'HiveMind Intelligence — School intelligence',

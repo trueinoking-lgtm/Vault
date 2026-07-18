@@ -235,7 +235,130 @@
   50% { transform: translateY(-20px) rotate(1deg); }
 }
 
+/* Self-hosted brand fonts (offline-safe; avoids next/font build-time fetch) */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/fraunces-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/inter-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/inter-700.woff2') format('woff2');
+}
+
 /* Landing page scroll reset — applied by (impact-public) layout */
+.impact-landing {
+  font-family: var(--font-impact-body);
+  --font-impact-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-impact-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bg-page: #0A0E17;
+  --bg-surface: #121826;
+  --bg-surface-raised: #1A2233;
+  --border-subtle: rgba(201, 162, 39, 0.15);
+  --text-primary: #F4F5F7;
+  --text-secondary: #8B93A7;
+  --gold: #C9A227;
+  --gold-soft: rgba(201, 162, 39, 0.12);
+  --teal: #2FA8A0;
+  --teal-soft: rgba(47, 168, 160, 0.12);
+  --silver: #C7CCD6;
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.impact-landing .impact-display {
+  font-family: var(--font-impact-display), Georgia, 'Times New Roman', serif;
+}
+
+.impact-landing .impact-logo-mark {
+  filter: sepia(1) saturate(2.4) hue-rotate(356deg) brightness(0.9);
+}
+
+.impact-landing .impact-nav-link {
+  position: relative;
+  transition: color 150ms ease;
+}
+
+.impact-landing .impact-nav-link::after {
+  position: absolute;
+  right: 50%;
+  bottom: -0.45rem;
+  left: 50%;
+  height: 1px;
+  content: '';
+  background: var(--gold);
+  transition: right 150ms ease, left 150ms ease;
+}
+
+.impact-landing .impact-nav-link:hover::after,
+.impact-landing .impact-nav-link:focus-visible::after {
+  right: 0;
+  left: 0;
+}
+
+.impact-landing .impact-button {
+  transition: transform 150ms ease, filter 150ms ease, background-color 150ms ease;
+}
+
+.impact-landing .impact-button:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+.impact-landing .network-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.18;
+}
+
+.impact-landing .typewriter-cursor {
+  display: inline-block;
+  width: 0.08em;
+  height: 0.86em;
+  margin-left: 0.08em;
+  vertical-align: -0.06em;
+  background: var(--gold);
+  animation: impact-cursor-blink 0.8s steps(1) infinite;
+}
+
+.impact-landing .typewriter-cursor--done {
+  animation-iteration-count: 2;
+}
+
+@keyframes impact-cursor-blink {
+  50% { opacity: 0; }
+}
+
 .landing-page,
 .landing-page body {
   overflow: auto !important;

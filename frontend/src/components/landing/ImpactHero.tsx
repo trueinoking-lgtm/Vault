@@ -5,7 +5,8 @@ import { HERO, SITE } from '@/lib/landing/impact-copy';
 import { ArrowRight } from 'lucide-react';
 import EvidenceSignalPanel from './EvidenceSignalPanel';
 import MagneticButton from './MagneticButton';
-import AnimatedWords from './motion/AnimatedWords';
+import NetworkBackground from './NetworkBackground';
+import TypewriterHeadline from './TypewriterHeadline';
 
 export default function ImpactHero() {
   const [mounted, setMounted] = useState(false);
@@ -15,16 +16,10 @@ export default function ImpactHero() {
   return (
     <section
       id="hero"
-      className="relative isolate flex min-h-[100dvh] scroll-mt-28 items-center overflow-hidden pt-28 lg:pt-[6.75rem]"
+      className="relative isolate flex min-h-[calc(100dvh-6.75rem)] scroll-mt-28 items-center overflow-hidden bg-[var(--bg-page)]"
     >
-      <div aria-hidden="true" className="landing-aurora pointer-events-none absolute inset-[-15%] -z-10 opacity-80 blur-3xl">
-        <div className="absolute left-[5%] top-[12%] h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(circle,rgba(0,229,255,0.24),rgba(0,229,255,0)_68%)]" />
-        <div className="absolute right-[2%] top-[18%] h-[36rem] w-[36rem] rounded-full bg-[radial-gradient(circle,rgba(245,197,66,0.20),rgba(245,197,66,0)_68%)]" />
-        <div className="absolute bottom-[-8%] left-[38%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(0,229,255,0.14),rgba(245,197,66,0.05)_42%,transparent_70%)]" />
-      </div>
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-[#050814]/70 via-[#050814]/30 to-transparent" />
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_28%_32%,rgba(245,197,66,0.10),transparent_40%)]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-44 bg-gradient-to-t from-[#050814] to-transparent" />
+      <NetworkBackground />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_25%_42%,rgba(10,14,23,0.34)_0%,rgba(10,14,23,0.78)_47%,rgba(10,14,23,0.18)_100%)]" />
 
       <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-10 px-6 pb-16 pt-24 lg:grid-cols-[1.02fr_0.98fr] lg:px-12 lg:pb-20">
         <div className="max-w-3xl">
@@ -36,14 +31,10 @@ export default function ImpactHero() {
             {SITE.positioning}
           </div>
 
-          <AnimatedWords
-            as="h1"
-            phrases={HERO.headlinePhrases}
-            className="text-[clamp(2.5rem,5vw,4rem)] font-bold leading-[1.03] tracking-tight text-white"
-          />
+          <TypewriterHeadline text={HERO.headline} />
 
           <p
-            data-hero-reveal className={`mt-5 max-w-2xl text-base leading-7 text-slate-300 transition-all delay-300 duration-1000 ${
+            data-hero-reveal className={`mt-5 max-w-2xl text-base leading-7 text-[var(--text-secondary)] transition-all delay-300 duration-1000 ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
@@ -51,7 +42,7 @@ export default function ImpactHero() {
           </p>
 
           <p
-            data-hero-reveal className={`mt-3 max-w-2xl text-sm font-medium leading-relaxed text-cyan-200/80 transition-all delay-[450ms] duration-1000 ${
+            data-hero-reveal className={`mt-3 max-w-2xl text-sm font-medium leading-relaxed text-[var(--teal)] transition-all delay-[450ms] duration-1000 ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >

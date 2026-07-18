@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { NAV } from '@/lib/landing/impact-copy';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ImpactNav() {
   const [scrolled, setScrolled] = useState(false);
@@ -24,10 +25,10 @@ export default function ImpactNav() {
 
   return (
     <nav
-      className={`relative h-16 transition-all duration-500 lg:h-20 ${
+      className={`relative h-16 border-b border-[var(--border-subtle)] transition-all duration-500 lg:h-20 ${
         scrolled
-          ? 'bg-[#050814]/80 backdrop-blur-xl border-b border-white/[0.04]'
-          : 'bg-transparent'
+          ? 'bg-[rgba(10,14,23,0.94)] backdrop-blur-xl'
+          : 'bg-[rgba(10,14,23,0.86)] backdrop-blur-md'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -35,26 +36,26 @@ export default function ImpactNav() {
           {/* Logo */}
           <Link
             href="#hero"
-            className="rounded-sm text-sm font-bold text-white tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#050814]"
+            className="flex items-center gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-page)]"
           >
-            <span className="text-cyan-400">HiveMind</span>{' '}
-            <span className="text-white/60">Intelligence</span>
+            <Image src="/logo.svg" alt="" width={32} height={32} className="h-8 w-8 object-contain impact-logo-mark" priority />
+            <span className="impact-display text-base font-semibold tracking-tight text-[var(--gold)]">HiveMind Intelligence</span>
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-5 xl:gap-7">
             {NAV.links.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="rounded-sm text-sm text-slate-400 outline-none transition-colors duration-200 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#050814]"
+                className="impact-nav-link rounded-sm text-xs text-[var(--text-secondary)] outline-none hover:text-[var(--text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-page)] xl:text-sm"
               >
                 {link.label}
               </Link>
             ))}
             <Link
               href={NAV.cta.href}
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold outline-none hover:shadow-[0_0_20px_-5px_rgba(0,240,255,0.25)] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#050814]"
+              className="impact-button rounded-full bg-[var(--gold)] px-5 py-2 text-sm font-semibold text-[var(--bg-page)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-page)]"
             >
               {NAV.cta.label}
             </Link>
@@ -63,7 +64,7 @@ export default function ImpactNav() {
           {/* Mobile toggle */}
           <button
             onClick={() => setOpen(!open)}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-400 outline-none transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814] md:hidden"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[var(--text-secondary)] outline-none transition-colors hover:text-[var(--gold)] focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)] md:hidden"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
             aria-controls="impact-mobile-menu"
@@ -75,14 +76,14 @@ export default function ImpactNav() {
 
       {/* Mobile menu */}
       {open && (
-        <div id="impact-mobile-menu" className="md:hidden border-t border-white/[0.04] bg-[#050814]/95 backdrop-blur-xl">
+        <div id="impact-mobile-menu" className="border-t border-[var(--border-subtle)] bg-[var(--bg-page)] backdrop-blur-xl md:hidden">
           <div className="px-6 py-6 space-y-4">
             {NAV.links.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="block rounded-sm text-sm text-slate-400 outline-none transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300"
+                className="block rounded-sm text-sm text-[var(--text-secondary)] outline-none transition-colors hover:text-[var(--gold)] focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
               >
                 {link.label}
               </Link>
@@ -90,7 +91,7 @@ export default function ImpactNav() {
             <Link
               href={NAV.cta.href}
               onClick={() => setOpen(false)}
-              className="block text-center px-5 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+              className="impact-button block rounded-full bg-[var(--gold)] px-5 py-3 text-center text-sm font-semibold text-[var(--bg-page)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
             >
               {NAV.cta.label}
             </Link>

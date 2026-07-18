@@ -15,7 +15,7 @@ export default function ImpactPublicLayout({
   useEffect(() => {
     document.documentElement.classList.add('landing-page');
     document.body.classList.add('landing-page');
-    document.body.style.backgroundColor = '#050814';
+    document.body.style.backgroundColor = '#0A0E17';
 
     const visibilityTimer = window.setTimeout(() => {
       document
@@ -34,7 +34,7 @@ export default function ImpactPublicLayout({
   }, []);
 
   return (
-    <main className="min-h-[100dvh] bg-[#050814]">
+    <main className="min-h-[100dvh] bg-[#0A0E17]">
       {children}
       <style jsx global>{`
         html.landing-page {

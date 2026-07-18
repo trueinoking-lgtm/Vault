@@ -17,10 +17,10 @@ interface GraphNodeProps {
 }
 
 const toneClasses = {
-  cyan: 'border-cyan-300/30 bg-cyan-300/10 text-cyan-100',
-  blue: 'border-blue-300/30 bg-blue-300/10 text-blue-100',
-  amber: 'border-amber-300/30 bg-amber-300/10 text-amber-100',
-  emerald: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-100',
+  cyan: 'border-[var(--teal)]/30 bg-[var(--teal-soft)] text-[var(--teal)]',
+  blue: 'border-[var(--border-subtle)] bg-[var(--bg-surface-raised)] text-[var(--silver)]',
+  amber: 'border-[var(--gold)]/30 bg-[var(--gold-soft)] text-[var(--gold)]',
+  emerald: 'border-[var(--teal)]/30 bg-[var(--teal-soft)] text-[var(--teal)]',
 } as const;
 
 function GraphNode({ label, col, row, index, tone = 'cyan', active = false }: GraphNodeProps) {
@@ -41,7 +41,7 @@ function GraphNode({ label, col, row, index, tone = 'cyan', active = false }: Gr
         }
         transition={{ duration: 3.5, delay: index * 0.28, repeat: Infinity, ease: 'easeInOut' }}
         className={`flex h-full w-full items-center justify-center rounded-2xl border px-3 py-2 text-center text-xs font-semibold ${toneClasses[tone]} ${
-          active ? 'shadow-[0_0_28px_-8px_rgba(0,229,255,0.7)] ring-1 ring-cyan-300/40' : ''
+          active ? 'shadow-[0_0_28px_-12px_rgba(52,211,153,0.5)] ring-1 ring-[var(--teal)]/40' : ''
         }`}
       >
         {label}
@@ -66,11 +66,11 @@ export default function ZimLearnGraphVisual({ className = '' }: { className?: st
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : i * 0.12 + 0.1, ease: EASE.out }}
-      className="relative overflow-hidden bg-gradient-to-b from-cyan-300/30 to-slate-500/20"
+      className="relative overflow-hidden bg-gradient-to-b from-[var(--teal)]/35 to-[var(--border-subtle)]"
       style={{ gridColumn: '2', gridRow: `${i + 1} / ${i + 2}`, justifySelf: 'center', width: '2px', height: '100%' }}
     >
       <motion.span
-        className="absolute left-0 h-1/3 w-full bg-cyan-100 shadow-[0_0_8px_rgba(103,232,249,1)]"
+        className="absolute left-0 h-1/3 w-full bg-[var(--gold)] shadow-[0_0_8px_rgba(206,164,82,0.7)]"
         initial={reduce ? false : { y: '-100%' }}
         animate={reduce ? undefined : { y: ['-100%', '300%'] }}
         transition={{ duration: 3.5, delay: i * 0.28, repeat: Infinity, ease: 'linear' }}
@@ -101,7 +101,7 @@ export default function ZimLearnGraphVisual({ className = '' }: { className?: st
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : 0.4, ease: EASE.out }}
-          className="col-start-3 row-span-9 flex flex-col justify-around text-right text-xs leading-snug text-slate-400"
+          className="col-start-3 row-span-9 flex flex-col justify-around text-right text-xs leading-snug text-[var(--text-secondary)]"
         >
           <span>one institution</span>
           <span>streams & groups</span>

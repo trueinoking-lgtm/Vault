@@ -1,101 +1,40 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { PILOT } from '@/lib/landing/impact-copy';
 import { ArrowRight, FileText } from 'lucide-react';
 import Link from 'next/link';
+import MotionSection from './motion/MotionSection';
+import CountUp from './motion/CountUp';
 
 export default function ImpactPilot() {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const fallbackTimer = window.setTimeout(() => setVisible(true), 1200);
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.15 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => {
-      window.clearTimeout(fallbackTimer);
-      observer.disconnect();
-    };
-  }, []);
-
+  const reduce = useReducedMotion();
   return (
-    <section
-      ref={ref}
-      id="pilot"
-      className="relative overflow-hidden bg-[#070b1a] py-20 lg:py-24"
-    >
-      <div className="absolute inset-0 bg-gradient-to-b from-[#070b1a] via-[#0a1035] to-[#070b1a]" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-emerald-500/[0.02] blur-[120px]" />
-
-      <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12">
-        <div className="text-center max-w-3xl mx-auto">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-200/80">{PILOT.eyebrow}</p>
-          <h2
-            className={`mt-4 text-3xl font-bold leading-tight tracking-tight text-white transition-all duration-1000 md:text-4xl ${
-              visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            {PILOT.heading}
-          </h2>
-          <p
-            className={`mt-4 text-base leading-7 text-slate-400 transition-all duration-1000 delay-200 ${
-              visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-          >
-            {PILOT.subheading}
-          </p>
+    <MotionSection id="pilot" ariaLabelledby="pilot-heading" className="relative overflow-hidden bg-[var(--bg-surface-raised)] py-20 lg:py-24">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-transparent" />
+      <div className="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">{PILOT.eyebrow}</p>
+          <h2 id="pilot-heading" className="impact-display mt-4 text-3xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] md:text-4xl">{PILOT.heading}</h2>
+          <p className="mt-4 text-base leading-7 text-[var(--text-secondary)]">{PILOT.subheading}</p>
         </div>
-
-        <div
-          className={`mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 transition-all duration-1000 delay-300 ${
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          {PILOT.scope.map((item) => (
-            <div
-              key={item.item}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 text-center hover:border-white/[0.12] transition-all duration-300"
-            >
-              <div className="text-sm font-semibold text-white">{item.item}</div>
-              <div className="mt-1 text-xs text-slate-400">{item.desc}</div>
-            </div>
-          ))}
+        <div className="mt-16 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {PILOT.scope.map((item, i) => {
+            const match = item.item.match(/^(\d+)\s(.*)$/);
+            return (
+              <motion.div key={item.item} initial={reduce ? false : { opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : i * 0.09 }} className="rounded-[18px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 text-center">
+                <div className="text-sm font-semibold text-[var(--text-primary)]">{match ? <><CountUp to={Number(match[1])} /> {match[2]}</> : item.item}</div>
+                <div className="mt-1 text-xs text-[var(--text-secondary)]">{item.desc}</div>
+              </motion.div>
+            );
+          })}
         </div>
-
-        <div
-          className={`mt-8 flex items-start gap-4 rounded-xl border border-cyan-500/10 bg-cyan-500/[0.02] p-6 transition-all duration-1000 delay-500 ${
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <FileText className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
-          <p className="text-sm text-slate-300 leading-relaxed">{PILOT.output}</p>
-        </div>
-
-        <div
-          className={`flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 transition-all duration-1000 delay-700 ${
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
-        >
-          <Link
-            href={PILOT.ctaPrimary.href}
-            className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:shadow-[0_0_30px_-5px_rgba(0,240,255,0.3)] transition-all duration-300"
-          >
-            {PILOT.ctaPrimary.label}
-            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-          <Link
-            href={PILOT.ctaSecondary.href}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl border border-white/10 text-slate-300 font-semibold hover:border-white/20 hover:text-white transition-all duration-300"
-          >
-            {PILOT.ctaSecondary.label}
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+        <div className="mt-8 flex items-start gap-4 rounded-[18px] border border-[var(--teal)]/20 bg-[var(--teal-soft)] p-6"><FileText className="mt-0.5 h-5 w-5 shrink-0 text-[var(--teal)]" /><p className="text-sm leading-relaxed text-[var(--silver)]">{PILOT.output}</p></div>
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link href={PILOT.ctaPrimary.href} className="impact-button group inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-8 py-4 font-semibold text-[var(--bg-page)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]">{PILOT.ctaPrimary.label}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></Link>
+          <Link href={PILOT.ctaSecondary.href} className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] px-8 py-4 font-semibold text-[var(--silver)] transition-colors hover:border-[var(--teal)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--teal)]">{PILOT.ctaSecondary.label}<ArrowRight className="h-4 w-4" /></Link>
         </div>
       </div>
-    </section>
+    </MotionSection>
   );
 }

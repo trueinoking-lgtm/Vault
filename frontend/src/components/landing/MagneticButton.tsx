@@ -26,11 +26,11 @@ export default function MagneticButton({
   const rotateY = useTransform(springX, [-18, 18], [-1.5, 1.5]);
 
   const base =
-    "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold outline-none transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#050814] sm:px-7";
+    "impact-button inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-page)] sm:px-7";
   const styles =
     variant === "primary"
-      ? "bg-cyan-300 text-slate-950 shadow-[0_0_40px_-18px_rgba(0,229,255,0.85)] hover:bg-cyan-200"
-      : "border border-white/15 bg-white/[0.03] text-slate-100 backdrop-blur-md hover:border-cyan-300/40 hover:bg-cyan-300/[0.06]";
+      ? "bg-[var(--gold)] text-[var(--bg-page)] shadow-[0_16px_38px_-22px_rgba(201,162,39,0.9)]"
+      : "border border-[var(--gold)] bg-transparent text-[var(--gold)] backdrop-blur-md hover:bg-[var(--gold-soft)]";
 
   return (
     <motion.a

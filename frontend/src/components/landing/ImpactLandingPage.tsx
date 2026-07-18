@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { ShieldCheck, X } from 'lucide-react';
 import { ScrollProvider } from '@/lib/landing/ScrollContext';
@@ -19,11 +18,8 @@ import LiveDataTicker from './LiveDataTicker';
 import { IMPACT_MODULE } from '@/lib/landing/impact-copy';
 import AnimatedFlow from './motion/AnimatedFlow';
 import { DEMO_DISCLOSURE } from '@/lib/impact/demo-data';
-
-const FixedScene = dynamic(() => import('./HeroScene'), {
-  ssr: false,
-  loading: () => null,
-});
+import Image from 'next/image';
+import MotionSection from './motion/MotionSection';
 
 /**
  * Impact Intelligence — Landing Page (HiveMind Intelligence rebrand)
@@ -56,24 +52,19 @@ function LandingInner() {
 
   return (
     <div className="impact-landing">
-      {/* Fixed WebGL scene — visible behind all content */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <FixedScene />
-      </div>
-
-      {/* One fixed header stack prevents the ticker and navigation colliding. */}
-      <header className="fixed inset-x-0 top-0 z-50">
+      {/* A single in-flow header stack keeps disclosure, stats and nav from covering content. */}
+      <header className="relative z-50">
+        {disclosureVisible && <aside className="border-b border-[var(--border-subtle)] bg-[var(--gold-soft)] px-4 py-1.5 text-xs font-medium text-[var(--silver)]" aria-label="Demonstration data disclosure">
+          <div className="mx-auto flex max-w-7xl items-center justify-center gap-2">
+            <ShieldCheck aria-hidden="true" className="h-4 w-4 shrink-0 text-[var(--gold)]" />
+            <strong className="shrink-0 text-[var(--gold)]">Demo</strong>
+            <span>{DEMO_DISCLOSURE.split('.')[0]} · Focused preview of production capabilities.</span>
+            <button type="button" onClick={dismissDisclosure} aria-label="Dismiss demonstration disclosure" className="ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-md text-[var(--gold)] hover:bg-[var(--gold-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"><X aria-hidden="true" className="h-4 w-4" /></button>
+          </div>
+        </aside>}
         <LiveDataTicker />
         <ImpactNav />
       </header>
-      {disclosureVisible && <aside className="fixed bottom-0 left-0 right-0 z-50 border-t border-amber-300/20 bg-amber-950/95 px-4 py-2 text-xs font-medium text-amber-100 backdrop-blur" aria-label="Demonstration data disclosure">
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2">
-          <ShieldCheck aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-300" />
-          <strong className="shrink-0">Demo</strong>
-          <span>{DEMO_DISCLOSURE.split('.')[0]} · Focused preview of production capabilities.</span>
-          <button type="button" onClick={dismissDisclosure} aria-label="Dismiss demonstration disclosure" className="ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-md text-amber-200 hover:bg-amber-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"><X aria-hidden="true" className="h-4 w-4" /></button>
-        </div>
-      </aside>}
 
       {/* Content overlay — scrolls normally with semi-transparent background */}
       <div
@@ -98,30 +89,35 @@ function LandingInner() {
         <ImpactTrustPanel />
 
         {/* Impact Intelligence module callout (assessment module inside HMI) */}
-        <section className="relative overflow-hidden bg-[#070b1a] py-20 lg:py-24">
+        <MotionSection className="relative overflow-hidden bg-[var(--bg-page)] py-20 lg:py-24" ariaLabelledby="impact-module-heading">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/45 to-transparent" />
           <div className="relative z-10 mx-auto max-w-4xl px-6 text-center lg:px-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">{IMPACT_MODULE.eyebrow}</p>
-            <h2 className="mt-4 text-3xl font-bold leading-[1.08] tracking-tight text-white md:text-4xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)]">{IMPACT_MODULE.eyebrow}</p>
+            <h2 id="impact-module-heading" className="impact-display mt-4 text-3xl font-semibold leading-[1.08] tracking-tight text-[var(--text-primary)] md:text-4xl">
               {IMPACT_MODULE.headline}
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-[var(--text-secondary)]">
               {IMPACT_MODULE.subheading}
             </p>
-            <p className="mt-6 text-xs text-slate-400">
+            <p className="mt-6 text-xs text-[var(--gold)]">
               Impact Intelligence by HiveMind Intelligence · Powered by ZimLearnGraph
             </p>
           </div>
-        </section>
+        </MotionSection>
 
         <ImpactPilot />
         <ImpactCTA />
 
-        <footer className="relative border-t border-white/[0.03] bg-[#050814]/90">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="text-xs text-slate-400">
+        <footer className="relative border-t border-[var(--border-subtle)] bg-[var(--bg-page)]">
+          <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-6 py-10 sm:flex-row sm:justify-between lg:px-12">
+            <div className="flex items-center gap-3">
+              <Image src="/logo.svg" alt="" width={38} height={38} className="impact-logo-mark h-9 w-9 object-contain" />
+              <span className="impact-display text-lg font-semibold text-[var(--gold)]">HiveMind Intelligence</span>
+            </div>
+            <span className="text-xs text-[var(--text-secondary)]">
               © {new Date().getFullYear()} HiveMind Intelligence
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-center text-xs text-[var(--text-secondary)] sm:text-right">
               Impact Intelligence by HiveMind Intelligence · Powered by ZimLearnGraph
             </span>
           </div>

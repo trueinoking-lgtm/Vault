@@ -12,6 +12,7 @@ interface CountUpProps {
   /** seconds */
   duration?: number;
   className?: string;
+  formatLocale?: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ export default function CountUp({
   suffix = '',
   duration = 1.4,
   className = '',
+  formatLocale = false,
 }: CountUpProps) {
   const reduce = useReducedMotion();
   const [value, setValue] = useState(reduce ? to : 0);
@@ -70,7 +72,7 @@ export default function CountUp({
   return (
     <span ref={ref} className={className}>
       {prefix}
-      {value}
+      {formatLocale ? value.toLocaleString('en-US') : value}
       {suffix}
     </span>
   );

@@ -1,87 +1,22 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import { FINAL_CTA } from '@/lib/landing/impact-copy';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import MotionSection from './motion/MotionSection';
 
 export default function ImpactCTA() {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const fallbackTimer = window.setTimeout(() => setVisible(true), 1200);
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.3 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => {
-      window.clearTimeout(fallbackTimer);
-      observer.disconnect();
-    };
-  }, []);
-
   return (
-    <section
-      ref={ref}
-      className="relative overflow-hidden bg-[#050814] py-20 lg:py-24"
-    >
-      {/* Dramatic glow */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-[600px] h-[600px] rounded-full bg-gradient-to-r from-cyan-500/[0.04] via-blue-600/[0.03] to-transparent blur-[150px]" />
-      </div>
-
-      {/* Grid */}
-      <div
-        className="absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
-      />
-
-      <div className="relative z-10 max-w-3xl mx-auto px-6 lg:px-12 text-center">
-        {/* Heading */}
-        <h2
-          className={`text-3xl font-bold leading-tight tracking-tight text-white transition-all duration-1000 md:text-4xl ${
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          {FINAL_CTA.heading}
-        </h2>
-
-        {/* Subheading */}
-        <p
-          className={`mt-4 text-base leading-7 text-slate-400 transition-all duration-1000 delay-200 ${
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
-        >
-          {FINAL_CTA.subheading}
-        </p>
-
-        {/* CTAs */}
-        <div
-          className={`flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 transition-all duration-1000 delay-400 ${
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
-        >
-          <Link
-            href={FINAL_CTA.ctaPrimary.href}
-            className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-base hover:shadow-[0_0_30px_-5px_rgba(0,240,255,0.3)] transition-all duration-300"
-          >
-            {FINAL_CTA.ctaPrimary.label}
-            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-          <Link
-            href={FINAL_CTA.ctaSecondary.href}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl border border-white/10 text-slate-300 font-semibold text-base hover:border-white/20 hover:text-white transition-all duration-300"
-          >
-            {FINAL_CTA.ctaSecondary.label}
-          </Link>
+    <MotionSection className="relative overflow-hidden bg-[var(--bg-page)] py-20 lg:py-24" ariaLabelledby="final-cta-heading">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--teal)]/45 to-transparent" />
+      <div className="relative z-10 mx-auto max-w-3xl px-6 text-center lg:px-12">
+        <h2 id="final-cta-heading" className="impact-display text-3xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] md:text-4xl">{FINAL_CTA.heading}</h2>
+        <p className="mt-4 text-base leading-7 text-[var(--text-secondary)]">{FINAL_CTA.subheading}</p>
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link href={FINAL_CTA.ctaPrimary.href} className="impact-button group inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-8 py-4 text-base font-semibold text-[var(--bg-page)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]">{FINAL_CTA.ctaPrimary.label}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></Link>
+          <Link href={FINAL_CTA.ctaSecondary.href} className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] px-8 py-4 text-base font-semibold text-[var(--silver)] transition-colors hover:border-[var(--teal)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--teal)]">{FINAL_CTA.ctaSecondary.label}</Link>
         </div>
       </div>
-    </section>
+    </MotionSection>
   );
 }
