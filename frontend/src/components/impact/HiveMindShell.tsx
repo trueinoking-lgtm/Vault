@@ -45,9 +45,23 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
 }
 
 function TopActions({ theme, onThemeToggle }: { theme: Theme; onThemeToggle: () => void }) {
-  const actions = [{ label: 'Search', icon: Search }, { label: 'Notifications', icon: Bell }, { label: 'Messages', icon: MessageCircle }]
-  return <div className="flex items-center gap-2">
-    {actions.map(({ label, icon: Icon }) => <button key={label} type="button" aria-label={label} className="grid size-10 place-items-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><Icon className="size-4" strokeWidth={1.8} /></button>)}
+  const [panel, setPanel] = useState<null | 'search' | 'notifications' | 'messages'>(null)
+  const close = () => setPanel(null)
+  const actions = [
+    { label: 'Search', icon: Search, key: 'search' as const },
+    { label: 'Notifications', icon: Bell, key: 'notifications' as const },
+    { label: 'Messages', icon: MessageCircle, key: 'messages' as const },
+  ]
+  return <div className="relative flex items-center gap-2">
+    {actions.map(({ label, icon: Icon, key }) => <button key={key} type="button" aria-label={label} aria-expanded={panel === key} onClick={() => setPanel(panel === key ? null : key)} className={`grid size-10 place-items-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] ${panel === key ? 'text-[var(--text-primary)] ring-2 ring-[var(--accent-primary)]' : ''}`}><Icon className="size-4" strokeWidth={1.8} /></button>)}
+    {panel && <>
+      <div className="fixed inset-0 z-[60]" onClick={close} aria-hidden />
+      <div className="absolute right-0 top-12 z-[61] w-72 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 text-sm shadow-xl">
+        {panel === 'search' && <><p className="mb-2 font-medium text-[var(--text-primary)]">Search</p><input autoFocus placeholder="Search schools, learners, assessments" className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-raised)] px-3 py-2 text-xs text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" /></>}
+        {panel === 'notifications' && <><p className="mb-2 font-medium text-[var(--text-primary)]">Notifications</p><p className="text-xs text-[var(--text-secondary)]">No new notifications. We&rsquo;ll surface governance signals here as they arrive.</p></>}
+        {panel === 'messages' && <><p className="mb-2 font-medium text-[var(--text-primary)]">Messages</p><p className="text-xs text-[var(--text-secondary)]">No new messages.</p></>}
+      </div>
+    </>}
     <ThemeToggle theme={theme} onToggle={onThemeToggle} />
     <span aria-label="Profile: Programme Lead" className="grid size-10 place-items-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-raised)] text-[var(--accent-primary)]"><UserRound className="size-4" strokeWidth={1.8} /></span>
   </div>
@@ -60,7 +74,6 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') return 'dark'
     return localStorage.getItem('hm-theme') === 'light' ? 'light' : 'dark'
   })
-  useEffect(() => { document.documentElement.classList.add('landing-page'); document.body.classList.add('landing-page'); return () => { document.documentElement.classList.remove('landing-page'); document.body.classList.remove('landing-page') } }, [])
   useEffect(() => setMobileOpen(false), [pathname])
   useEffect(() => setDisclosureVisible(localStorage.getItem('hm-disclosure-dismissed') !== 'true'), [])
   const dismissDisclosure = () => { localStorage.setItem('hm-disclosure-dismissed', 'true'); setDisclosureVisible(false) }

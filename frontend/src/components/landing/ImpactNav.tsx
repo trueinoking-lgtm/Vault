@@ -38,7 +38,7 @@ export default function ImpactNav() {
             href="#hero"
             className="flex items-center gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-page)]"
           >
-            <Image src="/logo.svg" alt="" width={32} height={32} className="h-8 w-8 object-contain impact-logo-mark" priority />
+            <Image src="/hivemind-mark.svg" alt="" width={32} height={32} className="h-8 w-8 object-contain" priority />
             <span className="impact-display text-base font-semibold tracking-tight text-[var(--gold)]">HiveMind Intelligence</span>
           </Link>
 

@@ -111,7 +111,7 @@ function LandingInner() {
         <footer className="relative border-t border-[var(--border-subtle)] bg-[var(--bg-page)]">
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-6 py-10 sm:flex-row sm:justify-between lg:px-12">
             <div className="flex items-center gap-3">
-              <Image src="/logo.svg" alt="" width={38} height={38} className="impact-logo-mark h-9 w-9 object-contain" />
+              <Image src="/hivemind-mark.svg" alt="" width={38} height={38} className="h-9 w-9 object-contain" />
               <span className="impact-display text-lg font-semibold text-[var(--gold)]">HiveMind Intelligence</span>
             </div>
             <span className="text-xs text-[var(--text-secondary)]">
