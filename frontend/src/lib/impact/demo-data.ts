@@ -233,7 +233,7 @@ function generateLearners(baseCode: string, count: number, schoolId: string, cla
   }))
 }
 
-const LEARNER_COUNTS: Record<string, number> = {
+export const LEARNER_COUNTS: Record<string, number> = {
   'class-pilot-1a': 30,
   'class-pilot-1b': 30,
   'class-mbare-1a': 29,

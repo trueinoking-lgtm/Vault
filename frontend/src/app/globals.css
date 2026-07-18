@@ -280,7 +280,9 @@
   --bg-page: #0A0E17;
   --bg-surface: #121826;
   --bg-surface-raised: #1A2233;
-  --border-subtle: rgba(201, 162, 39, 0.15);
+  --surface: #121826;
+  --surface-raised: #1A2233;
+  --border-subtle: rgba(201, 162, 39, 0.16);
   --text-primary: #F4F5F7;
   --text-secondary: #8B93A7;
   --gold: #C9A227;
@@ -290,6 +292,11 @@
   --silver: #C7CCD6;
   background: var(--bg-page);
   color: var(--text-primary);
+}
+
+@keyframes impact-dust-rise {
+  from { transform: translate3d(0, 12vh, 0); }
+  to { transform: translate3d(8px, -112vh, 0); }
 }
 
 .impact-landing .impact-display {
@@ -319,6 +326,11 @@
 .impact-landing .node-glow { animation: node-glow 2.8s ease-in-out infinite; }
 .impact-landing .graphic-pulse { animation: graphic-pulse 5s ease-in-out infinite; }
 
+/* Hide the full hero signature graphic below 900px (performance + layout). */
+@media (max-width: 899px) {
+  .impact-landing .hero-signature-graphic { display: none !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .impact-landing .spin-slow,
   .impact-landing .spin-reverse,
@@ -330,6 +342,8 @@
   .impact-landing .graphic-pulse { opacity: 0.65; }
   .impact-landing .node-glow { opacity: 0.75; }
   .impact-landing .signal-dot { display: none; }
+  .impact-landing .ambient-dust span { animation: none !important; }
+  .impact-landing .impact-button:hover { transform: none; }
 }
 
 .impact-landing .impact-logo-mark {

@@ -26,7 +26,7 @@ export default function HeroSignatureGraphic() {
   return (
     <div
       aria-hidden="true"
-      className="absolute inset-0 z-0 pointer-events-none max-[899px]:hidden"
+      className="absolute inset-0 z-0 pointer-events-none hero-signature-graphic"
     >
       <svg className="h-full w-full" viewBox="0 0 800 800" fill="none" preserveAspectRatio="xMidYMid slice">
         <g className="graphic-pulse" style={{ transformOrigin: '400px 400px' }}>

@@ -1,19 +1,19 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { WORKFLOW } from '@/lib/landing/impact-copy';
-import { EASE, DURATION } from '@/lib/landing/motion-config';
+import { WORKFLOW_4 } from '@/lib/landing/impact-copy';
+import { EASE } from '@/lib/landing/motion-config';
 import MotionSection from './motion/MotionSection';
 
 export default function ImpactWorkflow() {
-  const w = WORKFLOW;
+  const w = WORKFLOW_4;
   const reduce = useReducedMotion();
 
   return (
     <MotionSection
       id="workflow"
       ariaLabelledby="workflow-heading"
-      className="relative overflow-hidden bg-[var(--bg-page)] py-20 lg:py-24"
+      className="relative bg-[var(--bg-page)] py-20 lg:py-24"
     >
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
         <div className="max-w-3xl">
@@ -39,7 +39,7 @@ export default function ImpactWorkflow() {
               transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : i * 0.08, ease: EASE.out }}
               className="relative"
             >
-              <div className="h-full rounded-[18px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition-colors duration-300 hover:border-[var(--gold)]/35">
+              <div className="h-full rounded-[18px] border border-[var(--border-subtle)] bg-[var(--surface)] p-5 transition-colors duration-300 hover:border-[var(--gold)]/35">
                 <div className="flex items-center gap-3">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--gold)]/35 bg-[var(--gold-soft)] font-mono text-sm font-semibold text-[var(--gold)]">
                     {step.number}
