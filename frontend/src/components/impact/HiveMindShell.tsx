@@ -15,7 +15,7 @@ function isRouteActive(pathname: string, href: string) {
 
 function Brand({ expanded = false }: { expanded?: boolean }) {
   return <a href="/impact" aria-label="HiveMind Intelligence home" className="flex items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]">
-    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--accent-primary)] text-xs font-bold text-white">HM</span>
+    <span className="grid size-11 shrink-0 place-items-center rounded-xl"><img src="/hivemind-mark.svg" alt="" width={36} height={36} className="h-9 w-9 object-contain" /></span>
     {expanded && <span><span className="block text-sm font-semibold text-[var(--text-primary)]">HiveMind Intelligence</span><span className="block text-[10px] text-[var(--text-secondary)]">Powered by ZimLearnGraph</span></span>}
   </a>
 }
