@@ -296,6 +296,42 @@
   font-family: var(--font-impact-display), Georgia, 'Times New Roman', serif;
 }
 
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes node-glow {
+  0%, 100% { opacity: 0.45; filter: drop-shadow(0 0 0 var(--gold)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 7px var(--gold)); }
+}
+
+@keyframes graphic-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.035); }
+}
+
+.impact-landing .spin-slow { animation: spin-slow 70s linear infinite; }
+.impact-landing .spin-reverse { animation: spin-reverse 90s linear infinite; }
+.impact-landing .node-glow { animation: node-glow 2.8s ease-in-out infinite; }
+.impact-landing .graphic-pulse { animation: graphic-pulse 5s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .impact-landing .spin-slow,
+  .impact-landing .spin-reverse,
+  .impact-landing .node-glow,
+  .impact-landing .graphic-pulse {
+    animation: none !important;
+  }
+
+  .impact-landing .graphic-pulse { opacity: 0.65; }
+  .impact-landing .node-glow { opacity: 0.75; }
+  .impact-landing .signal-dot { display: none; }
+}
+
 .impact-landing .impact-logo-mark {
   filter: sepia(1) saturate(2.4) hue-rotate(356deg) brightness(0.9);
 }
