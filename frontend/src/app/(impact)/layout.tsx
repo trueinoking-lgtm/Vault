@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   description:
     'Impact Intelligence by HiveMind Intelligence — powered by ZimLearnGraph. Turns school data into governance intelligence: weak-topic analysis, learner-support signals, and school-level evidence.',
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
+    icon: '/hivemind-mark.svg',
+    shortcut: '/hivemind-mark.svg',
   },
   openGraph: {
     title: 'Impact Intelligence by HiveMind Intelligence',
