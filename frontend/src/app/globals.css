@@ -370,6 +370,19 @@
   overflow-x: hidden !important;
 }
 
+/* Impact product app (.impact-app) scrolls at the document level — the header is
+   not fixed and main has no internal scroll container, so the body must be allowed
+   to scroll. The global `body { overflow: hidden; height: 100vh }` base rule locks
+   scrolling for the landing (which has its own override); the impact app needs one too. */
+body:has(.impact-app) {
+  overflow: auto !important;
+  height: auto !important;
+  overflow-x: hidden !important;
+}
+html:has(.impact-app) {
+  overflow: auto !important;
+}
+
 @media print {
   .landing-page body {
     background: #fff !important;
