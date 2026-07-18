@@ -1,26 +1,14 @@
 <svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HiveMind Intelligence">
-  <!-- Outer hexagon: gold outline, navy center -->
-  <polygon points="120,42 187.5,81 187.5,159 120,198 52.5,159 52.5,81"
-           fill="#0A0E17" stroke="#C9A227" stroke-width="3.5" stroke-linejoin="round"/>
-  <!-- Inner hexagon (cube face) -->
-  <polygon points="120,78 156.4,99 156.4,141 120,162 83.6,141 83.6,99"
-           fill="#121826" stroke="#C9A227" stroke-width="2.5" stroke-linejoin="round"/>
-  <!-- Cube connectors: inner vertex -> outer vertex (3D illusion) -->
-  <g stroke="#C9A227" stroke-width="2" stroke-linecap="round" opacity="0.85">
-    <line x1="120" y1="78"  x2="120" y2="42"/>
-    <line x1="156.4" y1="99" x2="187.5" y2="81"/>
-    <line x1="156.4" y1="141" x2="187.5" y2="159"/>
-    <line x1="120" y1="162" x2="120" y2="198"/>
-    <line x1="83.6" y1="141" x2="52.5" y2="159"/>
-    <line x1="83.6" y1="99"  x2="52.5" y2="81"/>
-  </g>
-  <!-- Node dots at the 6 outer vertices -->
-  <g fill="#C9A227">
-    <circle cx="120" cy="42" r="4.5"/>
-    <circle cx="187.5" cy="81" r="4.5"/>
-    <circle cx="187.5" cy="159" r="4.5"/>
-    <circle cx="120" cy="198" r="4.5"/>
-    <circle cx="52.5" cy="159" r="4.5"/>
-    <circle cx="52.5" cy="81" r="4.5"/>
+  <!-- HiveMind mark: hexagonal honeycomb cluster (1 center + 6 surrounding cells) -->
+  <g stroke="#C9A227" stroke-width="2.5" stroke-linejoin="round">
+    <!-- Surrounding cells (navy-blue) -->
+    <polygon points="165,94 187.5,107 187.5,133 165,146 142.5,133 142.5,107" fill="#16243F"/>
+    <polygon points="75,94 97.5,107 97.5,133 75,146 52.5,133 52.5,107" fill="#16243F"/>
+    <polygon points="142.5,55 165,68 165,94 142.5,107 120,94 120,68" fill="#16243F"/>
+    <polygon points="97.5,55 120,68 120,94 97.5,107 75,94 75,68" fill="#16243F"/>
+    <polygon points="142.5,133 165,146 165,172 142.5,185 120,172 120,146" fill="#16243F"/>
+    <polygon points="97.5,133 120,146 120,172 97.5,185 75,172 75,146" fill="#16243F"/>
+    <!-- Center cell (darker navy) -->
+    <polygon points="120,94 142.5,107 142.5,133 120,146 97.5,133 97.5,107" fill="#0A0E17"/>
   </g>
 </svg>
