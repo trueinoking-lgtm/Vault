@@ -1,0 +1,42 @@
+{
+  "routes": ["/impact-intelligence", "/impact-intelligence/style-guide"],
+  "targets": [
+    {
+      "id": "hero-signature-graphic",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='hero-signature-graphic']",
+      "kind": "ambient",
+      "animationName": "graphic-pulse",
+      "opacity": { "min": 0.55, "max": 0.8 },
+      "minDurationMs": 1000,
+      "iterationCount": "infinite",
+      "sampleIntervalMs": 250,
+      "requireTransformChange": true,
+      "reducedMotion": "none"
+    },
+    {
+      "id": "hero-dust",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='hero-dust']",
+      "kind": "ambient",
+      "animationName": "impact-dust-rise",
+      "minDurationMs": 1000,
+      "iterationCount": "infinite",
+      "sampleIntervalMs": 250,
+      "requireTransformChange": true,
+      "reducedMotion": "none"
+    },
+    {
+      "id": "node-glow",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='node-glow']",
+      "kind": "loop",
+      "animationName": "node-glow",
+      "minDurationMs": 500,
+      "iterationCount": "infinite",
+      "sampleIntervalMs": 200,
+      "requireTransformChange": false,
+      "reducedMotion": "none"
+    }
+  ]
+}
