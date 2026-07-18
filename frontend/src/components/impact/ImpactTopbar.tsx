@@ -9,7 +9,7 @@ import { WorkspaceSwitcher } from './WorkspaceSwitcher'
 export function ImpactTopbar({ period, onPeriodChange }: { period: string; onPeriodChange: (value: string) => void }) {
   return <header className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur sm:p-5">
     <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-      <div><h1 className="text-[28px] font-bold tracking-[-0.035em] text-slate-950 sm:text-[32px]">Good afternoon, Tariro</h1><p className="mt-1 text-sm text-slate-500">Here is what needs attention across your schools today.</p></div>
+      <div><h1 className="text-[28px] font-bold tracking-[-0.035em] text-slate-950 sm:text-[32px]">Good afternoon</h1><p className="mt-1 text-sm text-slate-500">Here is what needs attention across your schools today.</p></div>
       <div className="flex flex-wrap items-center gap-2">
         <WorkspaceSwitcher />
         <Select value={period} onValueChange={onPeriodChange}><SelectTrigger size="sm" aria-label="Select reporting period" className="w-[145px] bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="term-1">Term 1 · 2025</SelectItem><SelectItem value="all-2025">All of 2025</SelectItem></SelectContent></Select>

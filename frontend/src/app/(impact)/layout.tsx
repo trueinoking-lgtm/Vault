@@ -42,7 +42,5 @@ export default function ImpactRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // This route-group layout persists while navigating between /impact tabs,
-  // keeping the white global body covered before nested client layouts paint.
-  return <div className="min-h-screen bg-[#F8FAFC]">{children}</div>;
+  return <div className="min-h-screen">{children}</div>;
 }

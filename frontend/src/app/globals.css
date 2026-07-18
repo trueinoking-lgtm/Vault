@@ -76,26 +76,38 @@
   --sidebar-ring: oklch(0.623 0.214 259.815);
 }
 
-/* HiveMind Intelligence is intentionally light-only and carries its own brand
-   mapping so the Vault and public site keep their existing theme. */
 .impact-app {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #f5c542;
-  --primary-foreground: #422006;
-  --secondary: #ffffff;
-  --secondary-foreground: #334155;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #06b6d4;
+  --bg-page: #0B0C10;
+  --bg-surface: #16171D;
+  --bg-surface-raised: #1D1F27;
+  --border-subtle: #2A2C35;
+  --text-primary: #F5F6F8;
+  --text-secondary: #A0A5B4;
+  --accent-primary: #7C6CF0;
+  --accent-gold: #E8B84B;
+  --accent-success: #34D399;
+  --accent-warning: #F5A524;
+  --accent-danger: #F0554C;
+  --background: var(--bg-page); --foreground: var(--text-primary); --card: var(--bg-surface); --card-foreground: var(--text-primary);
+  --popover: var(--bg-surface-raised); --popover-foreground: var(--text-primary); --primary: var(--accent-primary); --primary-foreground: #fff;
+  --secondary: var(--bg-surface-raised); --secondary-foreground: var(--text-primary); --muted: var(--bg-surface-raised); --muted-foreground: var(--text-secondary);
+  --accent: var(--bg-surface-raised); --accent-foreground: var(--text-primary); --border: var(--border-subtle); --input: var(--border-subtle); --ring: var(--accent-primary);
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.impact-app[data-theme="light"] {
+  --bg-page: #F7F8FA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-raised: #F1F2F4;
+  --border-subtle: #EBEDF1;
+  --text-primary: #14171F;
+  --text-secondary: #5B6472;
+  --accent-primary: #6D5DE8;
+  --accent-gold: #C9971F;
+  --accent-success: #15803D;
+  --accent-warning: #B45309;
+  --accent-danger: #DC2626;
   color-scheme: light;
 }
 
