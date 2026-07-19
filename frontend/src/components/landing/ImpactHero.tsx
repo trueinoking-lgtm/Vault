@@ -144,18 +144,18 @@ export default function ImpactHero() {
                       animate={
                         !reduce && position !== undefined
                           ? {
-                              scale: [1, 1, 1.045, 1, 1],
+                              scale: [1, 1, 1.02, 1, 1],
                               color: [
                                 'var(--text-secondary)',
                                 'var(--text-secondary)',
-                                '#f1f5f9',
+                                '#dfe3ea',
                                 'var(--text-secondary)',
                                 'var(--text-secondary)',
                               ],
                               boxShadow: [
                                 '0 0 0 rgba(199,204,214,0)',
                                 '0 0 0 rgba(199,204,214,0)',
-                                '0 0 22px rgba(199,204,214,0.45)',
+                                '0 0 12px rgba(199,204,214,0.3)',
                                 '0 0 0 rgba(199,204,214,0)',
                                 '0 0 0 rgba(199,204,214,0)',
                               ],
