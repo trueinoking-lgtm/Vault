@@ -19,6 +19,7 @@ export default function AmbientDust() {
       {PARTICLES.map((particle, index) => (
         <span
           key={index}
+          data-design-motion={index === 0 ? 'hero-dust' : undefined}
           className="absolute rounded-full"
           style={{
             left: `${particle.left}%`,

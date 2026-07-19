@@ -29,7 +29,7 @@ export default function HeroSignatureGraphic() {
       className="absolute inset-0 z-0 pointer-events-none hero-signature-graphic"
     >
       <svg className="h-full w-full" viewBox="0 0 800 800" fill="none" preserveAspectRatio="xMidYMid slice">
-        <g className="graphic-pulse" style={{ transformOrigin: '400px 400px' }}>
+        <g data-design-motion="hero-signature-graphic" className="graphic-pulse" style={{ transformOrigin: '400px 400px' }}>
           <g className="spin-slow" style={{ transformOrigin: '400px 400px' }}>
             <circle cx="400" cy="400" r="300" stroke="#C9A227" strokeWidth="1.2" strokeDasharray="7 13" />
             {[0, 60, 120, 180, 240, 300].map((angle) => {
@@ -73,6 +73,7 @@ export default function HeroSignatureGraphic() {
             {[...outerVertices, ...innerVertices, [400, 400] as const].map(([x, y], index) => (
               <circle
                 key={`node-${x}-${y}`}
+                data-design-motion={index === 0 ? 'node-glow' : undefined}
                 className="node-glow"
                 cx={x}
                 cy={y}
