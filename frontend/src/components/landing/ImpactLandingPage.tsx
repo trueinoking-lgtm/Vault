@@ -7,6 +7,7 @@ import { useLenis } from '@/lib/landing/useLenis';
 import AmbientDust from './AmbientDust';
 import ImpactHero from './ImpactHero';
 import ImpactNav from './ImpactNav';
+import ImpactGovernance from './ImpactGovernance';
 import ImpactSchoolDiscovery from './ImpactSchoolDiscovery';
 import ImpactWorkflow from './ImpactWorkflow';
 import LiveDataTicker from './LiveDataTicker';
@@ -34,6 +35,7 @@ function LandingInner() {
       <main className="relative z-10 bg-[rgba(10,14,23,0.72)] backdrop-blur-[2px]" data-impact-build="landing-stage-2">
         <ImpactHero />
         <ImpactWorkflow />
+        <ImpactGovernance />
         <ImpactSchoolDiscovery />
       </main>
 
