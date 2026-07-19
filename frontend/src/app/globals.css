@@ -347,6 +347,26 @@
   animation: trait-comet 4.5s linear infinite;
 }
 
+@keyframes workflow-comet {
+  0%   { left: 0%;   opacity: 0; }
+  6%   { opacity: 1; }
+  94%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+.impact-landing .workflow-comet-traveler {
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  width: 18%;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, rgba(199, 204, 214, 0.72) 72%, #C7CCD6);
+  box-shadow: 0 0 8px rgba(199, 204, 214, 0.4);
+  opacity: 0;
+  animation: workflow-comet 5s linear infinite;
+}
+
 .impact-landing .spin-slow { animation: spin-slow 70s linear infinite; }
 .impact-landing .spin-reverse { animation: spin-reverse 90s linear infinite; }
 .impact-landing .node-glow { animation: node-glow 2.8s ease-in-out infinite; }
@@ -362,7 +382,8 @@
   .impact-landing .spin-reverse,
   .impact-landing .node-glow,
   .impact-landing .graphic-pulse,
-  .impact-landing .trait-comet-traveler {
+  .impact-landing .trait-comet-traveler,
+  .impact-landing .workflow-comet-traveler {
     animation: none !important;
   }
 

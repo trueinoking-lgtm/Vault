@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-19T16:30:06.736Z",
+  "generatedAt": "2026-07-19T16:57:59.062Z",
   "inputs": {
     "baseUrl": "http://127.0.0.1:3100",
     "routes": [
@@ -59,15 +59,15 @@
         "animationName": "graphic-pulse",
         "animationDuration": "5s",
         "animationIterationCount": "infinite",
-        "opacity": "0.576403",
-        "transform": "matrix(1.0037, 0, 0, 1.0037, 0, 0)",
+        "opacity": "0.57041",
+        "transform": "matrix(1.00286, 0, 0, 1.00286, 0, 0)",
         "reducedMotionMediaMatches": false
       },
       "t1": {
         "animationName": "graphic-pulse",
         "animationDuration": "5s",
         "animationIterationCount": "infinite",
-        "opacity": "0.605636",
+        "opacity": "0.605638",
         "transform": "matrix(1.00779, 0, 0, 1.00779, 0, 0)",
         "reducedMotionMediaMatches": false
       },
@@ -100,7 +100,7 @@
             "min": 0.55,
             "max": 0.8
           },
-          "actual": 0.576403,
+          "actual": 0.57041,
           "staleBuild": false
         },
         {
@@ -121,7 +121,7 @@
           "name": "transform travel",
           "pass": true,
           "expected": "transform changes",
-          "actual": "matrix(1.0037, 0, 0, 1.0037, 0, 0) -> matrix(1.00779, 0, 0, 1.00779, 0, 0)",
+          "actual": "matrix(1.00286, 0, 0, 1.00286, 0, 0) -> matrix(1.00779, 0, 0, 1.00779, 0, 0)",
           "staleBuild": false
         }
       ],
@@ -151,7 +151,7 @@
         "animationDuration": "24s",
         "animationIterationCount": "infinite",
         "opacity": "0.14",
-        "transform": "matrix(1, 0, 0, 1, 0.272208, 70.0269)",
+        "transform": "matrix(1, 0, 0, 1, 0.272213, 70.0262)",
         "reducedMotionMediaMatches": false
       },
       "t1": {
@@ -159,7 +159,7 @@
         "animationDuration": "24s",
         "animationIterationCount": "infinite",
         "opacity": "0.14",
-        "transform": "matrix(1, 0, 0, 1, 0.366675, 56.8488)",
+        "transform": "matrix(1, 0, 0, 1, 0.36108, 57.6293)",
         "reducedMotionMediaMatches": false
       },
       "assertions": [
@@ -202,7 +202,7 @@
           "name": "transform travel",
           "pass": true,
           "expected": "transform changes",
-          "actual": "matrix(1, 0, 0, 1, 0.272208, 70.0269) -> matrix(1, 0, 0, 1, 0.366675, 56.8488)",
+          "actual": "matrix(1, 0, 0, 1, 0.272213, 70.0262) -> matrix(1, 0, 0, 1, 0.36108, 57.6293)",
           "staleBuild": false
         }
       ],
@@ -231,7 +231,7 @@
         "animationName": "node-glow",
         "animationDuration": "2.8s",
         "animationIterationCount": "infinite",
-        "opacity": "0.964424",
+        "opacity": "0.959365",
         "transform": "none",
         "reducedMotionMediaMatches": false
       },
@@ -239,7 +239,7 @@
         "animationName": "node-glow",
         "animationDuration": "2.8s",
         "animationIterationCount": "infinite",
-        "opacity": "0.999851",
+        "opacity": "0.996214",
         "transform": "none",
         "reducedMotionMediaMatches": false
       },
@@ -357,6 +357,154 @@
       "passed": true
     },
     {
+      "id": "workflow-comet-1",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='workflow-comet-1']",
+      "expected": {
+        "id": "workflow-comet-1",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='workflow-comet-1']",
+        "kind": "ambient",
+        "animationName": "workflow-comet",
+        "minDurationMs": 5000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": false,
+        "reducedMotion": "none"
+      },
+      "mode": "no-preference",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "workflow-comet",
+        "animationDuration": "5s",
+        "animationIterationCount": "infinite",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, -0.5)",
+        "reducedMotionMediaMatches": false
+      },
+      "t1": {
+        "animationName": "workflow-comet",
+        "animationDuration": "5s",
+        "animationIterationCount": "infinite",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, -0.5)",
+        "reducedMotionMediaMatches": false
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": false,
+          "actual": false,
+          "staleBuild": false
+        },
+        {
+          "name": "animation name",
+          "pass": true,
+          "expected": "workflow-comet",
+          "actual": "workflow-comet",
+          "staleBuild": false
+        },
+        {
+          "name": "minimum animation duration",
+          "pass": true,
+          "expected": ">= 5000ms",
+          "actual": "5s",
+          "staleBuild": false
+        },
+        {
+          "name": "iteration count",
+          "pass": true,
+          "expected": "infinite",
+          "actual": "infinite",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "workflow-comet-2",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='workflow-comet-2']",
+      "expected": {
+        "id": "workflow-comet-2",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='workflow-comet-2']",
+        "kind": "ambient",
+        "animationName": "workflow-comet",
+        "minDurationMs": 5000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": false,
+        "reducedMotion": "none"
+      },
+      "mode": "no-preference",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "workflow-comet",
+        "animationDuration": "5s",
+        "animationIterationCount": "infinite",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, -0.5)",
+        "reducedMotionMediaMatches": false
+      },
+      "t1": {
+        "animationName": "workflow-comet",
+        "animationDuration": "5s",
+        "animationIterationCount": "infinite",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, -0.5)",
+        "reducedMotionMediaMatches": false
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": false,
+          "actual": false,
+          "staleBuild": false
+        },
+        {
+          "name": "animation name",
+          "pass": true,
+          "expected": "workflow-comet",
+          "actual": "workflow-comet",
+          "staleBuild": false
+        },
+        {
+          "name": "minimum animation duration",
+          "pass": true,
+          "expected": ">= 5000ms",
+          "actual": "5s",
+          "staleBuild": false
+        },
+        {
+          "name": "iteration count",
+          "pass": true,
+          "expected": "infinite",
+          "actual": "infinite",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
       "id": "hero-signature-graphic",
       "route": "/impact-intelligence",
       "selector": "[data-design-motion='hero-signature-graphic']",
@@ -655,11 +803,159 @@
         }
       ],
       "passed": true
+    },
+    {
+      "id": "workflow-comet-1",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='workflow-comet-1']",
+      "expected": {
+        "id": "workflow-comet-1",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='workflow-comet-1']",
+        "kind": "ambient",
+        "animationName": "workflow-comet",
+        "minDurationMs": 5000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": false,
+        "reducedMotion": "none"
+      },
+      "mode": "reduce",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "t1": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": true,
+          "actual": true,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced animation name",
+          "pass": true,
+          "expected": "none",
+          "actual": "none",
+          "staleBuild": false
+        },
+        {
+          "name": "no infinite reduced iteration",
+          "pass": true,
+          "expected": "not infinite",
+          "actual": "1",
+          "staleBuild": false
+        },
+        {
+          "name": "no reduced transform change",
+          "pass": true,
+          "expected": "unchanged transform",
+          "actual": "none -> none",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "workflow-comet-2",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='workflow-comet-2']",
+      "expected": {
+        "id": "workflow-comet-2",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='workflow-comet-2']",
+        "kind": "ambient",
+        "animationName": "workflow-comet",
+        "minDurationMs": 5000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": false,
+        "reducedMotion": "none"
+      },
+      "mode": "reduce",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "t1": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": true,
+          "actual": true,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced animation name",
+          "pass": true,
+          "expected": "none",
+          "actual": "none",
+          "staleBuild": false
+        },
+        {
+          "name": "no infinite reduced iteration",
+          "pass": true,
+          "expected": "not infinite",
+          "actual": "1",
+          "staleBuild": false
+        },
+        {
+          "name": "no reduced transform change",
+          "pass": true,
+          "expected": "unchanged transform",
+          "actual": "none -> none",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
     }
   ],
   "errors": [],
   "summary": {
-    "passed": 10,
+    "passed": 14,
     "failed": 0,
     "staleBuildSuspicions": 0,
     "success": true

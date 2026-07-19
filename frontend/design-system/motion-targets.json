@@ -49,6 +49,30 @@
       "sampleIntervalMs": 250,
       "requireTransformChange": false,
       "reducedMotion": "none"
+    },
+    {
+      "id": "workflow-comet-1",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='workflow-comet-1']",
+      "kind": "ambient",
+      "animationName": "workflow-comet",
+      "minDurationMs": 5000,
+      "iterationCount": "infinite",
+      "sampleIntervalMs": 250,
+      "requireTransformChange": false,
+      "reducedMotion": "none"
+    },
+    {
+      "id": "workflow-comet-2",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='workflow-comet-2']",
+      "kind": "ambient",
+      "animationName": "workflow-comet",
+      "minDurationMs": 5000,
+      "iterationCount": "infinite",
+      "sampleIntervalMs": 250,
+      "requireTransformChange": false,
+      "reducedMotion": "none"
     }
   ]
 }
