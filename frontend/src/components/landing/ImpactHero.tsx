@@ -9,7 +9,7 @@ import HeroSignatureGraphic from './HeroSignatureGraphic';
 import MagneticButton from './MagneticButton';
 import TypewriterHeadline from './TypewriterHeadline';
 
-const TRAIT_LOOP = 4.2; // seconds for one full sweep + pulse cycle
+const TRAIT_LOOP = 5.6; // seconds for one subtle sweep across the trait row
 const SILVER = '#C7CCD6';
 
 export default function ImpactHero() {
@@ -71,66 +71,40 @@ export default function ImpactHero() {
           </div>
 
           <div
-            data-hero-reveal className={`relative mt-8 transition-all delay-700 duration-1000 ${
+            data-hero-reveal className={`mt-8 w-full transition-all delay-700 duration-1000 sm:overflow-x-auto sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden ${
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
-            {/* Silver connecting line + traveling pulse behind the trait bubbles */}
-            {!reduce && (
-              <div
-                aria-hidden="true"
-                data-design-motion="trait-line"
-                className="pointer-events-none absolute left-3 right-3 top-1/2 hidden h-px -translate-y-1/2 sm:block"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[color:var(--silver,#C7CCD6)]/25 to-transparent" />
-                <motion.div
-                  data-design-motion="trait-traveler"
-                  className="absolute top-1/2 h-[2px] w-1/3 -translate-y-1/2 rounded-full"
-                  style={{ background: SILVER, boxShadow: `0 0 12px 3px rgba(199,204,214,0.55)` }}
-                  initial={{ left: '0%' }}
-                  animate={{ left: ['0%', '100%'] }}
-                  transition={{ duration: TRAIT_LOOP, ease: 'linear', repeat: Infinity }}
-                />
-              </div>
-            )}
+            <div className="relative w-full sm:w-max">
+              {/* At sm+, the single-row pills share this midpoint with the silver rule. */}
+              {!reduce && (
+                <div
+                  aria-hidden="true"
+                  data-design-motion="trait-line"
+                  className="pointer-events-none absolute inset-x-0 top-1/2 z-0 hidden h-px -translate-y-1/2 bg-[rgba(199,204,214,0.22)] sm:block"
+                >
+                  <motion.div
+                    data-design-motion="trait-traveler"
+                    className="absolute left-0 top-1/2 h-px w-[18%] -translate-y-1/2 rounded-full"
+                    style={{ background: SILVER, boxShadow: '0 0 6px rgba(199,204,214,0.4)', opacity: 0.55 }}
+                    initial={{ x: '0%' }}
+                    animate={{ x: ['0%', '455.55%'] }}
+                    transition={{ duration: TRAIT_LOOP, ease: 'linear', repeat: Infinity }}
+                  />
+                </div>
+              )}
 
-            <div className="relative z-10 flex flex-wrap gap-2">
-              {HERO.trustStrip.map((item, i) => {
-                const n = HERO.trustStrip.length;
-                const p = n > 1 ? i / (n - 1) : 0; // 0, .25, .5, .75, 1
-                const w = 0.04;
-                const lo = Math.max(0, p - w);
-                const hi = Math.min(1, p + w);
-                return (
+              <div className="relative z-10 flex flex-wrap gap-2 sm:flex-nowrap">
+                {HERO.trustStrip.map((item) => (
                   <motion.span
                     key={item}
                     data-design-motion="trait-bubble"
-                    className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400"
-                    animate={
-                      reduce
-                        ? undefined
-                        : {
-                            scale: [1, 1, 1.14, 1, 1],
-                            color: ['#94a3b8', '#94a3b8', '#f1f5f9', '#94a3b8', '#94a3b8'],
-                            textShadow: [
-                              '0 0 0px rgba(199,204,214,0)',
-                              '0 0 0px rgba(199,204,214,0)',
-                              '0 0 14px rgba(199,204,214,0.85)',
-                              '0 0 0px rgba(199,204,214,0)',
-                              '0 0 0px rgba(199,204,214,0)',
-                            ],
-                          }
-                    }
-                    transition={
-                      reduce
-                        ? undefined
-                        : { duration: TRAIT_LOOP, times: [0, lo, p, hi, 1], ease: 'easeInOut', repeat: Infinity }
-                    }
+                    className="shrink-0 rounded-full border border-white/[0.06] bg-[rgba(10,14,23,0.72)] px-3 py-1 text-xs font-medium text-slate-400"
                   >
                     {item}
                   </motion.span>
-                );
-              })}
+                ))}
+              </div>
             </div>
           </div>
         </div>
