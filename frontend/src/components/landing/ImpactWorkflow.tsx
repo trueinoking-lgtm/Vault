@@ -1,12 +1,12 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { WORKFLOW_4 } from '@/lib/landing/impact-copy';
+import { WORKFLOW } from '@/lib/landing/impact-copy';
 import { EASE } from '@/lib/landing/motion-config';
 import MotionSection from './motion/MotionSection';
 
 export default function ImpactWorkflow() {
-  const w = WORKFLOW_4;
+  const w = WORKFLOW;
   const reduce = useReducedMotion();
 
   return (
@@ -24,12 +24,7 @@ export default function ImpactWorkflow() {
           <p className="mt-5 text-base leading-relaxed text-[var(--text-secondary)]">{w.subheading}</p>
         </div>
 
-        <ol className="relative mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* Connecting progress path (desktop) */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-0 right-0 top-[28px] hidden h-px bg-gradient-to-r from-[var(--gold)]/10 via-[var(--gold)]/50 to-[var(--teal)]/15 lg:block"
-          />
+        <ol className="relative mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {w.steps.map((step, i) => (
             <motion.li
               key={step.number}
