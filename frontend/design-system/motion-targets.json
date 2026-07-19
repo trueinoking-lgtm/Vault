@@ -37,6 +37,18 @@
       "sampleIntervalMs": 200,
       "requireTransformChange": false,
       "reducedMotion": "none"
+    },
+    {
+      "id": "trait-comet",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='trait-traveler']",
+      "kind": "ambient",
+      "animationName": "trait-comet",
+      "minDurationMs": 4000,
+      "iterationCount": "infinite",
+      "sampleIntervalMs": 250,
+      "requireTransformChange": false,
+      "reducedMotion": "none"
     }
   ]
 }

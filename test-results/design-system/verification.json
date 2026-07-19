@@ -1,0 +1,668 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-19T16:30:06.736Z",
+  "inputs": {
+    "baseUrl": "http://127.0.0.1:3100",
+    "routes": [
+      "/impact-intelligence"
+    ],
+    "manifest": "/root/vault-open-notebook/frontend/design-system/motion-targets.json",
+    "outputDir": "/root/vault-open-notebook/test-results/design-system"
+  },
+  "screenshots": [
+    {
+      "route": "/impact-intelligence",
+      "viewport": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "path": "/root/vault-open-notebook/test-results/design-system/impact-intelligence-desktop.png",
+      "passed": true
+    },
+    {
+      "route": "/impact-intelligence",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "path": "/root/vault-open-notebook/test-results/design-system/impact-intelligence-mobile.png",
+      "passed": true
+    }
+  ],
+  "targets": [
+    {
+      "id": "hero-signature-graphic",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='hero-signature-graphic']",
+      "expected": {
+        "id": "hero-signature-graphic",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='hero-signature-graphic']",
+        "kind": "ambient",
+        "animationName": "graphic-pulse",
+        "opacity": {
+          "min": 0.55,
+          "max": 0.8
+        },
+        "minDurationMs": 1000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": true,
+        "reducedMotion": "none"
+      },
+      "mode": "no-preference",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "graphic-pulse",
+        "animationDuration": "5s",
+        "animationIterationCount": "infinite",
+        "opacity": "0.576403",
+        "transform": "matrix(1.0037, 0, 0, 1.0037, 0, 0)",
+        "reducedMotionMediaMatches": false
+      },
+      "t1": {
+        "animationName": "graphic-pulse",
+        "animationDuration": "5s",
+        "animationIterationCount": "infinite",
+        "opacity": "0.605636",
+        "transform": "matrix(1.00779, 0, 0, 1.00779, 0, 0)",
+        "reducedMotionMediaMatches": false
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": false,
+          "actual": false,
+          "staleBuild": false
+        },
+        {
+          "name": "animation name",
+          "pass": true,
+          "expected": "graphic-pulse",
+          "actual": "graphic-pulse",
+          "staleBuild": false
+        },
+        {
+          "name": "opacity range",
+          "pass": true,
+          "expected": {
+            "min": 0.55,
+            "max": 0.8
+          },
+          "actual": 0.576403,
+          "staleBuild": false
+        },
+        {
+          "name": "minimum animation duration",
+          "pass": true,
+          "expected": ">= 1000ms",
+          "actual": "5s",
+          "staleBuild": false
+        },
+        {
+          "name": "iteration count",
+          "pass": true,
+          "expected": "infinite",
+          "actual": "infinite",
+          "staleBuild": false
+        },
+        {
+          "name": "transform travel",
+          "pass": true,
+          "expected": "transform changes",
+          "actual": "matrix(1.0037, 0, 0, 1.0037, 0, 0) -> matrix(1.00779, 0, 0, 1.00779, 0, 0)",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "hero-dust",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='hero-dust']",
+      "expected": {
+        "id": "hero-dust",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='hero-dust']",
+        "kind": "ambient",
+        "animationName": "impact-dust-rise",
+        "minDurationMs": 1000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": true,
+        "reducedMotion": "none"
+      },
+      "mode": "no-preference",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "impact-dust-rise",
+        "animationDuration": "24s",
+        "animationIterationCount": "infinite",
+        "opacity": "0.14",
+        "transform": "matrix(1, 0, 0, 1, 0.272208, 70.0269)",
+        "reducedMotionMediaMatches": false
+      },
+      "t1": {
+        "animationName": "impact-dust-rise",
+        "animationDuration": "24s",
+        "animationIterationCount": "infinite",
+        "opacity": "0.14",
+        "transform": "matrix(1, 0, 0, 1, 0.366675, 56.8488)",
+        "reducedMotionMediaMatches": false
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": false,
+          "actual": false,
+          "staleBuild": false
+        },
+        {
+          "name": "animation name",
+          "pass": true,
+          "expected": "impact-dust-rise",
+          "actual": "impact-dust-rise",
+          "staleBuild": false
+        },
+        {
+          "name": "minimum animation duration",
+          "pass": true,
+          "expected": ">= 1000ms",
+          "actual": "24s",
+          "staleBuild": false
+        },
+        {
+          "name": "iteration count",
+          "pass": true,
+          "expected": "infinite",
+          "actual": "infinite",
+          "staleBuild": false
+        },
+        {
+          "name": "transform travel",
+          "pass": true,
+          "expected": "transform changes",
+          "actual": "matrix(1, 0, 0, 1, 0.272208, 70.0269) -> matrix(1, 0, 0, 1, 0.366675, 56.8488)",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "node-glow",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='node-glow']",
+      "expected": {
+        "id": "node-glow",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='node-glow']",
+        "kind": "loop",
+        "animationName": "node-glow",
+        "minDurationMs": 500,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 200,
+        "requireTransformChange": false,
+        "reducedMotion": "none"
+      },
+      "mode": "no-preference",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "node-glow",
+        "animationDuration": "2.8s",
+        "animationIterationCount": "infinite",
+        "opacity": "0.964424",
+        "transform": "none",
+        "reducedMotionMediaMatches": false
+      },
+      "t1": {
+        "animationName": "node-glow",
+        "animationDuration": "2.8s",
+        "animationIterationCount": "infinite",
+        "opacity": "0.999851",
+        "transform": "none",
+        "reducedMotionMediaMatches": false
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": false,
+          "actual": false,
+          "staleBuild": false
+        },
+        {
+          "name": "animation name",
+          "pass": true,
+          "expected": "node-glow",
+          "actual": "node-glow",
+          "staleBuild": false
+        },
+        {
+          "name": "minimum animation duration",
+          "pass": true,
+          "expected": ">= 500ms",
+          "actual": "2.8s",
+          "staleBuild": false
+        },
+        {
+          "name": "iteration count",
+          "pass": true,
+          "expected": "infinite",
+          "actual": "infinite",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "trait-comet",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='trait-traveler']",
+      "expected": {
+        "id": "trait-comet",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='trait-traveler']",
+        "kind": "ambient",
+        "animationName": "trait-comet",
+        "minDurationMs": 4000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": false,
+        "reducedMotion": "none"
+      },
+      "mode": "no-preference",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "trait-comet",
+        "animationDuration": "4.5s",
+        "animationIterationCount": "infinite",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, -0.5)",
+        "reducedMotionMediaMatches": false
+      },
+      "t1": {
+        "animationName": "trait-comet",
+        "animationDuration": "4.5s",
+        "animationIterationCount": "infinite",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, -0.5)",
+        "reducedMotionMediaMatches": false
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": false,
+          "actual": false,
+          "staleBuild": false
+        },
+        {
+          "name": "animation name",
+          "pass": true,
+          "expected": "trait-comet",
+          "actual": "trait-comet",
+          "staleBuild": false
+        },
+        {
+          "name": "minimum animation duration",
+          "pass": true,
+          "expected": ">= 4000ms",
+          "actual": "4.5s",
+          "staleBuild": false
+        },
+        {
+          "name": "iteration count",
+          "pass": true,
+          "expected": "infinite",
+          "actual": "infinite",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "hero-signature-graphic",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='hero-signature-graphic']",
+      "expected": {
+        "id": "hero-signature-graphic",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='hero-signature-graphic']",
+        "kind": "ambient",
+        "animationName": "graphic-pulse",
+        "opacity": {
+          "min": 0.55,
+          "max": 0.8
+        },
+        "minDurationMs": 1000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": true,
+        "reducedMotion": "none"
+      },
+      "mode": "reduce",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0.65",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "t1": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0.65",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": true,
+          "actual": true,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced animation name",
+          "pass": true,
+          "expected": "none",
+          "actual": "none",
+          "staleBuild": false
+        },
+        {
+          "name": "no infinite reduced iteration",
+          "pass": true,
+          "expected": "not infinite",
+          "actual": "1",
+          "staleBuild": false
+        },
+        {
+          "name": "no reduced transform change",
+          "pass": true,
+          "expected": "unchanged transform",
+          "actual": "none -> none",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "hero-dust",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='hero-dust']",
+      "expected": {
+        "id": "hero-dust",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='hero-dust']",
+        "kind": "ambient",
+        "animationName": "impact-dust-rise",
+        "minDurationMs": 1000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": true,
+        "reducedMotion": "none"
+      },
+      "mode": "reduce",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0.14",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "t1": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0.14",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": true,
+          "actual": true,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced animation name",
+          "pass": true,
+          "expected": "none",
+          "actual": "none",
+          "staleBuild": false
+        },
+        {
+          "name": "no infinite reduced iteration",
+          "pass": true,
+          "expected": "not infinite",
+          "actual": "1",
+          "staleBuild": false
+        },
+        {
+          "name": "no reduced transform change",
+          "pass": true,
+          "expected": "unchanged transform",
+          "actual": "none -> none",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "node-glow",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='node-glow']",
+      "expected": {
+        "id": "node-glow",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='node-glow']",
+        "kind": "loop",
+        "animationName": "node-glow",
+        "minDurationMs": 500,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 200,
+        "requireTransformChange": false,
+        "reducedMotion": "none"
+      },
+      "mode": "reduce",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0.75",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "t1": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0.75",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": true,
+          "actual": true,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced animation name",
+          "pass": true,
+          "expected": "none",
+          "actual": "none",
+          "staleBuild": false
+        },
+        {
+          "name": "no infinite reduced iteration",
+          "pass": true,
+          "expected": "not infinite",
+          "actual": "1",
+          "staleBuild": false
+        },
+        {
+          "name": "no reduced transform change",
+          "pass": true,
+          "expected": "unchanged transform",
+          "actual": "none -> none",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "trait-comet",
+      "route": "/impact-intelligence",
+      "selector": "[data-design-motion='trait-traveler']",
+      "expected": {
+        "id": "trait-comet",
+        "route": "/impact-intelligence",
+        "selector": "[data-design-motion='trait-traveler']",
+        "kind": "ambient",
+        "animationName": "trait-comet",
+        "minDurationMs": 4000,
+        "iterationCount": "infinite",
+        "sampleIntervalMs": 250,
+        "requireTransformChange": false,
+        "reducedMotion": "none"
+      },
+      "mode": "reduce",
+      "present": true,
+      "matchCount": 1,
+      "t0": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "t1": {
+        "animationName": "none",
+        "animationDuration": "0s",
+        "animationIterationCount": "1",
+        "opacity": "0",
+        "transform": "none",
+        "reducedMotionMediaMatches": true
+      },
+      "assertions": [
+        {
+          "name": "unique element",
+          "pass": true,
+          "expected": 1,
+          "actual": 1,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced-motion media query",
+          "pass": true,
+          "expected": true,
+          "actual": true,
+          "staleBuild": false
+        },
+        {
+          "name": "reduced animation name",
+          "pass": true,
+          "expected": "none",
+          "actual": "none",
+          "staleBuild": false
+        },
+        {
+          "name": "no infinite reduced iteration",
+          "pass": true,
+          "expected": "not infinite",
+          "actual": "1",
+          "staleBuild": false
+        },
+        {
+          "name": "no reduced transform change",
+          "pass": true,
+          "expected": "unchanged transform",
+          "actual": "none -> none",
+          "staleBuild": false
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "staleBuildSuspicions": 0,
+    "success": true
+  },
+  "groundTruth": "Computed styles decide motion assertions; screenshots never override them."
+}

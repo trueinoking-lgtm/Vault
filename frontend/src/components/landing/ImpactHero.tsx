@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { HERO, SITE } from '@/lib/landing/impact-copy';
 import { ArrowRight } from 'lucide-react';
@@ -9,14 +9,54 @@ import HeroSignatureGraphic from './HeroSignatureGraphic';
 import MagneticButton from './MagneticButton';
 import TypewriterHeadline from './TypewriterHeadline';
 
-const TRAIT_LOOP = 5.6; // seconds for one subtle sweep across the trait row
-const SILVER = '#C7CCD6';
+const TRAIT_LOOP = 4.5;
 
 export default function ImpactHero() {
   const [mounted, setMounted] = useState(false);
+  const [traitPositions, setTraitPositions] = useState<number[]>([]);
+  const traitRowRef = useRef<HTMLDivElement>(null);
+  const traitRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const reduce = useReducedMotion();
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    const row = traitRowRef.current;
+    if (!row) return;
+
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const rowRect = row.getBoundingClientRect();
+        if (rowRect.width === 0) return;
+
+        setTraitPositions(
+          traitRefs.current.map((pill) => {
+            if (!pill) return 0;
+            const pillRect = pill.getBoundingClientRect();
+            const center = pillRect.left + pillRect.width / 2;
+            return Math.min(1, Math.max(0, (center - rowRect.left) / rowRect.width));
+          }),
+        );
+      });
+    };
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    traitRefs.current.forEach((pill) => pill && observer.observe(pill));
+    window.addEventListener('resize', measure);
+    document.fonts?.ready.then(measure);
+    document.fonts?.addEventListener('loadingdone', measure);
+    measure();
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+      document.fonts?.removeEventListener('loadingdone', measure);
+    };
+  }, []);
 
   return (
     <section
@@ -75,35 +115,72 @@ export default function ImpactHero() {
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
-            <div className="relative w-full sm:w-max">
-              {/* At sm+, the single-row pills share this midpoint with the silver rule. */}
-              {!reduce && (
+            <div ref={traitRowRef} className="relative w-full sm:w-max">
+              <div
+                aria-hidden="true"
+                data-design-motion="trait-line"
+                className="pointer-events-none absolute inset-x-0 top-1/2 z-0 hidden h-px -translate-y-1/2 bg-[rgba(199,204,214,0.18)] sm:block"
+              >
                 <div
-                  aria-hidden="true"
-                  data-design-motion="trait-line"
-                  className="pointer-events-none absolute inset-x-0 top-1/2 z-0 hidden h-px -translate-y-1/2 bg-[rgba(199,204,214,0.22)] sm:block"
-                >
-                  <motion.div
-                    data-design-motion="trait-traveler"
-                    className="absolute left-0 top-1/2 h-px w-[18%] -translate-y-1/2 rounded-full"
-                    style={{ background: SILVER, boxShadow: '0 0 6px rgba(199,204,214,0.4)', opacity: 0.55 }}
-                    initial={{ x: '0%' }}
-                    animate={{ x: ['0%', '455.55%'] }}
-                    transition={{ duration: TRAIT_LOOP, ease: 'linear', repeat: Infinity }}
-                  />
-                </div>
-              )}
+                  data-design-motion="trait-traveler"
+                  className="trait-comet-traveler"
+                />
+              </div>
 
               <div className="relative z-10 flex flex-wrap gap-2 sm:flex-nowrap">
-                {HERO.trustStrip.map((item) => (
-                  <motion.span
-                    key={item}
-                    data-design-motion="trait-bubble"
-                    className="shrink-0 rounded-full border border-white/[0.06] bg-[rgba(10,14,23,0.72)] px-3 py-1 text-xs font-medium text-slate-400"
-                  >
-                    {item}
-                  </motion.span>
-                ))}
+                {HERO.trustStrip.map((item, index) => {
+                  const position = traitPositions[index];
+                  const low = position === undefined ? 0 : Math.max(0, position - 0.08);
+                  const high = position === undefined ? 1 : Math.min(1, position + 0.08);
+
+                  return (
+                    <motion.span
+                      key={item}
+                      ref={(node) => {
+                        traitRefs.current[index] = node;
+                      }}
+                      data-design-motion="trait-bubble"
+                      className="shrink-0 rounded-full border border-white/[0.06] bg-[rgba(10,14,23,0.72)] px-3 py-1 text-xs font-medium text-[var(--text-secondary)]"
+                      animate={
+                        !reduce && position !== undefined
+                          ? {
+                              scale: [1, 1, 1.045, 1, 1],
+                              color: [
+                                'var(--text-secondary)',
+                                'var(--text-secondary)',
+                                '#f1f5f9',
+                                'var(--text-secondary)',
+                                'var(--text-secondary)',
+                              ],
+                              boxShadow: [
+                                '0 0 0 rgba(199,204,214,0)',
+                                '0 0 0 rgba(199,204,214,0)',
+                                '0 0 22px rgba(199,204,214,0.45)',
+                                '0 0 0 rgba(199,204,214,0)',
+                                '0 0 0 rgba(199,204,214,0)',
+                              ],
+                            }
+                          : {
+                              scale: 1,
+                              color: 'var(--text-secondary)',
+                              boxShadow: '0 0 0 rgba(199,204,214,0)',
+                            }
+                      }
+                      transition={
+                        !reduce && position !== undefined
+                          ? {
+                              duration: TRAIT_LOOP,
+                              ease: 'easeInOut',
+                              repeat: Infinity,
+                              times: [0, low, position, high, 1],
+                            }
+                          : { duration: 0 }
+                      }
+                    >
+                      {item}
+                    </motion.span>
+                  );
+                })}
               </div>
             </div>
           </div>
