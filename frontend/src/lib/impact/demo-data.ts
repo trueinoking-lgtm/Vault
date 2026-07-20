@@ -119,7 +119,7 @@ export const SEEDED_SCHOOLS: ImpactSchoolListResponse = {
     },
     {
       id: IDS.schools[1],
-      name: 'Mbare Community High',
+      name: 'Aether Academy',
       district: 'Harare Metro',
       province: 'Harare',
       school_type: 'secondary',
@@ -129,7 +129,7 @@ export const SEEDED_SCHOOLS: ImpactSchoolListResponse = {
     },
     {
       id: IDS.schools[2],
-      name: 'Chitungwiza Learning Centre',
+      name: 'Hivemind High',
       district: 'Chitungwiza',
       province: 'Harare',
       school_type: 'secondary',
@@ -555,7 +555,7 @@ const SCHOOL_DASHBOARDS: Record<string, SchoolDashboard> = {
   },
   [IDS.schools[1]]: {
     school_id: IDS.schools[1],
-    school_name: 'Mbare Community High',
+    school_name: 'Aether Academy',
     total_classes: 2,
     total_learners: getLearnerCountBySchool(IDS.schools[1]),
     total_learners_assessed: 29,
@@ -583,7 +583,7 @@ const SCHOOL_DASHBOARDS: Record<string, SchoolDashboard> = {
   },
   [IDS.schools[2]]: {
     school_id: IDS.schools[2],
-    school_name: 'Chitungwiza Learning Centre',
+    school_name: 'Hivemind High',
     total_classes: 2,
     total_learners: getLearnerCountBySchool(IDS.schools[2]),
     total_learners_assessed: 31,
@@ -799,7 +799,7 @@ export const SEEDED_MINISTRY_DASHBOARD: MinistryDashboard = {
   ],
   schools_needing_support: [
     { school_id: IDS.schools[0], school_name: 'Pilot School', pass_rate: 50, total_assessments: 2 },
-    { school_id: IDS.schools[1], school_name: 'Mbare Community High', pass_rate: 57, total_assessments: 2 },
+    { school_id: IDS.schools[1], school_name: 'Aether Academy', pass_rate: 57, total_assessments: 2 },
   ],
   classes_needing_support: [
     { class_id: IDS.classes[1], class_name: 'Form 1B', school_id: IDS.schools[0], pass_rate: 42, total_learners: 30 },
