@@ -25,7 +25,7 @@ export default function SchoolOverviewPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="School overview" title={school.name} description={`${[school.district, school.province].filter(Boolean).join(', ')} · Evidence from ${dashboard.total_assessments} seeded assessments.`} breadcrumbs={[{ label: 'Schools', href: '/impact/schools' }, { label: school.name }]} actions={<><SecondaryAction href={`/impact/schools/${id}/report`}><Download aria-hidden="true" className="h-4 w-4" />View report</SecondaryAction><PrimaryAction href={classes[0] ? getClassRoute(classes[0].id) : '/impact/classes'}>Open a class</PrimaryAction></>} />
+      <PageHeader eyebrow="School overview" title={school.name} description={`${[school.district, school.province].filter(Boolean).join(', ')} · Evidence from ${dashboard.total_assessments} seeded assessments.`} breadcrumbs={[{ label: 'Schools', href: '/impact?tab=schools' }, { label: school.name }]} actions={<><SecondaryAction href={`/impact/schools/${id}/report`}><Download aria-hidden="true" className="h-4 w-4" />View report</SecondaryAction><PrimaryAction href={classes[0] ? getClassRoute(classes[0].id) : '/impact?tab=classes'}>Open a class</PrimaryAction></>} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard label="Classes" value={dashboard.total_classes} detail="Active class groups" icon={GraduationCap} />
@@ -57,7 +57,7 @@ export default function SchoolOverviewPage({ params }: { params: Promise<{ id: s
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <SectionCard title="Active interventions" description="Deterministic support actions requiring teacher verification." action={<SecondaryAction href="/impact/interventions">View all interventions</SecondaryAction>}>
+        <SectionCard title="Active interventions" description="Deterministic support actions requiring teacher verification." action={<SecondaryAction href="/impact?tab=interventions">View all interventions</SecondaryAction>}>
           <div className="space-y-3">{interventions.filter((item) => item.status !== 'completed').slice(0, 4).map((item) => <div key={item.id} className="rounded-xl border border-[var(--border-subtle)] p-4"><div className="flex items-start justify-between gap-3"><Target aria-hidden="true" className="mt-0.5 h-4 w-4 text-[var(--accent-primary)]" /><div className="flex-1"><p className="text-sm font-bold text-[var(--text-primary)]">{item.recommendation}</p><p className="mt-1 text-xs text-[var(--text-secondary)]">{item.status.replace('_', ' ')} · teacher verification required</p></div></div></div>)}</div>
         </SectionCard>
         <SectionCard title="Recent assessments" description="Open the evidence source behind school-level indicators.">

@@ -1,6 +1,8 @@
 <svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HiveMind Intelligence">
   <!-- HiveMind mark: hexagonal honeycomb cluster (1 center + 6 surrounding cells) -->
   <g stroke="#C9A227" stroke-width="2.5" stroke-linejoin="round">
+    <animateTransform attributeName="transform" attributeType="XML" type="rotate"
+      from="0 120 120" to="360 120 120" dur="6s" repeatCount="indefinite" additive="sum"/>
     <!-- Surrounding cells (navy-blue) -->
     <polygon points="165,94 187.5,107 187.5,133 165,146 142.5,133 142.5,107" fill="#16243F"/>
     <polygon points="75,94 97.5,107 97.5,133 75,146 52.5,133 52.5,107" fill="#16243F"/>

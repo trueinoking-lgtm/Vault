@@ -65,7 +65,7 @@ export default function AssessmentReportPage({
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="text-center">
           <h2 className="mb-4 text-2xl font-bold text-[var(--text-primary)]">Report not found</h2>
-          <Link href="/impact/assessments" className="text-[var(--accent-primary)] hover:text-[var(--accent-primary)]">
+          <Link href="/impact?tab=assessments" className="text-[var(--accent-primary)] hover:text-[var(--accent-primary)]">
             ← Back to assessments
           </Link>
         </div>
@@ -96,7 +96,7 @@ export default function AssessmentReportPage({
 
       <div className="max-w-6xl mx-auto px-4 py-12 print-container">
         {/* Header - No print controls */}
-        <div className="no-print"><PageHeader eyebrow="Assessment evidence" title="Assessment Report" description={assessment.title} breadcrumbs={[{ label: 'Assessments', href: '/impact/assessments' }, { label: assessment.title, href: `/impact/assessments/${id}` }, { label: 'Report' }]} actions={<><Button type="button" variant="outline" onClick={handleExportMarksCsv}>Export Marks CSV</Button><Button type="button" variant="outline" onClick={handleExportAnalyticsCsv}>Export Analytics CSV</Button><Button type="button" onClick={handlePrint}>Print Report</Button></>} /></div>
+        <div className="no-print"><PageHeader eyebrow="Assessment evidence" title="Assessment Report" description={assessment.title} breadcrumbs={[{ label: 'Assessments', href: '/impact?tab=assessments' }, { label: assessment.title, href: `/impact/assessments/${id}` }, { label: 'Report' }]} actions={<><Button type="button" variant="outline" onClick={handleExportMarksCsv}>Export Marks CSV</Button><Button type="button" variant="outline" onClick={handleExportAnalyticsCsv}>Export Analytics CSV</Button><Button type="button" onClick={handlePrint}>Print Report</Button></>} /></div>
 
         {/* Report Header */}
         <div className="border-b-2 border-[var(--border-subtle)] pb-4 mb-8">

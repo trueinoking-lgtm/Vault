@@ -7,32 +7,12 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { PILOT_DISCLOSURE } from '@/lib/impact/pilot-contract'
-import { HIVEMIND_NAV_ITEMS } from '@/lib/impact/product-navigation'
-
-function isRouteActive(pathname: string, href: string) {
-  return href === '/impact' ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
-}
 
 function Brand({ expanded = false }: { expanded?: boolean }) {
   return <a href="/impact" aria-label="HiveMind Intelligence home" className="flex items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]">
     <span className="grid size-11 shrink-0 place-items-center rounded-xl"><img src="/hivemind-mark.svg" alt="" width={36} height={36} className="h-9 w-9 object-contain" /></span>
     {expanded && <span><span className="block text-sm font-semibold text-[var(--text-primary)]">HiveMind Intelligence</span><span className="block text-[10px] text-[var(--text-secondary)]">Powered by ZimLearnGraph</span></span>}
   </a>
-}
-
-function ProductNavigation({ pathname, expanded = false, onNavigate }: { pathname: string; expanded?: boolean; onNavigate?: () => void }) {
-  const reduce = useReducedMotion()
-  return <nav aria-label="HiveMind Intelligence primary navigation" className="flex flex-col gap-4">
-    {HIVEMIND_NAV_ITEMS.map(item => {
-      const active = isRouteActive(pathname, item.href); const Icon = item.icon
-      return <a key={item.href} href={item.href} onClick={onNavigate} aria-current={active ? 'page' : undefined} aria-label={item.label} title={item.label}
-        className={`group relative flex h-11 items-center rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] ${expanded ? 'gap-3 px-3' : 'w-11 justify-center'} ${active ? 'text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-raised)] hover:text-[var(--text-primary)]'}`}>
-        {active && <motion.span layoutId={expanded ? 'mobile-active-nav' : 'active-nav'} transition={reduce ? { duration: 0 } : { duration: .22 }} className="absolute inset-0 rounded-xl bg-[var(--accent-primary)]" />}
-        <Icon aria-hidden className="relative z-10 size-5" strokeWidth={1.8} />
-        {expanded && <span className="relative z-10 text-sm font-medium">{item.label}</span>}
-      </a>
-    })}
-  </nav>
 }
 
 type Theme = 'dark' | 'light'
@@ -91,11 +71,11 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
         <button onClick={dismissDisclosure} aria-label="Dismiss demonstration disclosure" className="grid size-7 shrink-0 place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
       </div>}
       <header className="flex h-[72px] items-center justify-between border-b border-[var(--border-subtle)] px-4 sm:px-6">
-        <div className="flex items-center gap-3"><div className="lg:hidden"><Dialog open={mobileOpen} onOpenChange={setMobileOpen}><DialogTrigger asChild><Button variant="outline" size="icon" aria-label="Open product navigation" className="border-[var(--border-subtle)] bg-[var(--bg-surface-raised)] text-[var(--text-primary)]"><Menu /></Button></DialogTrigger><DialogContent id="mobile-product-navigation" aria-label="Product navigation" showCloseButton={false} className="impact-app left-0 top-0 flex h-dvh w-[min(88vw,360px)] max-w-none translate-x-0 translate-y-0 flex-col rounded-none border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 text-[var(--text-primary)]"><DialogHeader className="flex-row items-center justify-between"><DialogTitle className="sr-only">Product navigation</DialogTitle><DialogDescription className="sr-only">Navigate HiveMind Intelligence products</DialogDescription><Brand expanded /><DialogClose asChild><Button variant="outline" size="icon" aria-label="Close product navigation" className="border-[var(--border-subtle)] bg-transparent"><X /></Button></DialogClose></DialogHeader><div className="mt-8"><ProductNavigation pathname={pathname} expanded onNavigate={() => setMobileOpen(false)} /></div><p className="mt-auto text-xs text-[var(--text-secondary)]">Assessment and learning intelligence for schools.<br />Powered by ZimLearnGraph</p></DialogContent></Dialog></div><Brand expanded /></div>
+        <div className="flex items-center gap-3"><div className="lg:hidden"><Dialog open={mobileOpen} onOpenChange={setMobileOpen}><DialogTrigger asChild><Button variant="outline" size="icon" aria-label="Open product navigation" className="border-[var(--border-subtle)] bg-[var(--bg-surface-raised)] text-[var(--text-primary)]"><Menu /></Button></DialogTrigger><DialogContent id="mobile-product-navigation" aria-label="Product navigation" showCloseButton={false} className="impact-app left-0 top-0 flex h-dvh w-[min(88vw,360px)] max-w-none translate-x-0 translate-y-0 flex-col rounded-none border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 text-[var(--text-primary)]"><DialogHeader className="flex-row items-center justify-between"><DialogTitle className="sr-only">Product navigation</DialogTitle><DialogDescription className="sr-only">Navigate HiveMind Intelligence products</DialogDescription><Brand expanded /><DialogClose asChild><Button variant="outline" size="icon" aria-label="Close product navigation" className="border-[var(--border-subtle)] bg-transparent"><X /></Button></DialogClose></DialogHeader><p className="mt-8 text-xs text-[var(--text-secondary)]">Assessment and learning intelligence for schools.<br />Powered by ZimLearnGraph</p></DialogContent></Dialog></div><Brand expanded /></div>
         <TopActions theme={theme} onThemeToggle={toggleTheme} />
       </header>
       <div className="flex min-h-[calc(100vh-160px)]">
-        <aside className="hidden w-[72px] shrink-0 flex-col items-center border-r border-[var(--border-subtle)] py-6 lg:flex"><ProductNavigation pathname={pathname} /><a href="/" aria-label="Log out" title="Log out" className="mt-auto grid size-11 place-items-center rounded-xl text-[var(--accent-danger)] hover:bg-[var(--accent-danger)]/10"><LogOut className="size-5" strokeWidth={1.8} /></a></aside>
+        <aside className="hidden w-[72px] shrink-0 flex-col items-center border-r border-[var(--border-subtle)] py-6 lg:flex"><a href="/" aria-label="Log out" title="Log out" className="mt-auto grid size-11 place-items-center rounded-xl text-[var(--accent-danger)] hover:bg-[var(--accent-danger)]/10"><LogOut className="size-5" strokeWidth={1.8} /></a></aside>
         <main id="hm-main" className="min-w-0 flex-1 overflow-x-hidden bg-[var(--bg-page)] p-4 sm:p-6 lg:p-8"><p className="sr-only">Assessment and learning intelligence for schools.</p>{children}</main>
       </div>
     </div>

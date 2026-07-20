@@ -7,7 +7,7 @@ import { getClassRoute } from '@/lib/impact/product-navigation'
 
 const CLASS_RATES: Record<string, number> = { 'class-pilot-1a': 50, 'class-pilot-1b': 42, 'class-mbare-1a': 55, 'class-mbare-2a': 60, 'class-chit-1c': 60, 'class-chit-2b': 66 }
 
-export default function ClassesPage() {
+export default function ClassesPanel() {
   const classesQuery = useImpactClassGroups()
   const schoolsQuery = useImpactSchools()
   const assessmentsQuery = useImpactAssessments()

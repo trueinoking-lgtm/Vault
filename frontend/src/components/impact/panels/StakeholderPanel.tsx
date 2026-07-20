@@ -3,7 +3,7 @@ import { MetricCard, PageHeader, ProgressBar, SectionCard, StatusBadge } from '@
 import { getCanonicalDemoStats, getSeededSchoolDashboard, SEEDED_SCHOOLS } from '@/lib/impact/demo-data'
 import { STAKEHOLDER_DEMO_DISCLOSURE } from '@/lib/impact/product-navigation'
 
-export default function StakeholderDemoPage() {
+export default function StakeholderPanel() {
   const stats = getCanonicalDemoStats()
   return <div className="space-y-6"><PageHeader eyebrow="Stakeholder demonstration" title="Aggregated school intelligence" description="A structured view of how school leaders and programme stakeholders could review learning evidence while retaining source context and limitations." />
     <div className="rounded-xl border border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/10 p-5" role="note"><div className="flex items-start gap-3"><ShieldCheck aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent-primary)]" /><div><h2 className="text-sm font-black text-[var(--accent-primary)]">Illustrative presentation only</h2><p className="mt-1 text-sm leading-6 text-[var(--accent-primary)]">{STAKEHOLDER_DEMO_DISCLOSURE}</p></div></div></div>

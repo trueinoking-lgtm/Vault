@@ -5,7 +5,7 @@ import { PageHeader, PrimaryAction, ProductState, StatusBadge } from '@/componen
 import { useImpactAssessments, useImpactClassGroups, useImpactLearners, useImpactSchools } from '@/lib/hooks/use-impact'
 import { getSeededAssessmentAnalytics, getSeededQuestions, SEEDED_SUBJECTS } from '@/lib/impact/demo-data'
 
-export default function AssessmentsPage() {
+export default function AssessmentsPanel() {
   const assessmentsQuery = useImpactAssessments()
   const schoolsQuery = useImpactSchools()
   const classesQuery = useImpactClassGroups()

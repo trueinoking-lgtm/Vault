@@ -6,7 +6,7 @@ import { useImpactAssessments, useImpactClassGroups, useImpactLearners, useImpac
 import { getSeededSchoolDashboard } from '@/lib/impact/demo-data'
 import { getSchoolRoute } from '@/lib/impact/product-navigation'
 
-export default function SchoolsPage() {
+export default function SchoolsPanel() {
   const schoolsQuery = useImpactSchools()
   const classesQuery = useImpactClassGroups()
   const learnersQuery = useImpactLearners()

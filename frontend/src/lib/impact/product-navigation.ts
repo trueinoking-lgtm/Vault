@@ -26,6 +26,18 @@ export const HIVEMIND_NAV_ITEMS: ProductNavigationItem[] = [
   { label: 'Stakeholder Demo', href: '/impact/stakeholder-demo', icon: Presentation, description: 'Illustrative aggregate intelligence' },
 ]
 
+export type ImpactTabId = 'overview' | 'schools' | 'classes' | 'assessments' | 'interventions' | 'reports' | 'stakeholder'
+
+export const IMPACT_TABS: { id: ImpactTabId; label: string; icon: LucideIcon }[] = [
+  { id: 'overview', label: 'Overview', icon: BarChart3 },
+  { id: 'schools', label: 'Schools', icon: Building2 },
+  { id: 'classes', label: 'Classes', icon: GraduationCap },
+  { id: 'assessments', label: 'Assessments', icon: ClipboardCheck },
+  { id: 'interventions', label: 'Interventions', icon: Target },
+  { id: 'reports', label: 'Reports', icon: FileText },
+  { id: 'stakeholder', label: 'Stakeholder Demo', icon: Presentation },
+]
+
 export const OVERVIEW_WORKFLOW = [
   { step: 1, label: 'Select a school', description: 'Choose one of the three seeded schools.', href: '/impact/schools' },
   { step: 2, label: 'Review classes', description: 'See teachers, cohorts and recent assessment status.', href: '/impact/classes' },

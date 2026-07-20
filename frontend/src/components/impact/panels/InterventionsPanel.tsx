@@ -5,7 +5,7 @@ import { PageHeader, ProductState, StatusBadge } from '@/components/impact/Produ
 import { useImpactAssessments, useImpactClassGroups, useImpactInterventions, useImpactSchools } from '@/lib/hooks/use-impact'
 import { SEEDED_TOPICS } from '@/lib/impact/demo-data'
 
-export default function InterventionsPage() {
+export default function InterventionsPanel() {
   const interventionsQuery = useImpactInterventions()
   const assessmentsQuery = useImpactAssessments()
   const classesQuery = useImpactClassGroups()
