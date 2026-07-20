@@ -13,6 +13,8 @@ import {
 import { EASE } from '@/lib/landing/motion-config';
 import MotionSection from './motion/MotionSection';
 
+const SCHOOL_PHOTOS = ['/school-pilot.jpg', '/school-mbare.jpg', '/school-chitungwiza.jpg'];
+
 const SCHOOL_SUMMARIES = SEEDED_SCHOOLS.schools.map((school, illustrationIndex) => {
   const classes = SEEDED_CLASSES.class_groups.filter((classGroup) => classGroup.school_id === school.id);
   const dashboard = getSeededSchoolDashboard(school.id);
@@ -25,33 +27,6 @@ const SCHOOL_SUMMARIES = SEEDED_SCHOOLS.schools.map((school, illustrationIndex) 
     status: getSeededSchoolReport(school.id)?.data_quality.status ?? 'unknown',
   };
 });
-
-const BUILDINGS = [
-  <g key="pilot">
-    <path d="M43 128V72l67-35 67 35v56M30 128h160M62 128V82h96v46M91 128V94h38v34" />
-    <path d="M51 68h118M76 79v13m68-13v13M101 54h18" stroke="var(--teal)" />
-  </g>,
-  <g key="mbare">
-    <path d="M28 128h164M39 128V67h142v61M31 67h158L166 43H54L31 67ZM60 128V82h29v46m42 0V82h29v46" />
-    <path d="M100 128V91h20v37M54 56h112M72 76v-9m38 9v-9m38 9v-9" stroke="var(--teal)" />
-  </g>,
-  <g key="chitungwiza">
-    <path d="M27 128h166M42 128V77l41-25 38 25v51M121 128V62l28-25 29 25v66M58 128V89h47v39" />
-    <path d="M137 128V76h25v52M121 62h57M70 64l13-22 14 22M149 37V25" stroke="var(--teal)" />
-  </g>,
-];
-
-function SchoolIllustration({ index, name }: { index: number; name: string }) {
-  return (
-    <svg viewBox="0 0 220 150" role="img" aria-label={`Line-art illustration of ${name}`} className="h-full w-full" fill="none">
-      <path d="M18 128h184" stroke="var(--silver)" strokeOpacity=".25" />
-      <g stroke="var(--gold)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        {BUILDINGS[index % BUILDINGS.length]}
-      </g>
-      <circle cx="190" cy="30" r="11" stroke="var(--teal)" strokeWidth="1.5" opacity=".65" />
-    </svg>
-  );
-}
 
 function StatusPill({ status }: { status: string }) {
   const ready = status === 'ready';
@@ -96,11 +71,17 @@ export default function ImpactSchoolDiscovery() {
               >
                 <article className="flex h-full flex-col overflow-hidden rounded-[20px] border border-[var(--border-subtle)] bg-[var(--surface)] transition-all duration-300 group-hover:-translate-y-1 group-hover:border-[var(--gold)]/50 group-hover:shadow-[0_10px_30px_rgba(201,162,39,0.12)] motion-reduce:transform-none motion-reduce:transition-colors">
                   <div className="relative h-[180px] overflow-hidden bg-gradient-to-br from-[#0A0E17] to-[#1A2233] px-7 pt-8">
+                    <img
+                      src={SCHOOL_PHOTOS[index % SCHOOL_PHOTOS.length]}
+                      alt={`Photograph of ${school.name}`}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E17] via-[#0A0E17]/40 to-transparent" />
                     <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-between gap-2">
                       <span className="rounded-full border border-[var(--teal)]/35 bg-[#0A0E17]/85 px-3 py-1.5 text-[11px] font-semibold text-[var(--silver)] backdrop-blur-sm">{school.district}</span>
                       <StatusPill status={school.status} />
                     </div>
-                    <SchoolIllustration index={school.illustrationIndex} name={school.name} />
                   </div>
 
                   <div className="flex flex-1 flex-col p-6">
