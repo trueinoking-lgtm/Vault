@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import ImpactRouteTransition from '@/components/impact/ImpactRouteTransition';
 
 /**
  * Impact Intelligence — Standalone Route Group Layout (server component)
@@ -42,5 +43,5 @@ export default function ImpactRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="min-h-screen">{children}</div>;
+  return <ImpactRouteTransition>{children}</ImpactRouteTransition>;
 }

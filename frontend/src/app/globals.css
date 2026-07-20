@@ -476,6 +476,8 @@ body:has(.impact-app) {
   overflow: auto !important;
   height: auto !important;
   overflow-x: hidden !important;
+  background: var(--bg-page) !important;
+  color-scheme: dark;
 }
 html:has(.impact-app) {
   overflow: auto !important;
