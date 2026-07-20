@@ -9,7 +9,6 @@ import ImpactHero from './ImpactHero';
 import ImpactNav from './ImpactNav';
 import ImpactGovernance from './ImpactGovernance';
 import ImpactSchoolDiscovery from './ImpactSchoolDiscovery';
-import ImpactTeacherCards from './ImpactTeacherCards';
 import ImpactWorkflow from './ImpactWorkflow';
 import LiveDataTicker from './LiveDataTicker';
 
@@ -38,7 +37,6 @@ function LandingInner() {
         <ImpactWorkflow />
         <ImpactGovernance />
         <ImpactSchoolDiscovery />
-        <ImpactTeacherCards />
       </main>
 
       <footer className="relative z-10 border-t border-[var(--border-subtle)] bg-[var(--bg-page)]">
