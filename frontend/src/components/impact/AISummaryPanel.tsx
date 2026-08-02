@@ -37,14 +37,20 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
     intervention: null,
     remedial: null,
   })
+  const [regenerating, setRegenerating] = useState<SummaryType | null>(null)
 
   const generateSummary = useCallback(
-    async (type: SummaryType) => {
-      // Don't regenerate if already cached
-      if (summaries[type]) return
+    async (type: SummaryType, opts?: { force?: boolean }) => {
+      // Don't regenerate if already cached (unless force is set)
+      if (!opts?.force && summaries[type]) return
 
+      setRegenerating(type)
       setLoading((prev) => ({ ...prev, [type]: true }))
       setErrors((prev) => ({ ...prev, [type]: null }))
+      // Clear the cached entry so the loading placeholder shows while regenerating
+      if (opts?.force) {
+        setSummaries((prev) => ({ ...prev, [type]: null }))
+      }
 
       try {
         let result: any
@@ -79,6 +85,7 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
         }))
       } finally {
         setLoading((prev) => ({ ...prev, [type]: false }))
+        setRegenerating(null)
       }
     },
     [assessmentId, summaries]
@@ -92,14 +99,14 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
 
   return (
     <div className="mt-6">
-      <h3 className="text-lg font-semibold text-slate-900 mb-2">AI-Generated Insights</h3>
-      <p className="text-sm text-slate-500 mb-4">
+      <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">AI-Generated Insights</h3>
+      <p className="text-sm text-[var(--text-secondary)] mb-4">
         Generate summaries based on the deterministic analytics above.
         Always refer to the numbers above as the source of truth.
       </p>
 
       {/* Tabs */}
-      <div className="border-b border-slate-200 mb-4">
+      <div className="border-b border-[var(--border-subtle)] mb-4">
         <nav className="flex gap-4">
           {tabs.map((tab) => (
             <button
@@ -107,8 +114,8 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
               onClick={() => setActiveTab(tab.id)}
               className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200'
+                  ? 'border-[var(--accent-primary)] text-[var(--accent-primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-subtle)]'
               }`}
             >
               <span className="mr-2">{tab.icon}</span>
@@ -119,14 +126,15 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
       </div>
 
       {/* Content */}
-      <div className="bg-slate-50 rounded-lg p-4">
+      <div className="bg-[var(--bg-surface-raised)] rounded-lg p-4">
         {activeTab === 'teacher' && (
           <SummaryContent
             type="teacher"
             summary={summaries.teacher}
             isLoading={loading.teacher}
+            isRegenerating={regenerating === 'teacher'}
             error={errors.teacher}
-            onGenerate={() => generateSummary('teacher')}
+            onGenerate={(opts) => generateSummary('teacher', opts)}
           />
         )}
 
@@ -135,8 +143,9 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
             type="intervention"
             summary={summaries.intervention}
             isLoading={loading.intervention}
+            isRegenerating={regenerating === 'intervention'}
             error={errors.intervention}
-            onGenerate={() => generateSummary('intervention')}
+            onGenerate={(opts) => generateSummary('intervention', opts)}
           />
         )}
 
@@ -145,8 +154,9 @@ export function AISummaryPanel({ assessmentId }: AISummaryPanelProps) {
             type="remedial"
             summary={summaries.remedial}
             isLoading={loading.remedial}
+            isRegenerating={regenerating === 'remedial'}
             error={errors.remedial}
-            onGenerate={() => generateSummary('remedial')}
+            onGenerate={(opts) => generateSummary('remedial', opts)}
           />
         )}
       </div>
@@ -162,20 +172,22 @@ function SummaryContent({
   type,
   summary,
   isLoading,
+  isRegenerating,
   error,
   onGenerate,
 }: {
   type: SummaryType
   summary: any
   isLoading: boolean
+  isRegenerating: boolean
   error: string | null
-  onGenerate: () => void
+  onGenerate: (opts?: { force?: boolean }) => void
 }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <LoadingSpinner />
-        <span className="ml-3 text-slate-500">Generating {getSummaryLabel(type)}...</span>
+        <span className="ml-3 text-[var(--text-secondary)]">Generating {getSummaryLabel(type)}...</span>
       </div>
     )
   }
@@ -183,12 +195,12 @@ function SummaryContent({
   if (!summary) {
     return (
       <div className="text-center py-8">
-        <p className="text-slate-500 mb-4">
+        <p className="text-[var(--text-secondary)] mb-4">
           Click the button below to generate a {getSummaryLabel(type).toLowerCase()}.
         </p>
         <button
-          onClick={onGenerate}
-          className="px-4 py-2 bg-blue-600 text-slate-900 rounded-lg hover:bg-blue-700 transition-colors"
+          onClick={() => onGenerate()}
+          className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded-lg hover:bg-[var(--accent-primary)]/90 transition-colors"
         >
           Generate {getSummaryLabel(type)}
         </button>
@@ -199,16 +211,16 @@ function SummaryContent({
   return (
     <div>
       {summary.source === 'fallback' && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-4">
-          <p className="text-sm text-amber-700">
+        <div className="bg-[var(--accent-warning)]/10 border border-[var(--accent-warning)]/30 rounded-lg p-3 mb-4">
+          <p className="text-sm text-[var(--accent-warning)]">
             AI summaries are unavailable. Assessment analytics are still available.
           </p>
         </div>
       )}
 
       {error && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-4">
-          <p className="text-sm text-amber-700">
+        <div className="bg-[var(--accent-warning)]/10 border border-[var(--accent-warning)]/30 rounded-lg p-3 mb-4">
+          <p className="text-sm text-[var(--accent-warning)]">
             AI generation failed. Showing cached or fallback content.
           </p>
         </div>
@@ -217,11 +229,11 @@ function SummaryContent({
       <div className="prose prose-sm max-w-none">
         {type === 'teacher' && (
           <>
-            <div className="whitespace-pre-wrap text-slate-700">{summary.summary}</div>
+            <div className="whitespace-pre-wrap text-[var(--text-primary)]">{summary.summary}</div>
             {summary.revision_sequence && (
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <h4 className="font-medium text-slate-900 mb-2">Suggested Revision Sequence</h4>
-                <div className="whitespace-pre-wrap text-sm text-slate-700">
+              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+                <h4 className="font-medium text-[var(--text-primary)] mb-2">Suggested Revision Sequence</h4>
+                <div className="whitespace-pre-wrap text-sm text-[var(--text-primary)]">
                   {summary.revision_sequence}
                 </div>
               </div>
@@ -230,16 +242,16 @@ function SummaryContent({
         )}
 
         {type === 'intervention' && (
-          <div className="whitespace-pre-wrap text-slate-700">{summary.plan}</div>
+          <div className="whitespace-pre-wrap text-[var(--text-primary)]">{summary.plan}</div>
         )}
 
         {type === 'remedial' && (
           <>
-            <div className="whitespace-pre-wrap text-slate-700">{summary.outline}</div>
+            <div className="whitespace-pre-wrap text-[var(--text-primary)]">{summary.outline}</div>
             {summary.mini_test_idea && (
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <h4 className="font-medium text-slate-900 mb-2">Follow-up Mini-Test Idea</h4>
-                <div className="whitespace-pre-wrap text-sm text-slate-700">
+              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+                <h4 className="font-medium text-[var(--text-primary)] mb-2">Follow-up Mini-Test Idea</h4>
+                <div className="whitespace-pre-wrap text-sm text-[var(--text-primary)]">
                   {summary.mini_test_idea}
                 </div>
               </div>
@@ -249,14 +261,15 @@ function SummaryContent({
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-[var(--text-secondary)]">
           {summary.source === 'ai-generated' ? 'Generated explanation' : 'Fallback content'}
         </div>
         <button
-          onClick={onGenerate}
-          className="text-sm text-blue-600 hover:text-blue-700"
+          onClick={() => onGenerate({ force: true })}
+          disabled={isRegenerating}
+          className="text-sm text-[var(--accent-primary)] hover:text-[var(--accent-primary)]/80 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Regenerate
+          {isRegenerating ? 'Regenerating…' : 'Regenerate'}
         </button>
       </div>
     </div>

@@ -12,20 +12,30 @@ import ReportsPanel from '@/components/impact/panels/ReportsPanel'
 import StakeholderPanel from '@/components/impact/panels/StakeholderPanel'
 
 export default function ImpactTabs() {
-  const [activeTab, setActiveTab] = useState<ImpactTabId>(() => {
-    if (typeof window === 'undefined') return 'overview'
-    const requested = new URLSearchParams(window.location.search).get('tab')
-    return IMPACT_TABS.some((item) => item.id === requested)
-      ? (requested as ImpactTabId)
-      : 'overview'
-  })
+  const [activeTab, setActiveTab] = useState<ImpactTabId>('overview')
   const reduce = useReducedMotion()
+
+  const applyTabFromUrl = () => {
+    const requested = new URLSearchParams(window.location.search).get('tab')
+    setActiveTab(IMPACT_TABS.some((item) => item.id === requested)
+      ? (requested as ImpactTabId)
+      : 'overview')
+  }
+
+  useEffect(() => {
+    applyTabFromUrl()
+    window.addEventListener('popstate', applyTabFromUrl)
+    return () => window.removeEventListener('popstate', applyTabFromUrl)
+  }, [])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
   }, [activeTab, reduce])
 
-  const selectTab = (tab: ImpactTabId) => setActiveTab(tab)
+  const selectTab = (tab: ImpactTabId) => {
+    setActiveTab(tab)
+    window.history.replaceState(null, '', `${window.location.pathname}?tab=${tab}`)
+  }
   const panel = activeTab === 'overview' ? <OverviewPanel onSelectTab={selectTab} />
     : activeTab === 'schools' ? <SchoolsPanel />
       : activeTab === 'classes' ? <ClassesPanel />

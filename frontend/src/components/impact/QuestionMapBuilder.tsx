@@ -85,15 +85,15 @@ export function QuestionMapBuilder({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Questions</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Questions</h2>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             {questions.length} questions · {currentTotal}/{totalMarks} marks assigned
           </p>
         </div>
         <button
           onClick={() => setShowAddForm(true)}
           disabled={remaining <= 0}
-          className="px-4 py-2 bg-blue-600 text-slate-900 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded-lg hover:bg-[var(--accent-primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add question
         </button>
@@ -101,14 +101,14 @@ export function QuestionMapBuilder({
 
       {/* Progress bar */}
       <div className="mb-6">
-        <div className="flex items-center justify-between text-sm text-slate-500 mb-2">
+        <div className="flex items-center justify-between text-sm text-[var(--text-secondary)] mb-2">
           <span>Marks assigned</span>
           <span>{currentTotal} / {totalMarks}</span>
         </div>
-        <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-[var(--bg-surface-raised)] rounded-full overflow-hidden">
           <div
             className={`h-full transition-all ${
-              currentTotal === totalMarks ? 'bg-green-500' : 'bg-blue-500'
+              currentTotal === totalMarks ? 'bg-[var(--accent-success)]' : 'bg-[var(--accent-primary)]'
             }`}
             style={{ width: `${(currentTotal / totalMarks) * 100}%` }}
           />
@@ -118,33 +118,33 @@ export function QuestionMapBuilder({
       {/* Add Form Modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-xl font-semibold text-slate-900 mb-4">Add question</h3>
+          <div className="bg-[var(--bg-surface)] rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Add question</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Question number *
                   </label>
                   <input
                     type="number"
                     value={formData.question_number}
                     onChange={(e) => setFormData({ ...formData, question_number: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
                     placeholder="1"
                     min="1"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Max marks *
                   </label>
                   <input
                     type="number"
                     value={formData.max_marks}
                     onChange={(e) => setFormData({ ...formData, max_marks: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
                     placeholder="10"
                     min="0.5"
                     step="0.5"
@@ -153,25 +153,25 @@ export function QuestionMapBuilder({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Label
                 </label>
                 <input
                   type="text"
                   value={formData.label}
                   onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
                   placeholder="e.g. Multiple Choice"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Topic
                 </label>
                 <select
                   value={formData.topic_id}
                   onChange={(e) => setFormData({ ...formData, topic_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
                 >
                   <option value="">Select topic</option>
                   {topicsData?.topics.map((topic) => (
@@ -181,13 +181,13 @@ export function QuestionMapBuilder({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Skill type
                   </label>
                   <select
                     value={formData.skill_type}
                     onChange={(e) => setFormData({ ...formData, skill_type: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
                   >
                     <option value="knowledge">Knowledge</option>
                     <option value="comprehension">Comprehension</option>
@@ -196,13 +196,13 @@ export function QuestionMapBuilder({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Difficulty
                   </label>
                   <select
                     value={formData.difficulty}
                     onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
                   >
                     <option value="">Select difficulty</option>
                     <option value="easy">Easy</option>
@@ -215,14 +215,14 @@ export function QuestionMapBuilder({
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded-lg hover:bg-[var(--bg-surface-raised)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createQuestion.isPending}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-slate-900 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-[var(--accent-primary)] text-white rounded-lg hover:bg-[var(--accent-primary)]/90 transition-colors disabled:opacity-50"
                 >
                   {createQuestion.isPending ? 'Adding...' : 'Add'}
                 </button>
@@ -234,11 +234,11 @@ export function QuestionMapBuilder({
 
       {/* Questions List */}
       {questions.length === 0 ? (
-        <div className="text-center py-12 bg-slate-50 rounded-lg">
-          <p className="text-slate-500 mb-4">No questions added yet</p>
+        <div className="text-center py-12 bg-[var(--bg-surface-raised)] rounded-lg">
+          <p className="text-[var(--text-secondary)] mb-4">No questions added yet</p>
           <button
             onClick={() => setShowAddForm(true)}
-            className="px-4 py-2 bg-blue-600 text-slate-900 rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded-lg hover:bg-[var(--accent-primary)]/90 transition-colors"
           >
             Add first question
           </button>
@@ -247,43 +247,43 @@ export function QuestionMapBuilder({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Q#</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Label</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Max Marks</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Topic</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Skill</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Difficulty</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-slate-500">Actions</th>
+              <tr className="border-b border-[var(--border-subtle)]">
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">Q#</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">Label</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">Max Marks</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">Topic</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">Skill</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">Difficulty</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-[var(--text-secondary)]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {questions
                 .sort((a, b) => a.question_number - b.question_number)
                 .map((question) => (
-                  <tr key={question.id} className="border-b border-slate-200">
-                    <td className="py-3 px-4 text-sm text-slate-900 font-medium">
+                  <tr key={question.id} className="border-b border-[var(--border-subtle)]">
+                    <td className="py-3 px-4 text-sm text-[var(--text-primary)] font-medium">
                       {question.question_number}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-500">
+                    <td className="py-3 px-4 text-sm text-[var(--text-secondary)]">
                       {question.label || '-'}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-500">
+                    <td className="py-3 px-4 text-sm text-[var(--text-secondary)]">
                       {question.max_marks}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-500">
+                    <td className="py-3 px-4 text-sm text-[var(--text-secondary)]">
                       {topicsData?.topics.find((t) => t.id === question.topic_id)?.name || '-'}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-500 capitalize">
+                    <td className="py-3 px-4 text-sm text-[var(--text-secondary)] capitalize">
                       {question.skill_type}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-500 capitalize">
+                    <td className="py-3 px-4 text-sm text-[var(--text-secondary)] capitalize">
                       {question.difficulty || '-'}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <button
                         onClick={() => handleDelete(question.id)}
-                        className="text-red-600 hover:text-red-700 text-sm"
+                        className="text-[var(--accent-danger)] hover:text-[var(--accent-danger)]/80 text-sm"
                       >
                         Delete
                       </button>

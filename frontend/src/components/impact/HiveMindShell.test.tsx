@@ -6,6 +6,7 @@ const pathname = vi.hoisted(() => ({ value: '/impact/classes' }))
 
 vi.mock('next/navigation', () => ({
   usePathname: () => pathname.value,
+  useSearchParams: () => new URLSearchParams(''),
 }))
 
 vi.mock('next/link', () => ({

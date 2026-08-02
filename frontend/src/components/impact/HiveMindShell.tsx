@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
-import { usePathname } from 'next/navigation'
+import { Suspense, useEffect, useState, type ReactNode } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { Bell, LogOut, Menu, MessageCircle, Moon, Search, ShieldCheck, Sun, UserRound, X } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { IMPACT_TABS, type ImpactTabId } from '@/lib/impact/product-navigation'
 import { PILOT_DISCLOSURE } from '@/lib/impact/pilot-contract'
 
 function Brand({ expanded = false }: { expanded?: boolean }) {
@@ -47,6 +48,33 @@ function TopActions({ theme, onThemeToggle }: { theme: Theme; onThemeToggle: () 
   </div>
 }
 
+type NavigationVariant = 'mobile' | 'rail'
+
+function getCurrentTabId(pathname: string, searchParams: URLSearchParams | null): ImpactTabId {
+  const requested = searchParams?.get('tab')
+  if (requested && IMPACT_TABS.some((tab) => tab.id === requested)) return requested as ImpactTabId
+  if (pathname.startsWith('/impact/schools')) return 'schools'
+  if (pathname.startsWith('/impact/classes')) return 'classes'
+  if (pathname.startsWith('/impact/assessments')) return 'assessments'
+  if (pathname.startsWith('/impact/interventions')) return 'interventions'
+  if (pathname.startsWith('/impact/reports')) return 'reports'
+  return 'overview'
+}
+
+function PrimaryNavigation({ pathname, variant }: { pathname: string; variant: NavigationVariant }) {
+  // useSearchParams is wrapped safely: the shell tests mock next/navigation without it,
+  // and Next.js requires a Suspense boundary around useSearchParams for statically-rendered pages.
+  const searchParams = typeof useSearchParams === 'function' ? useSearchParams() : null
+  const currentTab = getCurrentTabId(pathname, searchParams)
+  const rail = variant === 'rail'
+  return <nav aria-label="HiveMind Intelligence primary navigation" className={rail ? 'flex w-full flex-col items-center gap-1' : 'mt-8 flex flex-col gap-1'}>
+    {IMPACT_TABS.map(({ id, label, icon: Icon }) => {
+      const active = currentTab === id
+      return <a key={id} href={`/impact?tab=${id}`} aria-current={active ? 'page' : undefined} title={rail ? label : undefined} className={rail ? `grid size-11 shrink-0 place-items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] ${active ? 'bg-[var(--accent-primary)] text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-raised)] hover:text-[var(--text-primary)]'}` : `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] ${active ? 'bg-[var(--accent-primary)] text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-raised)] hover:text-[var(--text-primary)]'}`}><Icon aria-hidden className={rail ? 'size-5' : 'size-5 shrink-0'} strokeWidth={1.8} /><span className={rail ? 'sr-only' : ''}>{label}</span></a>
+    })}
+  </nav>
+}
+
 export function HiveMindShell({ children }: { children: ReactNode }) {
   const pathname = usePathname(); const pilotMode = pathname.startsWith('/impact/pilot')
   const [mobileOpen, setMobileOpen] = useState(false); const [disclosureVisible, setDisclosureVisible] = useState(true)
@@ -71,11 +99,11 @@ export function HiveMindShell({ children }: { children: ReactNode }) {
         <button onClick={dismissDisclosure} aria-label="Dismiss demonstration disclosure" className="grid size-7 shrink-0 place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
       </div>}
       <header className="flex h-[72px] items-center justify-between border-b border-[var(--border-subtle)] px-4 sm:px-6">
-        <div className="flex items-center gap-3"><div className="lg:hidden"><Dialog open={mobileOpen} onOpenChange={setMobileOpen}><DialogTrigger asChild><Button variant="outline" size="icon" aria-label="Open product navigation" className="border-[var(--border-subtle)] bg-[var(--bg-surface-raised)] text-[var(--text-primary)]"><Menu /></Button></DialogTrigger><DialogContent id="mobile-product-navigation" aria-label="Product navigation" showCloseButton={false} className="impact-app left-0 top-0 flex h-dvh w-[min(88vw,360px)] max-w-none translate-x-0 translate-y-0 flex-col rounded-none border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 text-[var(--text-primary)]"><DialogHeader className="flex-row items-center justify-between"><DialogTitle className="sr-only">Product navigation</DialogTitle><DialogDescription className="sr-only">Navigate HiveMind Intelligence products</DialogDescription><Brand expanded /><DialogClose asChild><Button variant="outline" size="icon" aria-label="Close product navigation" className="border-[var(--border-subtle)] bg-transparent"><X /></Button></DialogClose></DialogHeader><p className="mt-8 text-xs text-[var(--text-secondary)]">Assessment and learning intelligence for schools.<br />Powered by ZimLearnGraph</p></DialogContent></Dialog></div><Brand expanded /></div>
+        <div className="flex items-center gap-3"><div className="lg:hidden"><Dialog open={mobileOpen} onOpenChange={setMobileOpen}><DialogTrigger asChild><Button variant="outline" size="icon" aria-label="Open product navigation" className="border-[var(--border-subtle)] bg-[var(--bg-surface-raised)] text-[var(--text-primary)]"><Menu /></Button></DialogTrigger><DialogContent id="mobile-product-navigation" aria-label="Product navigation" showCloseButton={false} className="impact-app left-0 top-0 flex h-dvh w-[min(88vw,360px)] max-w-none translate-x-0 translate-y-0 flex-col rounded-none border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 text-[var(--text-primary)]"><DialogHeader className="flex-row items-center justify-between"><DialogTitle className="sr-only">Product navigation</DialogTitle><DialogDescription className="sr-only">Navigate HiveMind Intelligence products</DialogDescription><Brand expanded /><DialogClose asChild><Button variant="outline" size="icon" aria-label="Close product navigation" className="border-[var(--border-subtle)] bg-transparent"><X /></Button></DialogClose></DialogHeader><Suspense fallback={null}><PrimaryNavigation pathname={pathname} variant="mobile" /></Suspense><p className="mt-8 text-xs text-[var(--text-secondary)]">Assessment and learning intelligence for schools.<br />Powered by ZimLearnGraph</p></DialogContent></Dialog></div><Brand expanded /></div>
         <TopActions theme={theme} onThemeToggle={toggleTheme} />
       </header>
       <div className="flex min-h-[calc(100vh-160px)]">
-        <aside className="hidden w-[72px] shrink-0 flex-col items-center border-r border-[var(--border-subtle)] py-6 lg:flex"><a href="/" aria-label="Log out" title="Log out" className="mt-auto grid size-11 place-items-center rounded-xl text-[var(--accent-danger)] hover:bg-[var(--accent-danger)]/10"><LogOut className="size-5" strokeWidth={1.8} /></a></aside>
+        <aside className="hidden w-[72px] shrink-0 flex-col items-center border-r border-[var(--border-subtle)] py-6 lg:flex"><Suspense fallback={null}><PrimaryNavigation pathname={pathname} variant="rail" /></Suspense><a href="/" aria-label="Log out" title="Log out" className="mt-auto grid size-11 place-items-center rounded-xl text-[var(--accent-danger)] hover:bg-[var(--accent-danger)]/10"><LogOut className="size-5" strokeWidth={1.8} /></a></aside>
         <main id="hm-main" className="min-w-0 flex-1 overflow-x-hidden bg-[var(--bg-page)] p-4 sm:p-6 lg:p-8"><p className="sr-only">Assessment and learning intelligence for schools.</p>{children}</main>
       </div>
     </div>

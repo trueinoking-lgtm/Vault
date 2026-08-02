@@ -304,21 +304,21 @@ export function MarkEntryGrid({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Enter Marks</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Enter Marks</h2>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             {learners.length} learners · {questions.length} questions · {getCompletionPercentage()}% complete
           </p>
         </div>
         <div className="flex items-center gap-4">
           {lastSaved && (
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-[var(--text-secondary)]">
               Last saved: {lastSaved.toLocaleTimeString()}
             </span>
           )}
           <button
             onClick={handleSave}
             disabled={!hasChanges || isSaving}
-            className="px-4 py-2 bg-blue-600 text-slate-900 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded-lg hover:bg-[var(--accent-primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving...' : 'Save marks'}
           </button>
@@ -327,14 +327,14 @@ export function MarkEntryGrid({
 
       {/* Progress bar */}
       <div className="mb-6">
-        <div className="flex items-center justify-between text-sm text-slate-500 mb-2">
+        <div className="flex items-center justify-between text-sm text-[var(--text-secondary)] mb-2">
           <span>Marks entered</span>
           <span>{getCompletionPercentage()}%</span>
         </div>
-        <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-[var(--bg-surface-raised)] rounded-full overflow-hidden">
           <div
             className={`h-full transition-all ${
-              getCompletionPercentage() === 100 ? 'bg-green-500' : 'bg-blue-500'
+              getCompletionPercentage() === 100 ? 'bg-[var(--accent-success)]' : 'bg-[var(--accent-primary)]'
             }`}
             style={{ width: `${getCompletionPercentage()}%` }}
           />
@@ -345,20 +345,20 @@ export function MarkEntryGrid({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-slate-50">
-              <th className="sticky left-0 bg-slate-50 text-left py-3 px-4 text-sm font-medium text-slate-500 border-b border-r border-slate-200 min-w-[150px]">
+            <tr className="bg-[var(--bg-surface-raised)]">
+              <th className="sticky left-0 bg-[var(--bg-surface-raised)] text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)] border-b border-r border-[var(--border-subtle)] min-w-[150px]">
                 Learner
               </th>
               {sortedQuestions.map((q) => (
                 <th
                   key={q.id}
-                  className="text-center py-3 px-4 text-sm font-medium text-slate-500 border-b border-r border-slate-200 min-w-[80px]"
+                  className="text-center py-3 px-4 text-sm font-medium text-[var(--text-secondary)] border-b border-r border-[var(--border-subtle)] min-w-[80px]"
                 >
                   <div>Q{q.question_number}</div>
-                  <div className="text-xs text-slate-500 font-normal">/{q.max_marks}</div>
+                  <div className="text-xs text-[var(--text-secondary)] font-normal">/{q.max_marks}</div>
                 </th>
               ))}
-              <th className="text-center py-3 px-4 text-sm font-medium text-slate-500 border-b border-slate-200 min-w-[80px]">
+              <th className="text-center py-3 px-4 text-sm font-medium text-[var(--text-secondary)] border-b border-[var(--border-subtle)] min-w-[80px]">
                 Total
               </th>
             </tr>
@@ -374,11 +374,11 @@ export function MarkEntryGrid({
               return (
                 <tr
                   key={learner.id}
-                  className={`hover:bg-slate-50 ${hasError ? 'bg-red-50' : ''}`}
+                  className={`hover:bg-[var(--bg-surface-raised)] ${hasError ? 'bg-[var(--accent-danger)]/10' : ''}`}
                 >
-                  <td className="sticky left-0 bg-white hover:bg-slate-50 py-3 px-4 text-sm text-slate-900 border-b border-r border-slate-200">
+                  <td className="sticky left-0 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-raised)] py-3 px-4 text-sm text-[var(--text-primary)] border-b border-r border-[var(--border-subtle)]">
                     <div className="font-medium">{learner.display_name || learner.learner_code}</div>
-                    <div className="text-xs text-slate-500">{learner.learner_code}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">{learner.learner_code}</div>
                   </td>
                   {sortedQuestions.map((question, questionIndex) => {
                     const score = getScore(learner.id, question.id)
@@ -388,8 +388,8 @@ export function MarkEntryGrid({
                     return (
                       <td
                         key={question.id}
-                        className={`py-2 px-2 border-b border-r border-slate-200 ${
-                          error ? 'bg-red-50' : ''
+                        className={`py-2 px-2 border-b border-r border-[var(--border-subtle)] ${
+                          error ? 'bg-[var(--accent-danger)]/10' : ''
                         }`}
                       >
                         <input
@@ -403,28 +403,28 @@ export function MarkEntryGrid({
                           min="0"
                           max={question.max_marks}
                           step="0.5"
-                          className={`w-full px-2 py-1 text-center text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          className={`w-full px-2 py-1 text-center text-sm border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] ${
                             error
-                              ? 'border-red-300 bg-red-50'
+                              ? 'border-[var(--accent-danger)]/50 bg-[var(--accent-danger)]/10'
                               : score !== null
-                              ? 'border-slate-200 bg-white'
-                              : 'border-slate-200 bg-slate-50'
+                              ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)]'
+                              : 'border-[var(--border-subtle)] bg-[var(--bg-surface-raised)]'
                           }`}
                           placeholder="-"
                         />
                         {error && (
-                          <p className="text-xs text-red-600 mt-1">{error}</p>
+                          <p className="text-xs text-[var(--accent-danger)] mt-1">{error}</p>
                         )}
                       </td>
                     )
                   })}
                   <td
-                    className={`py-3 px-4 text-center text-sm font-medium border-b border-slate-200 ${
+                    className={`py-3 px-4 text-center text-sm font-medium border-b border-[var(--border-subtle)] ${
                       assessment.pass_mark && rowTotal >= assessment.pass_mark
-                        ? 'text-green-600'
+                        ? 'text-[var(--accent-success)]'
                         : rowTotal > 0
-                        ? 'text-slate-900'
-                        : 'text-slate-500'
+                        ? 'text-[var(--text-primary)]'
+                        : 'text-[var(--text-secondary)]'
                     }`}
                   >
                     {rowTotal}
@@ -437,13 +437,13 @@ export function MarkEntryGrid({
       </div>
 
       {/* Summary */}
-      <div className="mt-6 flex items-center justify-between text-sm text-slate-500">
+      <div className="mt-6 flex items-center justify-between text-sm text-[var(--text-secondary)]">
         <div>
           Total marks entered: {getTotalMarksEntered()} / {assessment.total_marks * learners.length}
         </div>
         <div>
           {errors.size > 0 && (
-            <span className="text-red-600">{errors.size} validation errors</span>
+            <span className="text-[var(--accent-danger)]">{errors.size} validation errors</span>
           )}
         </div>
       </div>

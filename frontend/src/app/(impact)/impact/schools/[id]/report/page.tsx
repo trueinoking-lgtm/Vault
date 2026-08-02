@@ -88,7 +88,7 @@ export default function SchoolReportPage({
 
       <div className="max-w-6xl mx-auto px-4 py-12 print-container">
         {/* Header - No print controls */}
-        <div className="no-print"><PageHeader eyebrow="School evidence" title="School Impact Report" description={school.name} breadcrumbs={[{ label: 'Schools', href: '/impact/schools' }, { label: school.name, href: `/impact/schools/${schoolId}` }, { label: 'Report' }]} actions={<><Button type="button" variant="outline" onClick={handleExportSchoolReportCsv}>Export Report CSV</Button><Button type="button" onClick={handlePrint}>Print Report</Button></>} /></div>
+        <div className="no-print"><PageHeader eyebrow="School evidence" title="School Impact Report" description={school.name} breadcrumbs={[{ label: 'Schools', href: '/impact?tab=schools' }, { label: school.name, href: `/impact/schools/${schoolId}` }, { label: 'Report' }]} actions={<><Button type="button" variant="outline" onClick={handleExportSchoolReportCsv}>Export Report CSV</Button><Button type="button" onClick={handlePrint}>Print Report</Button></>} /></div>
 
         {/* Report Header */}
         <div className="border-b-2 border-[var(--border-subtle)] pb-4 mb-8">
